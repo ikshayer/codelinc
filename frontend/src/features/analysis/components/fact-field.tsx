@@ -103,6 +103,7 @@ export function FactField({ analysisId, path, error, label, className }: FactFie
 
   const invalid = Boolean(error);
   const value = fact?.status === "conflict" ? null : (fact?.value ?? null);
+  const memberOwned = !!analysis.memberData && path.startsWith("plan.") && fact?.evidenceIds.some((id) => analysis.draft.evidence[id]?.sourceId === analysis.memberData?.member.member_id);
 
   return (
     <div id={fieldContainerId(path)} className={cn("scroll-mt-24 py-4", className)}>
@@ -156,7 +157,7 @@ export function FactField({ analysisId, path, error, label, className }: FactFie
       )}
 
       <div className="mt-2">
-        <FieldInput
+        {memberOwned ? <div id={inputId} tabIndex={0} aria-labelledby={`${inputId}-label`}><p className="tabular">{displayFactValue(path, value, procedureLabel)}</p><p className="mt-1 text-xs text-muted-foreground">Stored member plan fact · read only</p></div> : <FieldInput
           kind={definition.kind}
           inputId={inputId}
           labelId={`${inputId}-label`}
@@ -166,7 +167,7 @@ export function FactField({ analysisId, path, error, label, className }: FactFie
           onCommit={commit}
           onCommitText={commitText}
           otherProcedures={analysis.draft.procedureIds.filter((id) => id !== definition.procedureId).map((id) => ({ id, label: procedureLabel(id) }))}
-        />
+        />}
       </div>
 
       {error && (

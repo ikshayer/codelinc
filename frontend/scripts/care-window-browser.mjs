@@ -293,7 +293,10 @@ async function voiceJourney() {
     const name = page.getByLabel("Name", { exact: true });
     await tabTo(page, name);
     await page.keyboard.press("ControlOrMeta+A");
-    await page.keyboard.type("Fictional Alex Browser Test");
+    await page.keyboard.type("Parker Patel");
+    await typeField(page, page.getByLabel("Month", { exact: true }), "08");
+    await typeField(page, page.getByLabel("Day", { exact: true }), "19");
+    await typeField(page, page.getByLabel("Year", { exact: true }), "1974");
     await activate(page, page.getByRole("button", { name: "Continue as guest", exact: true }));
     const firstMethod = page.getByRole("radio").first();
     await tabTo(page, firstMethod);
@@ -425,16 +428,162 @@ async function originalJourney(viewport) {
   }
 }
 
+async function typeField(page, locator, value) {
+  await tabTo(page, locator);
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type(value);
+}
+
+async function memberJourney(viewport, identity, expectedBenefits, mismatchFirst = false) {
+  const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  page.setDefaultTimeout(30000);
+  const observed = watch(page);
+  try {
+    await page.goto(baseURL, { waitUntil: "networkidle" });
+    await activate(page, page.getByRole("link", { name: "Start an analysis", exact: true }));
+    await typeField(page, page.getByLabel("Name", { exact: true }), identity.name);
+    assert.equal(await page.getByLabel(/^Member ID/).count(), 0, "Identity entry must use only name and DOB");
+    assert.equal(await page.locator("summary").filter({ hasText: "More details" }).count(), 0);
+    const [year, month, day] = identity.dateOfBirth.split("-");
+    await typeField(page, page.getByLabel("Month", { exact: true }), month);
+    await typeField(page, page.getByLabel("Day", { exact: true }), mismatchFirst ? String(Number(day) + 1) : day);
+    await typeField(page, page.getByLabel("Year", { exact: true }), year);
+    async function lookup() {
+      await tabTo(page, page.getByRole("button", { name: "Continue as guest", exact: true }));
+      const waiting = page.waitForResponse(response => new URL(response.url()).pathname === "/api/demo/member-lookup" && response.request().method() === "POST");
+      await page.keyboard.press("Enter");
+      const response = await waiting;
+      assert.equal(response.status(), 200);
+      return { request: response.request().postDataJSON(), data: await response.json() };
+    }
+    if (mismatchFirst) {
+      const mismatch = await lookup();
+      assert.deepEqual(mismatch.data, { matched: false }, "Wrong DOB must return the same generic non-match as an unknown ID, with no member or plan");
+      await visibleText(page, "Check both fields and try again");
+      assert.equal(await page.getByRole("region", { name: "Matched member benefits" }).count(), 0);
+      assert.equal(await page.getByRole("heading", { name: "How would you like to start?" }).count(), 0);
+      await typeField(page, page.getByLabel("Day", { exact: true }), day);
+    }
+    const matched = await lookup();
+    assert.equal(matched.request.displayName, identity.name);
+    assert.equal(matched.request.dateOfBirth, identity.dateOfBirth);
+    assert.equal(matched.request.memberId, undefined, "The server resolves member ID from the name/DOB pair");
+    assert.equal(matched.data.member.member_id, identity.memberId);
+    assert.equal(matched.data.member.date_of_birth, identity.dateOfBirth);
+    assert.notEqual(matched.data.member.member_id, "DEMO-ALEX-001");
+    for (const [key, value] of Object.entries(expectedBenefits)) assert.equal(matched.data.member.benefit_state[key], value);
+    await page.getByRole("region", { name: "Matched member benefits" }).waitFor();
+    await visibleText(page, matched.data.member.display_name);
+    await activate(page, page.getByRole("button", { name: "Use sample treatment", exact: true }));
+    await page.waitForURL(/\/analysis\/[^/]+\/confirm$/);
+    await openDisclosure(page, /^Your plan$/);
+    const storedMoney = async path => Number((await page.locator(`#input-${path}`).locator("p").first().innerText()).replace(/[^\d.]/g, "")) * 100;
+    assert.equal(await storedMoney("plan-y1-annualMaximum"), expectedBenefits.annual_maximum_total_cents, "Sample care must retain this member's actual plan limit");
+    assert.equal(await storedMoney("plan-y1-alreadyUsed"), expectedBenefits.plan_paid_ytd_cents, "Sample care must retain this member's settled YTD balance");
+    // Explicit fictional future-use assumptions are separate from imported
+    // settled balances; the fixture contains no future-year member snapshot.
+    await typeField(page, page.locator("#input-plan-y2-alreadyUsed"), "0");
+    await typeField(page, page.locator("#input-plan-y2-deductibleSatisfied"), "0");
+    const unchanged = page.locator("#input-plan-y2-rulesUnchanged");
+    if (await unchanged.getAttribute("aria-pressed") !== "true") await activate(page, unchanged, "Space");
+    await activate(page, page.getByRole("checkbox", { name: "My plan and prescribed care details are correct.", exact: true }), "Space");
+    await activate(page, page.getByRole("checkbox", { name: "The timing options came from my dentist, or are the synthetic sample.", exact: true }), "Space");
+    const baseline = await calculateAction(page, page.getByRole("button", { name: "Compare my options", exact: true }));
+    assert.equal(baseline.request.memberIdentity.dateOfBirth, identity.dateOfBirth);
+    assert.equal(baseline.request.memberIdentity.memberId, identity.memberId, "Calculation must remain tied to the internally resolved member ID");
+    const benefit = baseline.result.memberBenefitContext;
+    assert.equal(benefit.memberId, identity.memberId);
+    assert.equal(benefit.status, identity.memberId === "SYN-MEMBER-0002" ? "CONSERVATIVE" : "READY");
+    assert.equal(benefit.annualMaximumCents, expectedBenefits.annual_maximum_total_cents);
+    assert.equal(benefit.settledPlanPaidCents, expectedBenefits.plan_paid_ytd_cents);
+    assert.equal(benefit.baseRemainingCents, expectedBenefits.annual_maximum_remaining_cents);
+    if (identity.memberId === "SYN-MEMBER-0002") {
+      assert.equal(benefit.pendingProjectedPlanPaymentCents, 9300);
+      assert.equal(benefit.rolloverBankCents, 30000);
+      assert.equal(benefit.baseAvailableAfterPendingCents, 162990);
+      assert.equal(benefit.deductibleRemainingCents, 2500);
+      assert.equal(benefit.estimateKind, "CONSERVATIVE_BASE_ONLY");
+      await visibleText(page, "Conservative estimate");
+      await visibleText(page, "Pending projected plan payment reservation");
+      await visibleText(page, "Base available after pending reservation");
+      await visibleText(page, "Rollover bank");
+    }
+    // Exercise the real server trust boundary with a captured valid request.
+    // Only financial plan facts change; the identity and confirmed care remain.
+    const tampered = structuredClone(baseline.request);
+    tampered.requestId += "-tampered";
+    for (const year of tampered.scenario.plan.years) {
+      year.annualMaximumCents = 9999999;
+      year.deductibleCents = 0;
+      year.utilization.priorInsurerPaymentsCents = 0;
+      year.utilization.priorDeductibleSatisfiedCents = 0;
+      for (const rule of Object.values(year.rules)) { rule.insurerBasisPoints = 10000; rule.deductibleApplies = false; }
+    }
+    const tamperedResponse = await context.request.post(`${baseURL}/api/calculate`, { data: tampered });
+    assert.equal(tamperedResponse.status(), 200, await tamperedResponse.text());
+    const protectedResult = await tamperedResponse.json();
+    assert.deepEqual(protectedResult.memberBenefitContext, benefit);
+    assert.equal(protectedResult.baseline.totalPatientCents, baseline.result.baseline.totalPatientCents, "Edited browser plan facts must not change the authoritative member calculation");
+    assert.equal(protectedResult.baseline.totalInsurerCents, baseline.result.baseline.totalInsurerCents);
+    if (mismatchFirst) {
+      const wrongIdentity = structuredClone(baseline.request);
+      wrongIdentity.memberIdentity.dateOfBirth = `${year}-${month}-${String(Number(day) + 1).padStart(2, "0")}`;
+      const rejected = await context.request.post(`${baseURL}/api/calculate`, { data: wrongIdentity });
+      assert.equal(rejected.status(), 404, "A calculation with a wrong DOB must not fall back to guest or Alex benefits");
+      const rejectedBody = await rejected.json();
+      assert.equal(rejectedBody.error.code, "MEMBER_NOT_FOUND");
+      assert.equal(rejectedBody.baseline, undefined);
+      const unresolvedRequest = structuredClone(baseline.request);
+      unresolvedRequest.memberIdentity = { memberId: "SYN-MEMBER-0002", dateOfBirth: "2018-02-28" };
+      const unresolved = await context.request.post(`${baseURL}/api/calculate`, { data: unresolvedRequest });
+      assert.equal(unresolved.status(), 200, "Approved pending/rollover treatment must return an explicitly conservative estimate");
+      const unresolvedBody = await unresolved.json();
+      assert.equal(unresolvedBody.memberBenefitContext.memberId, "SYN-MEMBER-0002");
+      assert.equal(unresolvedBody.memberBenefitContext.settledPlanPaidCents, 27710);
+      assert.equal(unresolvedBody.memberBenefitContext.pendingProjectedPlanPaymentCents, 9300);
+      assert.equal(unresolvedBody.memberBenefitContext.rolloverBankCents, 30000);
+      assert.equal(unresolvedBody.memberBenefitContext.baseAvailableAfterPendingCents, 162990);
+      assert.equal(unresolvedBody.memberBenefitContext.deductibleRemainingCents, 2500);
+      assert.equal(unresolvedBody.memberBenefitContext.status, "CONSERVATIVE");
+      assert.equal(unresolvedBody.memberBenefitContext.estimateKind, "CONSERVATIVE_BASE_ONLY");
+      assert.equal(unresolvedBody.memberBenefitContext.pendingTreatment, "RESERVED_PROJECTED");
+      assert.equal(unresolvedBody.memberBenefitContext.pendingDeductibleTreatment, "UNCHANGED_CONSERVATIVE");
+      assert.equal(unresolvedBody.memberBenefitContext.rolloverTreatment, "EXCLUDED_UNCONFIRMED");
+      assert.equal(unresolvedBody.baseline.ledgers[0].maximum.usedBeforeCents, 27710);
+      assert.equal(unresolvedBody.baseline.ledgers[0].maximum.reservedBeforeCents, 9300);
+      assert.equal(unresolvedBody.baseline.ledgers[0].procedures[0].maximumBeforeCents, 162990);
+    }
+    const unknownResponse = await context.request.post(`${baseURL}/api/demo/member-lookup`, { data: { ...matched.request, displayName: "Unknown Synthetic Member" } });
+    assert.equal(unknownResponse.status(), 200);
+    assert.deepEqual(await unknownResponse.json(), { matched: false });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await capturePage(page, `${viewport.width}-${identity.memberId}-compare.png`);
+    assert.deepEqual(observed.failures, []);
+    results.push({ member: identity.memberId, viewport, passed: true, memberBenefitContext: benefit, originalFlow: true, submittedPlanOverrideBlocked: true, mismatchBlocked: mismatchFirst, expectedRouteCancellations: observed.cancellations });
+    console.log(`${viewport.width}px ${identity.memberId} lookup and server-owned calculation passed`);
+  } catch (error) {
+    await page.screenshot({ path: resolve(outputDirectory, `${identity.memberId}-failure.png`), fullPage: true });
+    await writeFile(resolve(outputDirectory, `${identity.memberId}-failure.txt`), JSON.stringify({ url: page.url(), failures: observed.failures, text: await page.locator("body").innerText() }, null, 2));
+    throw error;
+  } finally { await context.close(); }
+}
+
 try {
-  if (!process.argv.includes("--states-only") && !process.argv.includes("--voice-only") && !process.argv.includes("--original-only")) {
+  if (!process.argv.includes("--states-only") && !process.argv.includes("--voice-only") && !process.argv.includes("--original-only") && !process.argv.includes("--member-only")) {
     await journey({ width: 1440, height: 1000 });
     await journey({ width: 390, height: 844 });
   }
-  if (!process.argv.includes("--voice-only") && !process.argv.includes("--original-only")) await states();
+  if (!process.argv.includes("--voice-only") && !process.argv.includes("--original-only") && !process.argv.includes("--member-only")) await states();
   if (process.argv.includes("--voice") || process.argv.includes("--voice-only")) await voiceJourney();
   if (process.argv.includes("--original") || process.argv.includes("--original-only")) {
     await originalJourney({ width: 1440, height: 1000 });
     await originalJourney({ width: 390, height: 844 });
+  }
+  if (process.argv.includes("--member") || process.argv.includes("--member-only")) {
+    await memberJourney({ width: 1440, height: 1000 }, { name: "Parker Patel", memberId: "SYN-MEMBER-0021", dateOfBirth: "1974-08-19" }, { annual_maximum_total_cents: 150000, plan_paid_ytd_cents: 13360, annual_maximum_remaining_cents: 136640 }, true);
+    await memberJourney({ width: 390, height: 844 }, { name: "Dakota Bennett", memberId: "SYN-MEMBER-0024", dateOfBirth: "2004-04-19" }, { annual_maximum_total_cents: 100000, plan_paid_ytd_cents: 52320, annual_maximum_remaining_cents: 47680 });
+    await memberJourney({ width: 1440, height: 1000 }, { name: "Parker Irwin", memberId: "SYN-MEMBER-0002", dateOfBirth: "2018-02-28" }, { annual_maximum_total_cents: 200000, plan_paid_ytd_cents: 27710, annual_maximum_remaining_cents: 172290 });
   }
   await writeFile(resolve(outputDirectory, "results.json"), JSON.stringify({ baseURL, results }, null, 2));
   console.log(JSON.stringify({ passed: true, results, outputDirectory }, null, 2));

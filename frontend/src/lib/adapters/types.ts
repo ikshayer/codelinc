@@ -1,5 +1,5 @@
 import type { OverflowItem } from "@/lib/domain/draft";
-import type { AnalysisEngineOptions, AnalysisPlanningContext } from "@analysis/types";
+import type { AnalysisEngineOptions, AnalysisPlanningContext, MemberBenefitContext } from "@analysis/types";
 import type {
   AnalysisSnapshot,
   CalculationSourceMode,
@@ -32,6 +32,7 @@ export type AdapterErrorCode =
   | "NETWORK"
   | "CANCELLED"
   | "CONFLICT"
+  | "NEEDS_CONFIRMATION"
   | "UNKNOWN";
 
 export interface AdapterError {
@@ -39,6 +40,7 @@ export interface AdapterError {
   message: string;
   retryable: boolean;
   fieldPath?: string;
+  memberBenefitContext?: MemberBenefitContext;
 }
 
 export interface EngineEnvelopeMetadata {
@@ -60,6 +62,7 @@ export interface RequestScope {
   revision: number;
   signal: AbortSignal;
   engineOptions?: EngineCalculationOptions;
+  memberIdentity?: { memberId: string; dateOfBirth: string };
 }
 
 /** Proposals plus their evidence, as returned by PDF, voice or typed intake. */
@@ -167,7 +170,7 @@ export type EngineCalculationOptions = AnalysisEngineOptions;
 export type PlanningContext = AnalysisPlanningContext;
 
 export type CalculationOutcome =
-  | { kind: "calculated"; comparison: ScenarioComparison; sourceMode: CalculationSourceMode; fixtureName: string | null; planning?: PlanningContext }
+  | { kind: "calculated"; comparison: ScenarioComparison; sourceMode: CalculationSourceMode; fixtureName: string | null; planning?: PlanningContext; memberBenefitContext?: MemberBenefitContext }
   /** No engine and no fixture for these values. Honest, not an error. */
   | { kind: "unavailable"; message: string };
 

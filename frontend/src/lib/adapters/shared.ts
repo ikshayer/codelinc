@@ -1,4 +1,5 @@
 import type { AdapterError, AdapterErrorCode, AdapterResult } from "./types";
+import type { MemberBenefitContext } from "@analysis/types";
 
 // Shared transport helpers for live adapters and timing helpers for mocks.
 
@@ -12,7 +13,7 @@ export function isAbortError(error: unknown): boolean {
 
 const ERROR_CODES: readonly AdapterErrorCode[] = [
   "UNAVAILABLE", "UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "TOO_LARGE", "UNSUPPORTED_TYPE", "ENCRYPTED", "UNREADABLE",
-  "TOO_MANY_PAGES", "INVALID", "RATE_LIMITED", "TIMEOUT", "NETWORK", "CANCELLED", "CONFLICT", "UNKNOWN",
+  "TOO_MANY_PAGES", "INVALID", "RATE_LIMITED", "TIMEOUT", "NETWORK", "CANCELLED", "CONFLICT", "NEEDS_CONFIRMATION", "UNKNOWN",
 ];
 
 function statusDefaults(status: number, service: string): [AdapterErrorCode, string, boolean] {
@@ -55,7 +56,9 @@ export function errorFromHttp(status: number, body: unknown, service = "service"
   const [code, message, retryable] = statusDefaults(status, service);
   // The engine reports field problems as error.issues[].field; surface the first as fieldPath.
   const fieldPath = envelope?.fieldPath ?? envelope?.issues?.find((i) => i.field)?.field ?? undefined;
-  return normalizeIssue(envelope && { ...envelope, fieldPath }, adapterError(code, message, retryable));
+  const error = normalizeIssue(envelope && { ...envelope, fieldPath }, adapterError(code, message, retryable));
+  const context = body && typeof body === "object" ? (body as { memberBenefitContext?: MemberBenefitContext }).memberBenefitContext : undefined;
+  return context ? { ...error, memberBenefitContext: context } : error;
 }
 
 /**

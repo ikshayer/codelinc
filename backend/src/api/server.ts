@@ -10,7 +10,8 @@ import type { ApiResponseLike } from "@/domain/ports";
 import { closeDatabase, getDatabase, migrateDatabase, MongoCareWindowRepository, type CareWindowRepository } from "@/db";
 import { errorResponse, requestIdFrom } from "./index";
 import { createRuntimeHandlers } from "./runtime";
-import { calculateRequest } from "./calculate";
+import { calculateRequestWithMember } from "./calculate";
+import { lookupMongoMember } from "./mongo-demo";
 
 let repository: CareWindowRepository | null = null;
 
@@ -59,7 +60,7 @@ async function handle(req: http.IncomingMessage, headers: Record<string, string>
       return [route.id, errorResponse("INVALID_REQUEST", "Request body is not valid JSON.", requestId)];
     }
   }
-  if (route.id === "calculate") return [route.id, calculateRequest(body)];
+  if (route.id === "calculate") return [route.id, await calculateRequestWithMember(body, (identity) => lookupMongoMember(getDatabase(), identity))];
   return [route.id, await handlers[route.id]({ method: route.method, body, headers })];
 }
 

@@ -116,6 +116,8 @@ export interface DeductibleState {
 export interface AnnualMaximumState {
   totalCents: Cents;
   usedBeforeCents: Cents;
+  /** A separate projected pending-claim reservation; excludes settled payments. */
+  reservedBeforeCents?: Cents;
   remainingCents: Cents;
   consumedInScheduleCents: Cents;
 }
@@ -312,6 +314,8 @@ export interface PatientDetails {
   fullName?: string;
   /** ISO date; optional for the benefits demo and never sent to calculation. */
   dateOfBirth?: string;
+  /** Optional synthetic lookup ID; matched with DOB before member facts are imported. */
+  memberId?: string;
   /** Optional guest contact. Separate from any Google account email. */
   contactEmail?: string;
 }

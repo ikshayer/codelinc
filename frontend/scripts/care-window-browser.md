@@ -1,5 +1,7 @@
 # CareWindow browser acceptance gate
 
+Add `--member` to include the original required name and date-of-birth lookup, or `--member-only` to run it separately. It verifies a wrong DOB and an unknown name return the same non-match with no member data; distinct fresh synthetic members retain their actual plan limits and settled balances through sample care and comparison. The gate submits an edited copy of the real calculation request to prove that browser-supplied benefit limits and coverage rules cannot override server facts. Future utilization is explicitly confirmed as a fictional zero-use assumption. A third real member completes the UI with an explicitly conservative estimate: projected pending payments remain a separate reserve, the stored deductible remains unchanged, and an unresolved rollover bank is excluded from modeled payments.
+
 Start the deterministic backend (`npm run serve` in `backend`) on port 4000 and the frontend (`npm run dev` in `frontend`) on port 3000. The frontend must point `CAREWINDOW_ENGINE_URL` at that backend, and the backend must allow the frontend origin through `ALLOWED_ORIGINS`.
 
 With Playwright and its Chromium browser installed, run from `frontend`:

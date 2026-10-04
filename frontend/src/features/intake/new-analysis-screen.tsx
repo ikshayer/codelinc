@@ -2,7 +2,6 @@
 
 import { CheckIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -19,6 +18,11 @@ import { cn } from "@/lib/utils";
 import type { PatientDetails } from "@/lib/domain/types";
 import { IdentityForm } from "./identity-form";
 import { IntakeMethodPicker } from "./intake-method-picker";
+import { lookupMember, type MemberData } from "@/lib/adapters/live/member-data";
+import { useEngineCall } from "@/features/care-window/parts";
+import { ErrorPanel } from "@/components/shared/feedback";
+import { Spinner } from "@/components/ui/spinner";
+import { MemberBenefitSummary } from "./member-benefit-summary";
 
 function parseMethod(value: string | null): IntakeMethod | null {
   return value === "pdf" || value === "voice" || value === "manual" ? value : null;
@@ -36,15 +40,24 @@ export function NewAnalysisScreen() {
   const [formSeed, setFormSeed] = useState<{ key: string; initial: PatientDetails | null }>({ key: "profile", initial: state.profile });
   const [method, setMethod] = useState<IntakeMethod | null>(parseMethod(searchParams.get("method")));
   const [methodError, setMethodError] = useState(false);
+  const [matchedMember, setMatchedMember] = useState<MemberData | null>(null);
+  const [lookup, runLookup] = useEngineCall<MemberData>();
   const signedIn = state.auth.status === "signedIn";
 
-  function savePatient(details: PatientDetails) {
+  async function savePatient(details: PatientDetails) {
+    setMatchedMember(null);
+    if (!details.dateOfBirth) return;
+    const member = await runLookup((signal) => lookupMember({ memberId: details.memberId!, dateOfBirth: details.dateOfBirth! }, signal));
+    if (!member) return;
+    setMatchedMember(member);
+    const accepted = { ...details, memberId: member.member.member_id, displayName: member.member.display_name, fullName: member.member.display_name };
     controller.setProfile({
       id: state.profile?.id ?? "patient",
-      ...details,
+      ...accepted,
       accountEmail: state.auth.status === "signedIn" ? (state.auth.account.email ?? undefined) : undefined,
     });
-    setPatient(details);
+    setFormSeed({ key: "accepted", initial: accepted });
+    setPatient(accepted);
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0 });
       document.getElementById("new-analysis-progress")?.focus({ preventScroll: true });
@@ -58,7 +71,7 @@ export function NewAnalysisScreen() {
       document.getElementById(`method-pdf`)?.focus();
       return;
     }
-    const id = controller.createAnalysis(patient);
+    const id = controller.createAnalysis(patient, undefined, matchedMember ?? undefined);
     controller.setMethod(id, method);
     router.push(`/analysis/${id}/intake?method=${method}`);
   }
@@ -67,7 +80,7 @@ export function NewAnalysisScreen() {
     return (
       <SetupLayout step={1}>
         <NewAnalysisProgress step={1} />
-        <PageHeader title="Who is this analysis for?" description="Start with a name. Everything else is optional." className="mb-6 md:mb-8" />
+        <PageHeader title="Who is this analysis for?" description="Enter the member ID and date of birth to load their synthetic benefit record." className="mb-6 md:mb-8" />
         {demo && (
           <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             <Button variant="link" className="px-0" onClick={() => setFormSeed({ key: `demo-${Date.now()}`, initial: SAMPLE_PROFILE })}>
@@ -78,20 +91,16 @@ export function NewAnalysisScreen() {
             </Button>
           </div>
         )}
-        <IdentityForm
+        <div id="member-lookup-form"><IdentityForm
           key={formSeed.key}
           initial={formSeed.initial}
-          submitLabel={signedIn ? "Continue" : "Continue as guest"}
+          submitLabel="Continue"
           onSubmit={savePatient}
           compact
-          secondary={
-            !signedIn && (
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <Link href="/sign-in?callbackUrl=/analysis/new">Continue with Google</Link>
-              </Button>
-            )
-          }
-        />
+          busy={lookup.status === "loading"}
+        /></div>
+        {lookup.status === "loading" && <p role="status" className="mt-4 flex items-center gap-2 text-sm"><Spinner />Looking up this synthetic member’s benefits…</p>}
+        {lookup.status === "error" && <div className="mt-4"><ErrorPanel title="Member lookup did not match or could not finish" error={lookup.error} onRetry={() => document.getElementById("member-lookup-form")?.querySelector("form")?.requestSubmit()} /></div>}
         <p className="mt-4 text-sm text-muted-foreground">{demo ? "Use fictional details only. " : ""}{!signedIn && "You can continue without an account. Guest work lasts for this session."}</p>
       </SetupLayout>
     );
@@ -111,6 +120,7 @@ export function NewAnalysisScreen() {
           Edit details
         </Button>
       </div>
+      {matchedMember && <div className="mb-6"><MemberBenefitSummary data={matchedMember} /></div>}
       <h2 id="method-heading" tabIndex={-1} className="mb-3 text-lg font-semibold outline-none">
         Choose how to describe your treatment
       </h2>
@@ -135,7 +145,8 @@ export function NewAnalysisScreen() {
           variant="link"
           className="px-0"
           onClick={() => {
-            const id = controller.startSampleAnalysis(patient);
+            const id = matchedMember ? controller.createAnalysis(patient, "Sample treatment", matchedMember) : controller.startSampleAnalysis(patient);
+            if (matchedMember) { controller.setMethod(id, "manual"); controller.loadSample(id); }
             router.push(`/analysis/${id}/confirm`);
           }}
         >
@@ -147,7 +158,7 @@ export function NewAnalysisScreen() {
 }
 
 const PROMISES = [
-  ["Only a name is required", "Date of birth and email are optional and never enter the estimate."],
+  ["Start with member ID and date of birth", "Both must match the synthetic member record to load the correct benefits."],
   ["You review every fact", "Reports and conversations only propose values. Nothing counts until you confirm it."],
   ["Your dentist sets the dates", "We only compare timing your dentist has already approved."],
 ] as const;

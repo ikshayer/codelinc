@@ -1,4 +1,6 @@
 import type { AdapterError, AuthState, CalculationOutcome, PlanningContext, IntakeExtraction } from "@/lib/adapters/types";
+import { memberBenefitsExtraction, type MemberData } from "@/lib/adapters/live/member-data";
+import type { MemberBenefitContext } from "@analysis/types";
 import {
   addProcedure,
   applyProposals,
@@ -46,6 +48,7 @@ export type ResultState =
       fixtureName: string | null;
       confirmedAt: string;
       planning?: PlanningContext;
+      memberBenefitContext?: MemberBenefitContext;
     }
   | { status: "unavailable"; revision: number; message: string }
   | { status: "failed"; revision: number; error: AdapterError };
@@ -94,6 +97,7 @@ export interface AnalysisRecord {
   reportFile: ReportFileMeta | null;
   voiceTurns: Record<string, TranscriptTurn[]>;
   saved: SavedReference | null;
+  memberData?: MemberData;
 }
 
 export type AuthUiState = { status: "loading" } | AuthState;
@@ -107,7 +111,7 @@ export interface StoreState {
 }
 
 export type Action =
-  | { type: "createAnalysis"; id: string; title: string; patient: PatientDetails | null; now: string }
+  | { type: "createAnalysis"; id: string; title: string; patient: PatientDetails | null; now: string; memberData?: MemberData }
   | { type: "setPatient"; analysisId: string; patient: PatientDetails; now: string }
   | { type: "setMethod"; analysisId: string; method: IntakeMethod }
   | { type: "renameAnalysis"; analysisId: string; title: string; now: string }
@@ -207,8 +211,9 @@ function mergeExtraction(record: AnalysisRecord, extraction: IntakeExtraction, n
     ...item,
     reviewNotes: [...new Set([...(item.reviewNotes ?? []), ...extraction.reviewNotes.filter((note) => note.evidenceId === item.id).map((note) => note.message)])],
   }));
-  const draft = applyProposals(record.draft, extraction.proposals, evidence, extraction.overflow);
-  return withDraftChange(record, draft, now, extraction.proposals.map((p) => p.fieldPath));
+  const proposals = record.memberData ? extraction.proposals.filter((p) => !p.fieldPath.startsWith("plan.")) : extraction.proposals;
+  const draft = applyProposals(record.draft, proposals, evidence, extraction.overflow);
+  return withDraftChange(record, draft, now, proposals.map((p) => p.fieldPath));
 }
 
 function updateAnalysis(state: StoreState, analysisId: string, update: (record: AnalysisRecord) => AnalysisRecord): StoreState {
@@ -224,8 +229,11 @@ function isActive(record: AnalysisRecord, key: RequestKey, requestId: string): b
 
 export function reducer(state: StoreState, action: Action): StoreState {
   switch (action.type) {
-    case "createAnalysis":
-      return { ...state, analyses: { ...state.analyses, [action.id]: newAnalysisRecord(action.id, action.title, action.patient, action.now) } };
+    case "createAnalysis": {
+      let record = newAnalysisRecord(action.id, action.title, action.patient, action.now);
+      if (action.memberData) record = { ...mergeExtraction(record, memberBenefitsExtraction(action.memberData), action.now), memberData: action.memberData };
+      return { ...state, analyses: { ...state.analyses, [action.id]: record } };
+    }
 
     case "setPatient":
       return updateAnalysis(state, action.analysisId, (r) => ({ ...r, patient: action.patient, updatedAt: action.now }));
@@ -366,6 +374,7 @@ export function reducer(state: StoreState, action: Action): StoreState {
             sourceMode: outcome.value.sourceMode,
             fixtureName: outcome.value.fixtureName,
             ...(outcome.value.planning ? { planning: outcome.value.planning } : {}),
+            ...(outcome.value.memberBenefitContext ? { memberBenefitContext: outcome.value.memberBenefitContext } : {}),
             confirmedAt: action.now,
           };
         }
@@ -391,10 +400,10 @@ export function reducer(state: StoreState, action: Action): StoreState {
     }
 
     case "clearDraft":
-      return updateAnalysis(state, action.analysisId, (r) => ({
-        ...newAnalysisRecord(r.id, r.title, r.patient, r.createdAt),
-        updatedAt: action.now,
-      }));
+      return updateAnalysis(state, action.analysisId, (r) => {
+        const cleared = { ...newAnalysisRecord(r.id, r.title, r.patient, r.createdAt), updatedAt: action.now };
+        return r.memberData ? { ...mergeExtraction(cleared, memberBenefitsExtraction(r.memberData), action.now), memberData: r.memberData } : cleared;
+      });
 
     case "setProfile":
       return { ...state, profile: action.profile };
