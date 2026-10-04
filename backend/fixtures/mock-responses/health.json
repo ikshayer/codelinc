@@ -1,13 +1,15 @@
 {
-  "contract_version": "1.5.0",
+  "contract_version": "1.6.0",
   "ok": true,
   "data": {
-    "contract_version": "1.5.0",
+    "contract_version": "1.6.0",
     "ai_mode": "synthetic",
     "registry_version": "mock",
     "plan_version_ids": [
+      "nwd-ppo-enhanced-2026",
       "nwd-ppo-standard-2026",
-      "nwd-ppo-standard-2027"
+      "nwd-ppo-standard-2027",
+      "nwd-ppo-value-2026"
     ]
   },
   "meta": {

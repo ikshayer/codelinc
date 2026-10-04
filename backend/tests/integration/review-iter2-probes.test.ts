@@ -72,15 +72,17 @@ describe("review iter2 bank cap and forfeit", () => {
 });
 
 describe("review iter2 ranged settled amount (ROLL-008 / EDU-004)", () => {
-  it("FINDING M-1: a plan_paid_ytd range straddling $500 is reported as a definitive NOT_EARNED in worst_case", () => {
+  it("FINDING M-1 (fixed in 2b): a plan_paid_ytd range straddling $500 is UNCERTAIN with a range in every scenario", () => {
     const m = member({ ytd: { kind: "range", low_cents: 45000, high_cents: 55000 }, remaining: 100000 });
     const worst = out2026(sim([ev()], m, "worst_case"));
     const best = out2026(sim([ev()], m, "best_case"));
-    // Documents actual behavior: each scenario resolves the range to one end, so neither outcome is UNCERTAIN.
-    expect(worst.status).toBe("NOT_EARNED");
-    expect(worst.qualifying_plan_paid).toEqual({ low_cents: 55000, high_cents: 55000 });
-    expect(best.status).toBe("CONDITIONAL");
-    expect(worst.issues.map((i) => i.code)).not.toContain("ROLLOVER_UNCERTAIN");
+    // Before 2b each scenario resolved the range to one end (worst NOT_EARNED {55000,55000}, best CONDITIONAL).
+    expect(worst.status).toBe("UNCERTAIN");
+    expect(worst.settled_plan_paid).toEqual({ low_cents: 45000, high_cents: 55000 });
+    expect(worst.qualifying_plan_paid).toEqual({ low_cents: 45000, high_cents: 55000 });
+    expect(worst.final_bank).toEqual({ low_cents: 0, high_cents: 25000 });
+    expect(worst.issues.map((i) => i.code)).toContain("ROLLOVER_UNCERTAIN");
+    expect(best).toEqual(worst);
   });
 });
 
@@ -116,7 +118,7 @@ describe("review iter2 care plan never ranks on rollover and the shift sentence"
     expect(near(registry())).toEqual(near(na));
   });
 
-  it("FINDING L-1: a negative shift delta makes the template explanation itself fail validation", async () => {
+  it("FINDING L-1 (fixed in 2b): a negative shift delta is stated as a saving and the template explanation validates", async () => {
     // Test-only registry: 2027 deductible 0 and basic in-network 85%, so moving the filling lowers member cost.
     const reg = structuredClone(registry());
     const plan27 = reg.plans.find((p) => p.plan_version_id === PV2027)!;
@@ -136,9 +138,9 @@ describe("review iter2 care plan never ranks on rollover and the shift sentence"
     );
     const expl = await createAiAdapters({ mode: "synthetic" }).templateExplainer.explain(input);
     const v = validateExplanation(expl, input);
-    expect([expl.summary, ...expl.claims.map((c) => c.text)].join("\n")).toContain("changes your estimated cost by $9");
-    expect(v.ok).toBe(false);
-    expect(v.violations.map((x) => x.code)).toContain("DOLLAR_AMOUNT_NOT_IN_RESULT");
+    // Before 2b: "changes your estimated cost by $9" and validation failed with DOLLAR_AMOUNT_NOT_IN_RESULT.
+    expect([expl.summary, ...expl.claims.map((c) => c.text)].join("\n")).toContain("lowers your estimated cost by $9");
+    expect(v).toEqual({ ok: true, violations: [] });
   });
 });
 

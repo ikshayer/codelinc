@@ -1,0 +1,248 @@
+{
+  "contract_version": "1.6.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.6.0",
+    "as_of": "2026-10-15T09:00:00-04:00",
+    "member_plan_version_id": "nwd-ppo-standard-2026",
+    "options": [
+      {
+        "plan_version_id": "nwd-ppo-enhanced-2026",
+        "plan_id": "nwd-ppo-enhanced",
+        "plan_option_id": "ppo-enhanced",
+        "plan_name": "PPO Enhanced",
+        "plan_type": "DPPO",
+        "coverage_period_start": "2026-01-01",
+        "coverage_period_end": "2026-12-31",
+        "is_member_plan": false,
+        "adjudication_supported": true,
+        "items": [
+          {
+            "item_id": "premium.employee_only",
+            "label": "Monthly premium: employee only",
+            "value_cents": 3160,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "premium.enhanced.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "coverage.in_network.basic",
+            "label": "Basic",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": 9000,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "plan_share.in_network.basic.enhanced.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.deductible",
+            "label": "Deductible",
+            "value_cents": 5000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "deductible.enhanced.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.annual_maximum",
+            "label": "Annual maximum",
+            "value_cents": 250000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "annual_maximum.enhanced.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          }
+        ]
+      },
+      {
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "plan_id": "nwd-ppo-standard",
+        "plan_option_id": "ppo-standard",
+        "plan_name": "PPO Standard",
+        "plan_type": "DPPO",
+        "coverage_period_start": "2026-01-01",
+        "coverage_period_end": "2026-12-31",
+        "is_member_plan": true,
+        "adjudication_supported": true,
+        "items": [
+          {
+            "item_id": "premium.employee_only",
+            "label": "Monthly premium: employee only",
+            "value_cents": 1825,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "premium.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "coverage.in_network.basic",
+            "label": "Basic",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": 8000,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "plan_share.in_network.basic.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.deductible",
+            "label": "Deductible",
+            "value_cents": 5000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "deductible.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.annual_maximum",
+            "label": "Annual maximum",
+            "value_cents": 150000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "annual_maximum.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          }
+        ]
+      },
+      {
+        "plan_version_id": "nwd-ppo-value-2026",
+        "plan_id": "nwd-ppo-value",
+        "plan_option_id": "ppo-value",
+        "plan_name": "PPO Value",
+        "plan_type": "DPPO",
+        "coverage_period_start": "2026-01-01",
+        "coverage_period_end": "2026-12-31",
+        "is_member_plan": false,
+        "adjudication_supported": true,
+        "items": [
+          {
+            "item_id": "premium.employee_only",
+            "label": "Monthly premium: employee only",
+            "value_cents": 980,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "premium.value.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "coverage.in_network.basic",
+            "label": "Basic",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": 7000,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "plan_share.in_network.basic.value.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.deductible",
+            "label": "Deductible",
+            "value_cents": 10000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "deductible.value.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rules.annual_maximum",
+            "label": "Annual maximum",
+            "value_cents": 100000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "annual_maximum.value.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          }
+        ]
+      }
+    ],
+    "issues": []
+  },
+  "meta": {
+    "request_id": "mock-plan-options",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}

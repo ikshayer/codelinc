@@ -7,7 +7,7 @@
  */
 import { z } from "zod";
 import { ExplainOutcome, ExtractionRequest, ExtractionResult, AiMode } from "./ai";
-import { BenefitPassport } from "./benefits";
+import { BenefitPassport, PlanOptionsResult } from "./benefits";
 import { Issue } from "./issues";
 import { MemberState } from "./member";
 import { CarePlanRequest, CarePlanResult, VisitNavigatorRequest, VisitNavigatorResult } from "./optimizer";
@@ -107,6 +107,11 @@ export const PassportRequest = z.strictObject({ as_of: IsoDateTime, member: Memb
 export type PassportRequest = z.infer<typeof PassportRequest>;
 export const PassportResponse = okEnvelope(BenefitPassport);
 
+// (1.6) POST /api/plan-options (CONTRACT §3.10): same body shape as the passport.
+export const PlanOptionsRequest = z.strictObject({ as_of: IsoDateTime, member: MemberState });
+export type PlanOptionsRequest = z.infer<typeof PlanOptionsRequest>;
+export const PlanOptionsResponse = okEnvelope(PlanOptionsResult);
+
 /** POST /api/visit-navigator — body is exactly VisitNavigatorRequest (domain/optimizer.ts). */
 export const VisitNavigatorBody = VisitNavigatorRequest;
 export const VisitNavigatorResponse = okEnvelope(VisitNavigatorResult);
@@ -148,6 +153,7 @@ export const API_ROUTES = {
   health: { method: "GET", path: "/api/health" },
   scenario: { method: "GET", path: "/api/scenario" },
   passport: { method: "POST", path: "/api/passport" },
+  plan_options: { method: "POST", path: "/api/plan-options" },
   visit_navigator: { method: "POST", path: "/api/visit-navigator" },
   intake_extract: { method: "POST", path: "/api/intake/extract" },
   intake_confirm: { method: "POST", path: "/api/intake/confirm" },

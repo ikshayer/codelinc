@@ -452,6 +452,7 @@ export function RolloverPanel({ outcomes, evidence }: { outcomes: RolloverOutcom
               <StatusChip status={status.chip} label={status.label} />
               <span className="text-muted-foreground">Plan year ending {formatIsoDate(o.closing_period_end)}</span>
             </div>
+            {o.settled_plan_paid && <p className="tabular-nums">Plan paid so far this year: {formatRange(o.settled_plan_paid)}</p>}
             <p className="tabular-nums">
               Plan payments toward the maximum: {formatRange(o.qualifying_plan_paid)} (carryover needs {belowWord(o)} {formatCents(o.threshold_cents)})
             </p>
@@ -482,12 +483,18 @@ export function RolloverPanel({ outcomes, evidence }: { outcomes: RolloverOutcom
   );
 }
 
-/** "Optional: moving this to …" line for a flexible event (engine `rollover_shift`, display only). */
+/**
+ * "Optional: moving this to …" line for a flexible event (engine `rollover_shift`, display only).
+ * Claims the move keeps payments under the threshold only when the engine's moved status says so.
+ */
 export function RolloverShiftNote({ shift, outcome }: { shift: NonNullable<ScheduledEvent["rollover_shift"]>; outcome: RolloverOutcome | undefined }) {
+  const threshold = outcome && `this year's plan payments ${belowWord(outcome)} ${formatCents(outcome.threshold_cents)}`;
+  const effect =
+    !threshold ? "" : shift.status_if_moved === "CONDITIONAL" || shift.status_if_moved === "EARNED" ? ` keeps ${threshold}` : shift.status_if_moved === "UNCERTAIN" ? ` may keep ${threshold}, depending on pending claims` : "";
   return (
     <p className="text-sm">
       Optional: moving this to {formatIsoDate(shift.moved_to_date)}
-      {outcome && ` keeps this year's plan payments ${belowWord(outcome)} ${formatCents(outcome.threshold_cents)}`}; carryover if moved:{" "}
+      {effect}; carryover if moved:{" "}
       {rolloverStatusLabel(shift.status_if_moved).toLowerCase()}, {formatRange(shift.final_bank_if_moved)}; estimated cost change {signedCents(shift.member_cost_delta_cents)}.
     </p>
   );

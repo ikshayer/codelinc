@@ -21,15 +21,19 @@ const sortDeep = (v: unknown): unknown => {
 };
 
 describe("AT-00 plan registry grounding", () => {
-  it("loads a schema-valid registry with exactly the two synthetic DPPO versions", () => {
+  it("loads a schema-valid registry with exactly the four synthetic DPPO versions", () => {
     const reg = registry();
     expect(() => PlanRegistry.parse(reg)).not.toThrow();
     const ids = reg.plans.map((p) => p.plan_version_id).sort();
-    expect(ids).toEqual(["nwd-ppo-standard-2026", "nwd-ppo-standard-2027"]);
+    // (1.6) PLAN-004: PPO Value and PPO Enhanced 2026 join the member's PPO Standard 2026/2027.
+    expect(ids).toEqual(["nwd-ppo-enhanced-2026", "nwd-ppo-standard-2026", "nwd-ppo-standard-2027", "nwd-ppo-value-2026"]);
+    const own = fx.member().plan_key;
     for (const plan of reg.plans) {
       expect(plan.plan_type).toBe("DPPO");
       expect(plan.synthetic).toBe(true);
-      expect(samePlanKey(plan.key, fx.member().plan_key)).toBe(true);
+      // Same carrier, group, state and network; only the member's own option shares the full key.
+      expect(samePlanKey(plan.key, { ...own, plan_option_id: plan.key.plan_option_id })).toBe(true);
+      expect(samePlanKey(plan.key, own)).toBe(plan.plan_id === "nwd-ppo-standard");
     }
   });
 
@@ -73,7 +77,12 @@ describe("AT-00 plan registry grounding", () => {
         for (const e of r.evidence) {
           const src = reg.sources.find((s) => s.source_id === e.source_id);
           expect(src, `${r.rule_id} source ${e.source_id}`).toBeDefined();
-          expect(src!.plan_version_id, `${r.rule_id} cites its own plan version`).toBe(plan.plan_version_id);
+          // (1.6) A source may belong to several plan versions, but only of the citing plan's own group.
+          expect(src!.plan_version_ids, `${r.rule_id} cites a source of its own plan version`).toContain(plan.plan_version_id);
+          for (const pv of src!.plan_version_ids) {
+            const k = reg.plans.find((p) => p.plan_version_id === pv)!.key;
+            expect([k.carrier_id, k.group_id, k.jurisdiction], `${e.source_id} belongs to one group`).toEqual([plan.key.carrier_id, plan.key.group_id, plan.key.jurisdiction]);
+          }
           const page = src!.pages.find((p) => p.page === e.page);
           expect(page, `${r.rule_id} page ${e.page}`).toBeDefined();
           expect(page!.text.includes(e.quote), `${r.rule_id} quote: ${e.quote}`).toBe(true);
@@ -89,8 +98,10 @@ describe("AT-00 plan registry grounding", () => {
       const actual = crypto.createHash("sha256").update(readText(m.path)).digest("hex");
       expect(actual, m.path).toBe(m.sha256);
       expect(reg.sources.find((s) => s.source_id === m.source_id)!.sha256).toBe(m.sha256);
-      const plan = reg.plans.find((p) => p.plan_version_id === m.plan_version_id)!;
-      expect(plan.source_documents).toContainEqual({ source_id: m.source_id, sha256: m.sha256 });
+      for (const pv of m.plan_version_ids) {
+        const plan = reg.plans.find((p) => p.plan_version_id === pv)!;
+        expect(plan.source_documents).toContainEqual({ source_id: m.source_id, sha256: m.sha256 });
+      }
     }
   });
 

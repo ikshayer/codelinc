@@ -8,35 +8,41 @@ import {
   CONTRACT_VERSION,
   ENGINE_IDS,
   formatUsd,
+  isWithin,
   issue,
   localDateOf,
   PlanDefinition,
   PlanRegistry,
   RuleStatus,
   ruleStructuralProblems,
+  samePlanKey,
   ServiceClass,
   type BenefitPassport,
   type EvidenceIndexEntry,
   type Issue,
   type MemberState,
   type PassportItem,
+  type PlanOptionsResult,
+  type PlanOptionSummary,
   type PlanRule,
   type PlanValidationReport,
   type SourcedMoney,
 } from "@/domain";
 import type { BenefitEngine, BenefitsModule } from "@/domain/ports";
+import enhanced2026 from "../../data/plans/nwd-ppo-enhanced-2026.json";
 import plan2026 from "../../data/plans/nwd-ppo-standard-2026.json";
 import plan2027 from "../../data/plans/nwd-ppo-standard-2027.json";
+import value2026 from "../../data/plans/nwd-ppo-value-2026.json";
 import sources from "../../data/plans/sources.generated.json";
-import { normalizeIssues, resolvePlanVersion, rulesOf, supportsPlanType } from "./rules";
+import { cmp, normalizeIssues, resolvePlanVersion, rulesOf, supportsPlanType } from "./rules";
 import { money, openLedger, openPeriod, simulate } from "./simulate";
 
-const REGISTRY_VERSION = "synthetic-2026.10.03";
+const REGISTRY_VERSION = "synthetic-2026.10.04";
 
 let cached: PlanRegistry | null = null;
 
 export function loadRegistry(): PlanRegistry {
-  cached ??= PlanRegistry.parse({ registry_version: REGISTRY_VERSION, plans: [plan2026, plan2027], sources });
+  cached ??= PlanRegistry.parse({ registry_version: REGISTRY_VERSION, plans: [plan2026, plan2027, value2026, enhanced2026], sources });
   return cached;
 }
 
@@ -59,7 +65,7 @@ function validatePlan(registry: PlanRegistry, plan: PlanDefinition): PlanValidat
       for (const p of ruleStructuralProblems(r)) issues.push(issue("SCHEMA_INVALID", "blocking", p, { rule_id: r.rule_id }));
       let authoritative = false;
       for (const e of r.evidence) {
-        const src = registry.sources.find((s) => s.source_id === e.source_id && s.plan_version_id === plan.plan_version_id);
+        const src = registry.sources.find((s) => s.source_id === e.source_id && s.plan_version_ids.includes(plan.plan_version_id));
         const page = src?.pages.find((p) => p.page === e.page);
         if (!page?.text.includes(e.quote)) {
           issues.push(issue("RULE_EVIDENCE_MISSING", "blocking", `Evidence quote not found on page ${e.page} of ${e.source_id}.`, { rule_id: r.rule_id }));
@@ -132,6 +138,66 @@ function ruleItem(item_id: string, label: string, r: PlanRule | undefined, verif
 
 const CLASS_LABEL = { preventive: "Diagnostic & preventive", basic: "Basic", major: "Major", orthodontic: "Orthodontic" } as const;
 
+const firstRule = <T extends PlanRule["rule_type"]>(plan: PlanDefinition, t: T) => rulesOf(plan, t)[0];
+
+/** Coverage rate per service class for one network (passport and plan options). */
+function coverageItems(plan: PlanDefinition, network: "in_network" | "out_of_network"): PassportItem[] {
+  return ServiceClass.options.flatMap((cls) =>
+    ruleItem(
+      `coverage.${network}.${cls}`,
+      CLASS_LABEL[cls],
+      rulesOf(plan, "plan_share").find((r) => r.applies_when.network === network && r.applies_when.service_class === cls),
+      (r) => (r.rule_type === "plan_share" && r.value ? { value_bps: r.value.rate_bps } : { value_text: "Not covered" }),
+    ),
+  );
+}
+
+/**
+ * (1.6) One plan-wide waiting rule → the single `rules.waiting_period` item. Per-class rules →
+ * one item per class, so a 12-month Major wait is never summarized as "No waiting periods".
+ */
+function waitingItems(plan: PlanDefinition): PassportItem[] {
+  const waits = rulesOf(plan, "waiting_period");
+  const months = (r: PlanRule, none: string) => ({ value_text: r.rule_type === "waiting_period" && r.value ? `${r.value.months} months` : none });
+  if (waits.length === 1 && waits[0]!.applies_when.service_class === null) {
+    return ruleItem("rules.waiting_period", "Waiting periods", waits[0], (r) => months(r, "No waiting periods"));
+  }
+  const order = (r: PlanRule) => (r.applies_when.service_class === null ? -1 : ServiceClass.options.indexOf(r.applies_when.service_class));
+  return [...waits]
+    .sort((a, b) => order(a) - order(b))
+    .flatMap((w) => {
+      const cls = w.applies_when.service_class;
+      return ruleItem(`rules.waiting_period.${cls ?? "all"}`, `Waiting period: ${cls ? CLASS_LABEL[cls] : "all services"}`, w, (r) => months(r, "No waiting period"));
+    });
+}
+
+/** Plan-rule items shared by the passport and plan options. */
+function planRuleItems(plan: PlanDefinition): PassportItem[] {
+  const nextReset = addDays(plan.coverage_period.end, 1);
+  return [
+    ...ruleItem("rules.benefit_period", "Balances reset on", firstRule(plan, "benefit_period"), () => ({ value_date: nextReset })),
+    ...ruleItem("rules.deductible", "Deductible", firstRule(plan, "deductible"), (r) =>
+      r.rule_type === "deductible" && r.value ? { value_cents: r.value.individual_cents } : {},
+    ),
+    ...ruleItem("rules.annual_maximum", "Annual maximum", firstRule(plan, "annual_maximum"), (r) =>
+      r.rule_type === "annual_maximum" && r.value ? { value_cents: r.value.individual_cents } : {},
+    ),
+    ...waitingItems(plan),
+    ...ruleItem("rules.rollover", "Unused maximum carryover", firstRule(plan, "rollover"), (r) => ({
+      value_text:
+        r.rule_type === "rollover" && r.value
+          ? `Up to ${formatUsd(r.value.base_award_cents)}${r.value.network_bonus_cents > 0 ? ` (+${formatUsd(r.value.network_bonus_cents)} in-network bonus)` : ""} next year if plan payments stay ${r.value.threshold_comparison === "LT" ? "below" : "at or below"} ${formatUsd(r.value.threshold_cents)}; balance capped at ${formatUsd(r.value.bank_cap_cents)}`
+          : "No carryover",
+    })),
+    ...ruleItem("rules.claim_submission", "Paying a network dentist directly", firstRule(plan, "claim_submission"), (r) => ({
+      value_text:
+        r.rule_type === "claim_submission" && r.value?.member_may_decline_claim
+          ? "Allowed; paid services do not use your plan balances"
+          : "Claims are always submitted",
+    })),
+  ];
+}
+
 function passport(registry: PlanRegistry, member: MemberState, asOf: string): BenefitPassport {
   const asOfDate = localDateOf(asOf, member.time_zone);
   const res = resolvePlanVersion(registry, member.plan_key, asOfDate);
@@ -145,7 +211,6 @@ function passport(registry: PlanRegistry, member: MemberState, asOf: string): Be
   const pending = member.pending_claims.filter((c) => c.plan_version_id === plan.plan_version_id);
   const pendingMax = pending.map((c) => c.estimated_plan_pay.input_id);
   const pendingDed = pending.map((c) => c.estimated_deductible_applied.input_id);
-  const first = <T extends PlanRule["rule_type"]>(t: T) => rulesOf(plan, t)[0];
 
   const balances: PassportItem[] = [
     inputItem("balances.deductible_remaining", "Deductible remaining", snap.deductible_remaining, st.deductible_remaining_cents),
@@ -158,40 +223,7 @@ function passport(registry: PlanRegistry, member: MemberState, asOf: string): Be
     inputItem("balances.plan_paid_ytd", "Plan paid this year", snap.plan_paid_ytd, money(snap.plan_paid_ytd, "worst_case", "higher_is_better")),
   ];
 
-  const coverage = (network: "in_network" | "out_of_network") =>
-    ServiceClass.options.flatMap((cls) =>
-      ruleItem(
-        `coverage.${network}.${cls}`,
-        CLASS_LABEL[cls],
-        rulesOf(plan, "plan_share").find((r) => r.applies_when.network === network && r.applies_when.service_class === cls),
-        (r) => (r.rule_type === "plan_share" && r.value ? { value_bps: r.value.rate_bps } : { value_text: "Not covered" }),
-      ),
-    );
-
   const nextReset = addDays(plan.coverage_period.end, 1);
-  const rules: PassportItem[] = [
-    ...ruleItem("rules.benefit_period", "Balances reset on", first("benefit_period"), () => ({ value_date: nextReset })),
-    ...ruleItem("rules.deductible", "Deductible", first("deductible"), (r) => (r.rule_type === "deductible" && r.value ? { value_cents: r.value.individual_cents } : {})),
-    ...ruleItem("rules.annual_maximum", "Annual maximum", first("annual_maximum"), (r) =>
-      r.rule_type === "annual_maximum" && r.value ? { value_cents: r.value.individual_cents } : {},
-    ),
-    ...ruleItem("rules.waiting_period", "Waiting periods", first("waiting_period"), (r) => ({
-      value_text: r.rule_type === "waiting_period" && r.value ? `${r.value.months} months` : "No waiting periods",
-    })),
-    ...ruleItem("rules.rollover", "Unused maximum carryover", first("rollover"), (r) => ({
-      value_text:
-        r.rule_type === "rollover" && r.value
-          ? `Up to ${formatUsd(r.value.base_award_cents)} next year if plan payments stay ${r.value.threshold_comparison === "LT" ? "below" : "at or below"} ${formatUsd(r.value.threshold_cents)}; balance capped at ${formatUsd(r.value.bank_cap_cents)}`
-          : "No carryover",
-    })),
-    ...ruleItem("rules.claim_submission", "Paying a network dentist directly", first("claim_submission"), (r) => ({
-      value_text:
-        r.rule_type === "claim_submission" && r.value?.member_may_decline_claim
-          ? "Allowed; paid services do not use your plan balances"
-          : "Claims are always submitted",
-    })),
-  ];
-
   const funding: PassportItem[] = [
     ...[...member.funding_accounts]
       .sort((a, b) => (a.source_id < b.source_id ? -1 : 1))
@@ -240,12 +272,74 @@ function passport(registry: PlanRegistry, member: MemberState, asOf: string): Be
     current_period: st,
     sections: [
       { section_id: "balances", title: "Your balances", items: balances },
-      { section_id: "coverage_in_network", title: "In-network coverage", items: coverage("in_network") },
-      { section_id: "coverage_out_of_network", title: "Out-of-network coverage", items: coverage("out_of_network") },
-      { section_id: "rules", title: "Plan rules", items: rules },
+      { section_id: "coverage_in_network", title: "In-network coverage", items: coverageItems(plan, "in_network") },
+      { section_id: "coverage_out_of_network", title: "Out-of-network coverage", items: coverageItems(plan, "out_of_network") },
+      { section_id: "rules", title: "Plan rules", items: planRuleItems(plan) },
       { section_id: "funding", title: "Funding", items: funding },
     ],
     issues: normalizeIssues(period.issues),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// (1.6) §3.10 Plan options
+// ---------------------------------------------------------------------------
+
+const PREMIUM_TIER_LABEL = {
+  EMPLOYEE_ONLY: "employee only",
+  EMPLOYEE_SPOUSE: "employee + spouse",
+  EMPLOYEE_CHILDREN: "employee + child(ren)",
+  FAMILY: "family",
+} as const;
+
+/** One item per documented tier; a non-verified premium is one needs-confirmation item, never $0. */
+function premiumItems(plan: PlanDefinition): PassportItem[] {
+  const r = firstRule(plan, "premium");
+  if (r?.status !== "VERIFIED" || !r.value) return ruleItem("premium", "Monthly premium", r, () => ({}));
+  return r.value.tiers.flatMap((t) =>
+    ruleItem(`premium.${t.coverage_tier.toLowerCase()}`, `Monthly premium: ${PREMIUM_TIER_LABEL[t.coverage_tier]}`, r, () => ({ value_cents: t.cents })),
+  );
+}
+
+function orthodonticItems(plan: PlanDefinition): PassportItem[] {
+  return ruleItem("rules.orthodontic_lifetime_maximum", "Orthodontic lifetime maximum", firstRule(plan, "lifetime_maximum"), (r) =>
+    r.rule_type === "lifetime_maximum" && r.value ? { value_cents: r.value.individual_cents } : { value_text: "Orthodontics not covered" },
+  );
+}
+
+function planOptions(registry: PlanRegistry, member: MemberState, asOf: string): PlanOptionsResult {
+  const asOfDate = localDateOf(asOf, member.time_zone);
+  const k = member.plan_key;
+  const own = resolvePlanVersion(registry, k, asOfDate);
+  const options: PlanOptionSummary[] = registry.plans
+    .filter(
+      (p) =>
+        p.key.carrier_id === k.carrier_id &&
+        p.key.group_id === k.group_id &&
+        p.key.jurisdiction === k.jurisdiction &&
+        isWithin(asOfDate, p.coverage_period.start, p.coverage_period.end),
+    )
+    .sort((a, b) => cmp(a.key.plan_option_id, b.key.plan_option_id) || cmp(a.plan_version_id, b.plan_version_id))
+    .map((p) => ({
+      plan_version_id: p.plan_version_id,
+      plan_id: p.plan_id,
+      plan_option_id: p.key.plan_option_id,
+      plan_name: p.plan_name,
+      plan_type: p.plan_type,
+      coverage_period_start: p.coverage_period.start,
+      coverage_period_end: p.coverage_period.end,
+      is_member_plan: samePlanKey(p.key, k),
+      adjudication_supported: supportsPlanType(p.plan_type),
+      items: [...premiumItems(p), ...coverageItems(p, "in_network"), ...coverageItems(p, "out_of_network"), ...planRuleItems(p), ...orthodonticItems(p)],
+    }));
+  return {
+    contract_version: CONTRACT_VERSION,
+    as_of: asOf,
+    member_plan_version_id: own.ok ? own.plan.plan_version_id : null,
+    options,
+    issues: own.ok
+      ? []
+      : [issue("PLAN_NOT_FOUND", "info", `Your own plan has no version effective on ${asOfDate}; other options are still listed.`, { field: "member.plan_key" })],
   };
 }
 
@@ -268,6 +362,7 @@ export const benefitEngine: BenefitEngine = {
   openLedger,
   simulate,
   passport,
+  planOptions,
   evidenceFor,
 };
 

@@ -8,7 +8,9 @@
       "path": "data/sources/northwind-ppo-2026-benefit-summary.md",
       "sha256": "6f3a25e5b191b99546cd5f1109c3ce5ea71293f742e41c37474f87b0d3f77f44",
       "media_type": "text/markdown",
-      "plan_version_id": "nwd-ppo-standard-2026",
+      "plan_version_ids": [
+        "nwd-ppo-standard-2026"
+      ],
       "retrieved_at": "2026-10-01T12:00:00Z",
       "synthetic": true
     },
@@ -19,7 +21,9 @@
       "path": "data/sources/northwind-ppo-2027-benefit-summary.md",
       "sha256": "68a2d8c2640bae69b6177d824026384d9d74455a291e49e18b3cb8cb66becb6c",
       "media_type": "text/markdown",
-      "plan_version_id": "nwd-ppo-standard-2027",
+      "plan_version_ids": [
+        "nwd-ppo-standard-2027"
+      ],
       "retrieved_at": "2026-10-01T12:00:00Z",
       "synthetic": true
     },
@@ -30,7 +34,50 @@
       "path": "data/sources/northwind-ppo-2026-carryover-rider.md",
       "sha256": "0c947e68da1832d4aa3bd23a80f094e8d47424fc7ab5b5731ae727b156c02ea2",
       "media_type": "text/markdown",
-      "plan_version_id": "nwd-ppo-standard-2026",
+      "plan_version_ids": [
+        "nwd-ppo-standard-2026"
+      ],
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "source_id": "nwd-ppo-value-2026-summary",
+      "title": "Northwind Mutual Dental PPO Value 2026 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
+      "path": "data/sources/northwind-ppo-value-2026-benefit-summary.md",
+      "sha256": "d955ae694cdac8f5c3101419c712e73798fa243f931aec4c153b153007d57432",
+      "media_type": "text/markdown",
+      "plan_version_ids": [
+        "nwd-ppo-value-2026"
+      ],
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "source_id": "nwd-ppo-enhanced-2026-summary",
+      "title": "Northwind Mutual Dental PPO Enhanced 2026 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
+      "path": "data/sources/northwind-ppo-enhanced-2026-benefit-summary.md",
+      "sha256": "b44188cc4aacab540a4389e8139b2f2944c443263da953200599e1d442784a15",
+      "media_type": "text/markdown",
+      "plan_version_ids": [
+        "nwd-ppo-enhanced-2026"
+      ],
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "source_id": "acme-2026-enrollment-guide",
+      "title": "Acme Synthetic Corporation 2026 Dental Benefits Enrollment Guide (synthetic)",
+      "document_role": "employer_summary",
+      "path": "data/sources/acme-2026-dental-enrollment-guide.md",
+      "sha256": "e3036b825d9d1d9526da45c8428188f8de84130e530359a4dc620a1a2a9f8d86",
+      "media_type": "text/markdown",
+      "plan_version_ids": [
+        "nwd-ppo-value-2026",
+        "nwd-ppo-standard-2026",
+        "nwd-ppo-enhanced-2026"
+      ],
       "retrieved_at": "2026-10-01T12:00:00Z",
       "synthetic": true
     }

@@ -1,14 +1,17 @@
 {
-  "_comment": "Required normalized rules for the two synthetic plan versions. Planner-authored, FROZEN. The Plan & Benefits agent must produce data/plans/** that matches every entry exactly (arrays compared as given; evidence must cite the listed page with a literal quote). Extra rules are not allowed.",
+  "_comment": "Required normalized rules for the synthetic plan versions (PPO Standard 2026/2027, PPO Value 2026, PPO Enhanced 2026). Planner-authored, FROZEN. The Plan & Benefits agent must produce data/plans/** that matches every entry exactly (arrays compared as given; evidence must cite the listed page with a literal quote). Extra rules are not allowed. Rule ids are unique across the registry: each plan's ids end in its rule_id_suffix.",
   "plans": [
     {
       "plan_id": "nwd-ppo-standard",
       "plan_version_id": "nwd-ppo-standard-2026",
       "plan_type": "DPPO",
+      "plan_option_id": "ppo-standard",
+      "rule_id_suffix": ".2026",
       "source_id": "nwd-ppo-2026-summary",
       "source_precedence": [
         "nwd-ppo-2026-carryover-rider",
-        "nwd-ppo-2026-summary"
+        "nwd-ppo-2026-summary",
+        "acme-2026-enrollment-guide"
       ],
       "coverage_period": {
         "start": "2026-01-01",
@@ -556,6 +559,40 @@
           },
           "evidence_page": 5,
           "conflicts_with": []
+        },
+        {
+          "rule_id": "premium.2026",
+          "rule_type": "premium",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "basis": "EMPLOYEE_MONTHLY_CONTRIBUTION",
+            "tiers": [
+              {
+                "coverage_tier": "EMPLOYEE_ONLY",
+                "cents": 1825
+              },
+              {
+                "coverage_tier": "EMPLOYEE_SPOUSE",
+                "cents": 3650
+              },
+              {
+                "coverage_tier": "EMPLOYEE_CHILDREN",
+                "cents": 3920
+              },
+              {
+                "coverage_tier": "FAMILY",
+                "cents": 5840
+              }
+            ]
+          },
+          "evidence_page": 1,
+          "evidence_source_id": "acme-2026-enrollment-guide",
+          "conflicts_with": []
         }
       ]
     },
@@ -563,6 +600,8 @@
       "plan_id": "nwd-ppo-standard",
       "plan_version_id": "nwd-ppo-standard-2027",
       "plan_type": "DPPO",
+      "plan_option_id": "ppo-standard",
+      "rule_id_suffix": ".2027",
       "source_id": "nwd-ppo-2027-summary",
       "coverage_period": {
         "start": "2027-01-01",
@@ -1119,6 +1158,1291 @@
             "method": "standard"
           },
           "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "premium.2027",
+          "rule_type": "premium",
+          "status": "UNKNOWN",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": null,
+          "conflicts_with": []
+        }
+      ]
+    },
+    {
+      "plan_id": "nwd-ppo-value",
+      "plan_version_id": "nwd-ppo-value-2026",
+      "plan_type": "DPPO",
+      "plan_option_id": "ppo-value",
+      "rule_id_suffix": ".value.2026",
+      "source_id": "nwd-ppo-value-2026-summary",
+      "source_precedence": [
+        "nwd-ppo-value-2026-summary",
+        "acme-2026-enrollment-guide"
+      ],
+      "coverage_period": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      },
+      "rules": [
+        {
+          "rule_id": "benefit_period.value.2026",
+          "rule_type": "benefit_period",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "period_start": "2026-01-01",
+            "period_end": "2026-12-31",
+            "accumulator_basis": "service_date"
+          },
+          "evidence_page": 1,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "deductible.value.2026",
+          "rule_type": "deductible",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "individual_cents": 10000,
+            "applies_to_classes": [
+              "basic",
+              "major"
+            ],
+            "shared_across_networks": true
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "annual_maximum.value.2026",
+          "rule_type": "annual_maximum",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "individual_cents": 100000,
+            "counts_classes": [
+              "basic",
+              "major"
+            ],
+            "shared_across_networks": true
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "lifetime_maximum.orthodontic.value.2026",
+          "rule_type": "lifetime_maximum",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": "orthodontic",
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.preventive.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 10000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.basic.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 7000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.major.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 4000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.preventive.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 8000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.basic.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 5000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.major.value.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 3000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.preventive.value.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "preventive",
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150",
+              "D0210",
+              "D0220",
+              "D0274",
+              "D1110"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.basic.value.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "basic",
+            "cdt_codes": [
+              "D2140",
+              "D2391",
+              "D2392",
+              "D3330"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.major.value.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "major",
+            "cdt_codes": [
+              "D2740",
+              "D2750",
+              "D2950",
+              "D6010"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "waiting_period.preventive.value.2026",
+          "rule_type": "waiting_period",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "waiting_period.basic.value.2026",
+          "rule_type": "waiting_period",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "waiting_period.major.value.2026",
+          "rule_type": "waiting_period",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "months": 12
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.evaluations.value.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150"
+            ],
+            "max_count": 2,
+            "window": {
+              "kind": "benefit_period"
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.prophylaxis.value.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D1110"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D1110"
+            ],
+            "max_count": 2,
+            "window": {
+              "kind": "benefit_period"
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.fmx.value.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D0210"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D0210"
+            ],
+            "max_count": 1,
+            "window": {
+              "kind": "rolling_months",
+              "months": 60
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.crowns.value.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D2740",
+              "D2750"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D2740",
+              "D2750"
+            ],
+            "max_count": 1,
+            "window": {
+              "kind": "rolling_months",
+              "months": 60
+            },
+            "scope": "per_tooth"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "exclusion.cosmetic.value.2026",
+          "rule_type": "exclusion",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D9972"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D9972"
+            ]
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "exclusion.implants.value.2026",
+          "rule_type": "exclusion",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D6010"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D6010"
+            ]
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "alternate_benefit.posterior_composite.value.2026",
+          "rule_type": "alternate_benefit",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "sublimit.all.value.2026",
+          "rule_type": "sublimit",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "limitations_index.value.2026",
+          "rule_type": "limitations_index",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "frequency_limits_complete": true,
+            "exclusions_complete": true,
+            "alternate_benefits_complete": true,
+            "sublimits_complete": true
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "oon_allowance_schedule.value.2026",
+          "rule_type": "oon_allowance_schedule",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "allowances": [
+              {
+                "cdt_code": "D0120",
+                "cents": 4000
+              },
+              {
+                "cdt_code": "D0140",
+                "cents": 6500
+              },
+              {
+                "cdt_code": "D0150",
+                "cents": 7500
+              },
+              {
+                "cdt_code": "D0210",
+                "cents": 9000
+              },
+              {
+                "cdt_code": "D0220",
+                "cents": 2500
+              },
+              {
+                "cdt_code": "D1110",
+                "cents": 7000
+              },
+              {
+                "cdt_code": "D2392",
+                "cents": 15000
+              },
+              {
+                "cdt_code": "D3330",
+                "cents": 90000
+              },
+              {
+                "cdt_code": "D2740",
+                "cents": 95000
+              }
+            ],
+            "balance_billing_permitted": true
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "claim_submission.value.2026",
+          "rule_type": "claim_submission",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "member_may_decline_claim": true,
+            "network_provider_must_submit": false,
+            "self_pay_counts_toward_accumulators": false,
+            "self_pay_counts_toward_frequency": false,
+            "network_fee_schedule_applies_to_self_pay": false
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "rollover.value.2026",
+          "rule_type": "rollover",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "pretreatment_estimate.value.2026",
+          "rule_type": "pretreatment_estimate",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "recommended_above_cents": 30000
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "coordination_of_benefits.value.2026",
+          "rule_type": "coordination_of_benefits",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "method": "standard"
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "premium.value.2026",
+          "rule_type": "premium",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "basis": "EMPLOYEE_MONTHLY_CONTRIBUTION",
+            "tiers": [
+              {
+                "coverage_tier": "EMPLOYEE_ONLY",
+                "cents": 980
+              },
+              {
+                "coverage_tier": "EMPLOYEE_SPOUSE",
+                "cents": 1960
+              },
+              {
+                "coverage_tier": "EMPLOYEE_CHILDREN",
+                "cents": 2110
+              },
+              {
+                "coverage_tier": "FAMILY",
+                "cents": 3140
+              }
+            ]
+          },
+          "evidence_page": 1,
+          "evidence_source_id": "acme-2026-enrollment-guide",
+          "conflicts_with": []
+        }
+      ]
+    },
+    {
+      "plan_id": "nwd-ppo-enhanced",
+      "plan_version_id": "nwd-ppo-enhanced-2026",
+      "plan_type": "DPPO",
+      "plan_option_id": "ppo-enhanced",
+      "rule_id_suffix": ".enhanced.2026",
+      "source_id": "nwd-ppo-enhanced-2026-summary",
+      "source_precedence": [
+        "nwd-ppo-enhanced-2026-summary",
+        "acme-2026-enrollment-guide"
+      ],
+      "coverage_period": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      },
+      "rules": [
+        {
+          "rule_id": "benefit_period.enhanced.2026",
+          "rule_type": "benefit_period",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "period_start": "2026-01-01",
+            "period_end": "2026-12-31",
+            "accumulator_basis": "service_date"
+          },
+          "evidence_page": 1,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "deductible.enhanced.2026",
+          "rule_type": "deductible",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "individual_cents": 5000,
+            "applies_to_classes": [
+              "basic",
+              "major"
+            ],
+            "shared_across_networks": true
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "annual_maximum.enhanced.2026",
+          "rule_type": "annual_maximum",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "individual_cents": 250000,
+            "counts_classes": [
+              "basic",
+              "major"
+            ],
+            "shared_across_networks": true
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "lifetime_maximum.orthodontic.enhanced.2026",
+          "rule_type": "lifetime_maximum",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "orthodontic",
+            "cdt_codes": null
+          },
+          "value": {
+            "individual_cents": 150000,
+            "service_class": "orthodontic"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.preventive.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 10000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.basic.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 9000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.major.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 6000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.in_network.orthodontic.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "in_network",
+            "service_class": "orthodontic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 5000,
+            "basis": "allowed_amount_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.preventive.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 10000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.basic.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 8000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.major.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 5000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "plan_share.out_of_network.orthodontic.enhanced.2026",
+          "rule_type": "plan_share",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": "orthodontic",
+            "cdt_codes": null
+          },
+          "value": {
+            "rate_bps": 5000,
+            "basis": "oon_allowance_after_deductible"
+          },
+          "evidence_page": 2,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.preventive.enhanced.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "preventive",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "preventive",
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150",
+              "D0210",
+              "D0220",
+              "D0274",
+              "D1110"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.basic.enhanced.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "basic",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "basic",
+            "cdt_codes": [
+              "D2140",
+              "D2391",
+              "D2392",
+              "D3330"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.major.enhanced.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "major",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "major",
+            "cdt_codes": [
+              "D2740",
+              "D2750",
+              "D2950",
+              "D6010"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "service_class_map.orthodontic.enhanced.2026",
+          "rule_type": "service_class_map",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": "orthodontic",
+            "cdt_codes": null
+          },
+          "value": {
+            "service_class": "orthodontic",
+            "cdt_codes": [
+              "D8080"
+            ]
+          },
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "waiting_period.all.enhanced.2026",
+          "rule_type": "waiting_period",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 3,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.evaluations.enhanced.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D0120",
+              "D0140",
+              "D0150"
+            ],
+            "max_count": 2,
+            "window": {
+              "kind": "benefit_period"
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.prophylaxis.enhanced.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D1110"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D1110"
+            ],
+            "max_count": 2,
+            "window": {
+              "kind": "benefit_period"
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.fmx.enhanced.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D0210"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D0210"
+            ],
+            "max_count": 1,
+            "window": {
+              "kind": "rolling_months",
+              "months": 60
+            },
+            "scope": "per_member"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "frequency_limit.crowns.enhanced.2026",
+          "rule_type": "frequency_limit",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D2740",
+              "D2750"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D2740",
+              "D2750"
+            ],
+            "max_count": 1,
+            "window": {
+              "kind": "rolling_months",
+              "months": 60
+            },
+            "scope": "per_tooth"
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "exclusion.cosmetic.enhanced.2026",
+          "rule_type": "exclusion",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": [
+              "D9972"
+            ]
+          },
+          "value": {
+            "cdt_codes": [
+              "D9972"
+            ]
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "alternate_benefit.posterior_composite.enhanced.2026",
+          "rule_type": "alternate_benefit",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "sublimit.all.enhanced.2026",
+          "rule_type": "sublimit",
+          "status": "NOT_APPLICABLE",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": null,
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "limitations_index.enhanced.2026",
+          "rule_type": "limitations_index",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "frequency_limits_complete": true,
+            "exclusions_complete": true,
+            "alternate_benefits_complete": true,
+            "sublimits_complete": true
+          },
+          "evidence_page": 4,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "oon_allowance_schedule.enhanced.2026",
+          "rule_type": "oon_allowance_schedule",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": "out_of_network",
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "allowances": [
+              {
+                "cdt_code": "D0120",
+                "cents": 4000
+              },
+              {
+                "cdt_code": "D0140",
+                "cents": 6500
+              },
+              {
+                "cdt_code": "D0150",
+                "cents": 7500
+              },
+              {
+                "cdt_code": "D0210",
+                "cents": 9000
+              },
+              {
+                "cdt_code": "D0220",
+                "cents": 2500
+              },
+              {
+                "cdt_code": "D1110",
+                "cents": 7000
+              },
+              {
+                "cdt_code": "D2392",
+                "cents": 15000
+              },
+              {
+                "cdt_code": "D3330",
+                "cents": 90000
+              },
+              {
+                "cdt_code": "D2740",
+                "cents": 95000
+              }
+            ],
+            "balance_billing_permitted": true
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "claim_submission.enhanced.2026",
+          "rule_type": "claim_submission",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "member_may_decline_claim": true,
+            "network_provider_must_submit": false,
+            "self_pay_counts_toward_accumulators": false,
+            "self_pay_counts_toward_frequency": false,
+            "network_fee_schedule_applies_to_self_pay": false
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "rollover.enhanced.2026",
+          "rule_type": "rollover",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "qualification_basis": "INCURRED_PLAN_PAID_TOWARD_MAXIMUM",
+            "threshold_cents": 70000,
+            "threshold_comparison": "LTE",
+            "base_award_cents": 35000,
+            "network_bonus_cents": 15000,
+            "network_bonus_condition": "ANY_IN_NETWORK_CLAIM",
+            "bank_cap_cents": 125000,
+            "requires_at_least_one_eligible_claim": true,
+            "existing_bank_treatment": "ADD_AND_CAP",
+            "bank_when_not_qualified": "FORFEIT",
+            "applies_to_next_plan_version_ids": [
+              "nwd-ppo-enhanced-2027"
+            ]
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "pretreatment_estimate.enhanced.2026",
+          "rule_type": "pretreatment_estimate",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "recommended_above_cents": 30000
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "coordination_of_benefits.enhanced.2026",
+          "rule_type": "coordination_of_benefits",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "method": "standard"
+          },
+          "evidence_page": 5,
+          "conflicts_with": []
+        },
+        {
+          "rule_id": "premium.enhanced.2026",
+          "rule_type": "premium",
+          "status": "VERIFIED",
+          "applies_when": {
+            "network": null,
+            "service_class": null,
+            "cdt_codes": null
+          },
+          "value": {
+            "basis": "EMPLOYEE_MONTHLY_CONTRIBUTION",
+            "tiers": [
+              {
+                "coverage_tier": "EMPLOYEE_ONLY",
+                "cents": 3160
+              },
+              {
+                "coverage_tier": "EMPLOYEE_SPOUSE",
+                "cents": 6320
+              },
+              {
+                "coverage_tier": "EMPLOYEE_CHILDREN",
+                "cents": 6790
+              },
+              {
+                "coverage_tier": "FAMILY",
+                "cents": 10110
+              }
+            ]
+          },
+          "evidence_page": 1,
+          "evidence_source_id": "acme-2026-enrollment-guide",
           "conflicts_with": []
         }
       ]

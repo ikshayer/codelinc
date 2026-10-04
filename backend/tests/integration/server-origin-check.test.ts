@@ -5,6 +5,7 @@
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import http from "node:http";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -26,7 +27,9 @@ function post(pathname: string, body: string, headers: Record<string, string>) {
 }
 
 beforeAll(async () => {
-  server = spawn("npx", ["tsx", "src/api/server.ts"], { cwd: ROOT, env: { ...process.env, PORT: String(PORT), ALLOWED_ORIGINS: "" } });
+  // Run tsx's CLI with this Node binary: `spawn("npx", …)` has no shell and cannot start npx.cmd on Windows.
+  const tsxCli = createRequire(import.meta.url).resolve("tsx/cli");
+  server = spawn(process.execPath, [tsxCli, "src/api/server.ts"], { cwd: ROOT, env: { ...process.env, PORT: String(PORT), ALLOWED_ORIGINS: "" } });
   server.stdout!.on("data", (c) => (logs += c));
   server.stderr!.on("data", (c) => (logs += c));
   for (let i = 0; i < 100 && !logs.includes("CareWindow API"); i++) await new Promise((r) => setTimeout(r, 100));

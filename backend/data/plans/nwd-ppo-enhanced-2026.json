@@ -1,16 +1,16 @@
 {
-  "plan_id": "nwd-ppo-standard",
-  "plan_version_id": "nwd-ppo-standard-2026",
+  "plan_id": "nwd-ppo-enhanced",
+  "plan_version_id": "nwd-ppo-enhanced-2026",
   "plan_type": "DPPO",
   "key": {
     "carrier_id": "northwind-mutual",
     "group_id": "acme-synthetic-001",
-    "plan_option_id": "ppo-standard",
+    "plan_option_id": "ppo-enhanced",
     "jurisdiction": "VA",
     "network_id": "nwd-ppo"
   },
   "carrier_name": "Northwind Mutual Dental",
-  "plan_name": "PPO Standard",
+  "plan_name": "PPO Enhanced",
   "coverage_period": {
     "start": "2026-01-01",
     "end": "2026-12-31"
@@ -18,12 +18,8 @@
   "synthetic": true,
   "source_documents": [
     {
-      "source_id": "nwd-ppo-2026-summary",
-      "sha256": "6f3a25e5b191b99546cd5f1109c3ce5ea71293f742e41c37474f87b0d3f77f44"
-    },
-    {
-      "source_id": "nwd-ppo-2026-carryover-rider",
-      "sha256": "0c947e68da1832d4aa3bd23a80f094e8d47424fc7ab5b5731ae727b156c02ea2"
+      "source_id": "nwd-ppo-enhanced-2026-summary",
+      "sha256": "b44188cc4aacab540a4389e8139b2f2944c443263da953200599e1d442784a15"
     },
     {
       "source_id": "acme-2026-enrollment-guide",
@@ -31,8 +27,7 @@
     }
   ],
   "source_precedence": [
-    "nwd-ppo-2026-carryover-rider",
-    "nwd-ppo-2026-summary",
+    "nwd-ppo-enhanced-2026-summary",
     "acme-2026-enrollment-guide"
   ],
   "review": {
@@ -42,7 +37,7 @@
   },
   "rules": [
     {
-      "rule_id": "benefit_period.2026",
+      "rule_id": "benefit_period.enhanced.2026",
       "rule_type": "benefit_period",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -59,14 +54,14 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 1,
           "section": "Benefit Period",
           "locator": "page 1, Benefit Period",
           "quote": "The benefit period is the calendar year: January 1, 2026 through December 31, 2026."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 1,
           "section": "Benefit Period",
           "locator": "page 1, Benefit Period",
@@ -77,7 +72,7 @@
       "note": null
     },
     {
-      "rule_id": "deductible.2026",
+      "rule_id": "deductible.enhanced.2026",
       "rule_type": "deductible",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -97,21 +92,21 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
           "quote": "Individual deductible: $50 per member per benefit period."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
           "quote": "The deductible applies to Basic and Major services."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
@@ -122,7 +117,7 @@
       "note": null
     },
     {
-      "rule_id": "annual_maximum.2026",
+      "rule_id": "annual_maximum.enhanced.2026",
       "rule_type": "annual_maximum",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -133,7 +128,7 @@
         "cdt_codes": null
       },
       "value": {
-        "individual_cents": 150000,
+        "individual_cents": 250000,
         "counts_classes": [
           "basic",
           "major"
@@ -142,14 +137,14 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
-          "quote": "Annual maximum: $1,500 per member per benefit period, combined for in-network and out-of-network services."
+          "quote": "Annual maximum: $2,500 per member per benefit period, combined for in-network and out-of-network services."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
@@ -160,9 +155,9 @@
       "note": null
     },
     {
-      "rule_id": "lifetime_maximum.orthodontic.2026",
+      "rule_id": "lifetime_maximum.orthodontic.enhanced.2026",
       "rule_type": "lifetime_maximum",
-      "status": "NOT_APPLICABLE",
+      "status": "VERIFIED",
       "effective_from": "2026-01-01",
       "effective_to": "2026-12-31",
       "applies_when": {
@@ -170,21 +165,31 @@
         "service_class": "orthodontic",
         "cdt_codes": null
       },
-      "value": null,
+      "value": {
+        "individual_cents": 150000,
+        "service_class": "orthodontic"
+      },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Deductible and Maximums",
           "locator": "page 2, Deductible and Maximums",
-          "quote": "Orthodontic lifetime maximum: Not applicable."
+          "quote": "Orthodontic lifetime maximum: $1,500 per member."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "Plan payments for Orthodontic services count only toward the orthodontic lifetime maximum and do not count toward the annual maximum."
         }
       ],
       "conflicts_with": [],
       "note": null
     },
     {
-      "rule_id": "plan_share.in_network.preventive.2026",
+      "rule_id": "plan_share.in_network.preventive.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -200,14 +205,14 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Diagnostic & Preventive | 100% | 80% |"
+          "quote": "| Diagnostic & Preventive | 100% | 100% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -218,7 +223,7 @@
       "note": null
     },
     {
-      "rule_id": "plan_share.in_network.basic.2026",
+      "rule_id": "plan_share.in_network.basic.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -229,19 +234,19 @@
         "cdt_codes": null
       },
       "value": {
-        "rate_bps": 8000,
+        "rate_bps": 9000,
         "basis": "allowed_amount_after_deductible"
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Basic | 80% | 60% |"
+          "quote": "| Basic | 90% | 80% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -252,7 +257,7 @@
       "note": null
     },
     {
-      "rule_id": "plan_share.in_network.major.2026",
+      "rule_id": "plan_share.in_network.major.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -263,19 +268,19 @@
         "cdt_codes": null
       },
       "value": {
-        "rate_bps": 5000,
+        "rate_bps": 6000,
         "basis": "allowed_amount_after_deductible"
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Major | 50% | 40% |"
+          "quote": "| Major | 60% | 50% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -286,7 +291,41 @@
       "note": null
     },
     {
-      "rule_id": "plan_share.out_of_network.preventive.2026",
+      "rule_id": "plan_share.in_network.orthodontic.enhanced.2026",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applies_when": {
+        "network": "in_network",
+        "service_class": "orthodontic",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 5000,
+        "basis": "allowed_amount_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Orthodontics | 50% | 50% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "In-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.out_of_network.preventive.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -297,19 +336,19 @@
         "cdt_codes": null
       },
       "value": {
-        "rate_bps": 8000,
+        "rate_bps": 10000,
         "basis": "oon_allowance_after_deductible"
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Diagnostic & Preventive | 100% | 80% |"
+          "quote": "| Diagnostic & Preventive | 100% | 100% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -320,7 +359,7 @@
       "note": null
     },
     {
-      "rule_id": "plan_share.out_of_network.basic.2026",
+      "rule_id": "plan_share.out_of_network.basic.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -331,19 +370,19 @@
         "cdt_codes": null
       },
       "value": {
-        "rate_bps": 6000,
+        "rate_bps": 8000,
         "basis": "oon_allowance_after_deductible"
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Basic | 80% | 60% |"
+          "quote": "| Basic | 90% | 80% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -354,7 +393,7 @@
       "note": null
     },
     {
-      "rule_id": "plan_share.out_of_network.major.2026",
+      "rule_id": "plan_share.out_of_network.major.enhanced.2026",
       "rule_type": "plan_share",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -365,19 +404,19 @@
         "cdt_codes": null
       },
       "value": {
-        "rate_bps": 4000,
+        "rate_bps": 5000,
         "basis": "oon_allowance_after_deductible"
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
-          "quote": "| Major | 50% | 40% |"
+          "quote": "| Major | 60% | 50% |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 2,
           "section": "Coverage Levels",
           "locator": "page 2, Coverage Levels",
@@ -388,7 +427,41 @@
       "note": null
     },
     {
-      "rule_id": "service_class_map.preventive.2026",
+      "rule_id": "plan_share.out_of_network.orthodontic.enhanced.2026",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applies_when": {
+        "network": "out_of_network",
+        "service_class": "orthodontic",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 5000,
+        "basis": "oon_allowance_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Orthodontics | 50% | 50% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "Out-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "service_class_map.preventive.enhanced.2026",
       "rule_type": "service_class_map",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -412,7 +485,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 3,
           "section": "Service Classifications",
           "locator": "page 3, Service Classifications",
@@ -423,7 +496,7 @@
       "note": null
     },
     {
-      "rule_id": "service_class_map.basic.2026",
+      "rule_id": "service_class_map.basic.enhanced.2026",
       "rule_type": "service_class_map",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -444,14 +517,14 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 3,
           "section": "Service Classifications",
           "locator": "page 3, Service Classifications",
           "quote": "| Basic | D2140, D2391, D2392, D3330 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 3,
           "section": "Service Classifications",
           "locator": "page 3, Service Classifications",
@@ -462,7 +535,7 @@
       "note": null
     },
     {
-      "rule_id": "service_class_map.major.2026",
+      "rule_id": "service_class_map.major.enhanced.2026",
       "rule_type": "service_class_map",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -483,7 +556,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 3,
           "section": "Service Classifications",
           "locator": "page 3, Service Classifications",
@@ -494,7 +567,36 @@
       "note": null
     },
     {
-      "rule_id": "waiting_period.all.2026",
+      "rule_id": "service_class_map.orthodontic.enhanced.2026",
+      "rule_type": "service_class_map",
+      "status": "VERIFIED",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": "orthodontic",
+        "cdt_codes": null
+      },
+      "value": {
+        "service_class": "orthodontic",
+        "cdt_codes": [
+          "D8080"
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 3,
+          "section": "Service Classifications",
+          "locator": "page 3, Service Classifications",
+          "quote": "| Orthodontic | D8080 |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "waiting_period.all.enhanced.2026",
       "rule_type": "waiting_period",
       "status": "NOT_APPLICABLE",
       "effective_from": "2026-01-01",
@@ -507,7 +609,7 @@
       "value": null,
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 3,
           "section": "Waiting Periods",
           "locator": "page 3, Waiting Periods",
@@ -518,7 +620,7 @@
       "note": null
     },
     {
-      "rule_id": "frequency_limit.evaluations.2026",
+      "rule_id": "frequency_limit.evaluations.enhanced.2026",
       "rule_type": "frequency_limit",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -546,7 +648,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Limitations",
           "locator": "page 4, Limitations",
@@ -557,7 +659,7 @@
       "note": null
     },
     {
-      "rule_id": "frequency_limit.prophylaxis.2026",
+      "rule_id": "frequency_limit.prophylaxis.enhanced.2026",
       "rule_type": "frequency_limit",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -581,7 +683,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Limitations",
           "locator": "page 4, Limitations",
@@ -592,7 +694,7 @@
       "note": null
     },
     {
-      "rule_id": "frequency_limit.fmx.2026",
+      "rule_id": "frequency_limit.fmx.enhanced.2026",
       "rule_type": "frequency_limit",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -617,7 +719,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Limitations",
           "locator": "page 4, Limitations",
@@ -628,7 +730,7 @@
       "note": null
     },
     {
-      "rule_id": "frequency_limit.crowns.2026",
+      "rule_id": "frequency_limit.crowns.enhanced.2026",
       "rule_type": "frequency_limit",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -655,7 +757,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Limitations",
           "locator": "page 4, Limitations",
@@ -666,7 +768,7 @@
       "note": null
     },
     {
-      "rule_id": "exclusion.cosmetic.2026",
+      "rule_id": "exclusion.cosmetic.enhanced.2026",
       "rule_type": "exclusion",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -685,7 +787,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Exclusions",
           "locator": "page 4, Exclusions",
@@ -696,7 +798,7 @@
       "note": null
     },
     {
-      "rule_id": "alternate_benefit.posterior_composite.2026",
+      "rule_id": "alternate_benefit.posterior_composite.enhanced.2026",
       "rule_type": "alternate_benefit",
       "status": "NOT_APPLICABLE",
       "effective_from": "2026-01-01",
@@ -709,7 +811,7 @@
       "value": null,
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Alternate Benefits",
           "locator": "page 4, Alternate Benefits",
@@ -720,7 +822,7 @@
       "note": null
     },
     {
-      "rule_id": "sublimit.all.2026",
+      "rule_id": "sublimit.all.enhanced.2026",
       "rule_type": "sublimit",
       "status": "NOT_APPLICABLE",
       "effective_from": "2026-01-01",
@@ -733,7 +835,7 @@
       "value": null,
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Sublimits",
           "locator": "page 4, Sublimits",
@@ -744,7 +846,7 @@
       "note": null
     },
     {
-      "rule_id": "limitations_index.2026",
+      "rule_id": "limitations_index.enhanced.2026",
       "rule_type": "limitations_index",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -762,28 +864,28 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Limitations",
           "locator": "page 4, Limitations",
           "quote": "This section lists every frequency limitation that applies under this plan."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Exclusions",
           "locator": "page 4, Exclusions",
           "quote": "This section lists every exclusion that applies under this plan."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Alternate Benefits",
           "locator": "page 4, Alternate Benefits",
           "quote": "No other alternate benefit provisions apply."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 4,
           "section": "Sublimits",
           "locator": "page 4, Sublimits",
@@ -794,7 +896,7 @@
       "note": null
     },
     {
-      "rule_id": "oon_allowance_schedule.2026",
+      "rule_id": "oon_allowance_schedule.enhanced.2026",
       "rule_type": "oon_allowance_schedule",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -847,77 +949,77 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| Procedure code | Out-of-Network Allowance |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "Out-of-network dentists may bill the member for the difference between their charge and the plan's payment (balance billing)."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D0120 | $40 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D0140 | $65 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D0150 | $75 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D0210 | $90 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D0220 | $25 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D1110 | $70 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D2392 | $150 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
           "quote": "| D3330 | $900 |"
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Out-of-Network Allowance Schedule",
           "locator": "page 5, Out-of-Network Allowance Schedule",
@@ -928,7 +1030,7 @@
       "note": null
     },
     {
-      "rule_id": "claim_submission.2026",
+      "rule_id": "claim_submission.enhanced.2026",
       "rule_type": "claim_submission",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -947,21 +1049,21 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Claim Submission and Direct Payment",
           "locator": "page 5, Claim Submission and Direct Payment",
           "quote": "A member may ask a network dentist not to submit a claim and pay the dentist directly."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Claim Submission and Direct Payment",
           "locator": "page 5, Claim Submission and Direct Payment",
           "quote": "Services paid without a claim are not recorded by the plan: they do not reduce the deductible or annual maximum and do not count toward frequency limitations."
         },
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Claim Submission and Direct Payment",
           "locator": "page 5, Claim Submission and Direct Payment",
@@ -972,7 +1074,7 @@
       "note": null
     },
     {
-      "rule_id": "rollover.2026",
+      "rule_id": "rollover.enhanced.2026",
       "rule_type": "rollover",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -984,103 +1086,89 @@
       },
       "value": {
         "qualification_basis": "INCURRED_PLAN_PAID_TOWARD_MAXIMUM",
-        "threshold_cents": 50000,
-        "threshold_comparison": "LT",
-        "base_award_cents": 25000,
-        "network_bonus_cents": 0,
-        "network_bonus_condition": "NONE",
-        "bank_cap_cents": 100000,
+        "threshold_cents": 70000,
+        "threshold_comparison": "LTE",
+        "base_award_cents": 35000,
+        "network_bonus_cents": 15000,
+        "network_bonus_condition": "ANY_IN_NETWORK_CLAIM",
+        "bank_cap_cents": 125000,
         "requires_at_least_one_eligible_claim": true,
         "existing_bank_treatment": "ADD_AND_CAP",
         "bank_when_not_qualified": "FORFEIT",
         "applies_to_next_plan_version_ids": [
-          "nwd-ppo-standard-2027"
+          "nwd-ppo-enhanced-2027"
         ]
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 1,
-          "section": "Earning a Carryover",
-          "locator": "page 1, Earning a Carryover",
-          "quote": "A carryover is earned for the 2026 benefit period when plan payments for services incurred in that benefit period that count toward the annual maximum total less than $500."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 1,
-          "section": "Earning a Carryover",
-          "locator": "page 1, Earning a Carryover",
-          "quote": "A total of exactly $500 does not earn a carryover."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 1,
-          "section": "Earning a Carryover",
-          "locator": "page 1, Earning a Carryover",
-          "quote": "Services are assigned to a benefit period by date of service, including claims processed after the benefit period ends."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 1,
-          "section": "Earning a Carryover",
-          "locator": "page 1, Earning a Carryover",
-          "quote": "At least one claim with a plan payment that counts toward the annual maximum must be paid for services in the benefit period."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 1,
-          "section": "Earning a Carryover",
-          "locator": "page 1, Earning a Carryover",
-          "quote": "The carryover earned is $250. There is no additional in-network bonus."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 2,
-          "section": "Carryover Balance",
-          "locator": "page 2, Carryover Balance",
-          "quote": "The carryover earned is added to the member's carryover balance."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 2,
-          "section": "Carryover Balance",
-          "locator": "page 2, Carryover Balance",
-          "quote": "The carryover balance may not exceed $1,000; any amount above $1,000 is not carried over."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 2,
-          "section": "Carryover Balance",
-          "locator": "page 2, Carryover Balance",
-          "quote": "If no carryover is earned for a benefit period, the carryover balance does not continue into the next benefit period."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 2,
-          "section": "Carryover Balance",
-          "locator": "page 2, Carryover Balance",
-          "quote": "The carryover balance is added to the annual maximum of the next benefit period."
-        },
-        {
-          "source_id": "nwd-ppo-2026-carryover-rider",
-          "page": 2,
-          "section": "Next Benefit Period",
-          "locator": "page 2, Next Benefit Period",
-          "quote": "A carryover earned for the 2026 benefit period applies only if the member is enrolled on January 1, 2027 in the Northwind Mutual Dental PPO Standard plan for the 2027 benefit period (plan version nwd-ppo-standard-2027)."
-        },
-        {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Maximum Carryover",
           "locator": "page 5, Maximum Carryover",
-          "quote": "Members may be eligible to carry over $250 of unused annual maximum into the next benefit period when plan payments in a benefit period are below $500, up to a total carryover of $1,000."
+          "quote": "A carryover is earned for the 2026 benefit period when plan payments for services incurred in that benefit period that count toward the annual maximum total $700 or less."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "Services are assigned to a benefit period by date of service, including claims processed after the benefit period ends."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "At least one claim with a plan payment that counts toward the annual maximum must be paid for services in the benefit period."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "The carryover earned is $350. An additional in-network bonus of $150 is earned when at least one claim for services in the benefit period is paid to a network dentist."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "The carryover earned is added to the member's carryover balance."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "The carryover balance may not exceed $1,250; any amount above $1,250 is not carried over."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "If no carryover is earned for a benefit period, the carryover balance does not continue into the next benefit period."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "The carryover balance is added to the annual maximum of the next benefit period."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2026-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "A carryover earned for the 2026 benefit period applies only if the member is enrolled on January 1, 2027 in the Northwind Mutual Dental PPO Enhanced plan for the 2027 benefit period (plan version nwd-ppo-enhanced-2027)."
         }
       ],
       "conflicts_with": [],
       "note": null
     },
     {
-      "rule_id": "pretreatment_estimate.2026",
+      "rule_id": "pretreatment_estimate.enhanced.2026",
       "rule_type": "pretreatment_estimate",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -1095,7 +1183,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Pre-Treatment Estimates",
           "locator": "page 5, Pre-Treatment Estimates",
@@ -1106,7 +1194,7 @@
       "note": null
     },
     {
-      "rule_id": "coordination_of_benefits.2026",
+      "rule_id": "coordination_of_benefits.enhanced.2026",
       "rule_type": "coordination_of_benefits",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -1121,7 +1209,7 @@
       },
       "evidence": [
         {
-          "source_id": "nwd-ppo-2026-summary",
+          "source_id": "nwd-ppo-enhanced-2026-summary",
           "page": 5,
           "section": "Coordination of Benefits",
           "locator": "page 5, Coordination of Benefits",
@@ -1132,7 +1220,7 @@
       "note": null
     },
     {
-      "rule_id": "premium.2026",
+      "rule_id": "premium.enhanced.2026",
       "rule_type": "premium",
       "status": "VERIFIED",
       "effective_from": "2026-01-01",
@@ -1147,19 +1235,19 @@
         "tiers": [
           {
             "coverage_tier": "EMPLOYEE_ONLY",
-            "cents": 1825
+            "cents": 3160
           },
           {
             "coverage_tier": "EMPLOYEE_SPOUSE",
-            "cents": 3650
+            "cents": 6320
           },
           {
             "coverage_tier": "EMPLOYEE_CHILDREN",
-            "cents": 3920
+            "cents": 6790
           },
           {
             "coverage_tier": "FAMILY",
-            "cents": 5840
+            "cents": 10110
           }
         ]
       },
@@ -1169,7 +1257,7 @@
           "page": 1,
           "section": "Monthly Premiums",
           "locator": "page 1, Monthly Premiums",
-          "quote": "| PPO Standard | $18.25 | $36.50 | $39.20 | $58.40 |"
+          "quote": "| PPO Enhanced | $31.60 | $63.20 | $67.90 | $101.10 |"
         },
         {
           "source_id": "acme-2026-enrollment-guide",

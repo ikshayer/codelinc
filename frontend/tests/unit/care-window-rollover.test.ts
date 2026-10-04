@@ -15,7 +15,7 @@ const base: RolloverOutcome = {
   status: "NOT_EARNED",
   threshold_cents: 50000,
   threshold_comparison: "LT",
-  settled_plan_paid_cents: 60000,
+  settled_plan_paid: { low_cents: 60000, high_cents: 60000 },
   pending_plan_pay_cents: 7600,
   qualifying_plan_paid: { low_cents: 142400, high_cents: 150000 },
   base_award_cents: 25000,
@@ -69,21 +69,34 @@ describe("care plan rollover panel", () => {
     expect(renderToStaticMarkup(createElement(RolloverPanel, { outcomes: [], evidence }))).toBe("");
   });
 
+  // (1.6) A ranged settled amount (R2-M1) is shown as a range, never collapsed to one end.
+  it("shows the plan paid so far, as a range when the input is a range", () => {
+    expect(render(base)).toContain("Plan paid so far this year: $600");
+    const ranged = render({ ...base, status: "UNCERTAIN", settled_plan_paid: { low_cents: 45000, high_cents: 55000 }, final_bank: { low_cents: 0, high_cents: 25000 } });
+    expect(ranged).toContain("Plan paid so far this year: $450 to $550");
+  });
+
+  const shift = {
+    closing_plan_version_id: "nwd-ppo-standard-2026",
+    moved_to_date: "2027-01-05",
+    moved_to_slot_id: "prov-rivera-t-20270105-1000",
+    plan_pay_in_closing_period_cents: 14400,
+    status_if_moved: "CONDITIONAL" as RolloverStatus,
+    final_bank_if_moved: { low_cents: 25000, high_cents: 25000 },
+    member_cost_delta_cents: 6000,
+  };
+  const note = (s: typeof shift) => renderToStaticMarkup(createElement(RolloverShiftNote, { shift: s, outcome: base }));
+
+  // (1.6, R2-L2) An UNCERTAIN moved status must not claim the move keeps payments under the threshold.
+  it("the shift note does not claim 'keeps … below' when the moved status is uncertain", () => {
+    const html = note({ ...shift, status_if_moved: "UNCERTAIN", final_bank_if_moved: { low_cents: 0, high_cents: 25000 } });
+    expect(html).not.toContain("keeps this year");
+    expect(html).toContain("may keep this year&#x27;s plan payments below $500, depending on pending claims");
+    expect(html).toContain("uncertain, $0 to $250");
+  });
+
   it("the shift note uses only engine fields", () => {
-    const html = renderToStaticMarkup(
-      createElement(RolloverShiftNote, {
-        shift: {
-          closing_plan_version_id: "nwd-ppo-standard-2026",
-          moved_to_date: "2027-01-05",
-          moved_to_slot_id: "prov-rivera-t-20270105-1000",
-          plan_pay_in_closing_period_cents: 14400,
-          status_if_moved: "CONDITIONAL",
-          final_bank_if_moved: { low_cents: 25000, high_cents: 25000 },
-          member_cost_delta_cents: 6000,
-        },
-        outcome: base,
-      }),
-    );
+    const html = note(shift);
     expect(html).toContain("Optional: moving this to");
     expect(html).toContain("keeps this year&#x27;s plan payments below $500");
     expect(html).toContain("estimated cost change +$60");

@@ -1,5 +1,21 @@
 # Contract changelog
 
+## 1.6.0 — 2026-10-04 — FROZEN (plan options, premiums, rollover review fixes)
+
+CR 1.6.0 (MVP loop iteration 2b, `docs/mvp-loop/current-plan.md`; decision D-029). **No existing golden number changed**; the only edit to a pre-existing golden path is the mechanical key migration in #6 (same numbers). New plan-option values are additions. Clauses changed in CONTRACT-v1.md are marked **(1.6)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | `data/sources/` (3 new), `manifest.json`, CONTRACT §2.1 | PPO Value 2026 and PPO Enhanced 2026 summaries; Acme 2026 enrollment guide (`employer_summary`, premiums for all three options). Appended after the existing sources; existing bytes unchanged. | PLAN-004, §13. |
+| 2 | `src/domain/plan.ts` | `SourceDocument.plan_version_id` → `plan_version_ids` (one group's packet); `PremiumValue` + `premium` rule type; `registryRuleIdProblems`. | A shared employer document; rule ids must be registry-unique because `evidenceFor` and `rule:` fact ids look up by id. |
+| 3 | `registry-expectations.json`, `build-registry.ts`, CONTRACT §2.3 | Two new plans (ids `<stem>.<option>.<year>`); `premium.2026` VERIFIED, `premium.2027` UNKNOWN on Standard; per-plan keys, names and quote overrides; premium row must name its own option. Standard rule values unchanged. | PLAN-001/004. |
+| 4 | `src/domain/benefits.ts`, `ports.ts`, `api.ts`, CONTRACT §3.10, §7 | `PlanOptionSummary`, `PlanOptionsResult`, `BenefitEngine.planOptions`, `POST /api/plan-options` (body `{as_of, member}`). | Expose option data; the comparison screen is deferred. |
+| 5 | CONTRACT §3.7 | Per-class waiting-period passport items; bonus text on the carryover item. Standard passport output unchanged. | A 12-month Major wait must not read "No waiting periods". |
+| 6 | `benefits.ts` `RolloverOutcome`, CONTRACT §3.9 | `settled_plan_paid_cents` → `settled_plan_paid` (range), scenario-independent; a ranged carryover balance needs confirmation. **Response reshape** (technically breaking for `RolloverOutcome` readers; kept minor because 1.5.0 introduced it in this unreleased train and the only consumer, `/care-window`, is migrated in the same change). `expected.json`: 4 entries migrated `X` → `{X, X}`. | Review R2-M1. |
+| 7 | `src/ai/explain.ts`, CONTRACT §6.3/§6.4 | Shift sentence states its direction; the validator also accepts `|*_delta_cents|`. AT-21 wording updated. | Review R2-L1. |
+| 8 | `scripts/frozen-files.mjs`, `check-frozen.mjs`, `freeze.mjs`, root `.gitattributes` | Text files hashed with CRLF normalized to LF (sources stay byte-exact); manifest parsed with `?
+`; `* text=auto eol=lf`. | W-1: `core.autocrlf=true` checkouts failed every frozen check. |
+
 ## 1.5.0 — 2026-10-04 — FROZEN (year-close maximum carryover)
 
 CR 1.5.0 (MVP loop iteration 2, `docs/mvp-loop/current-plan.md`; decision D-028). **No existing golden number changed** (`npm run golden:check`); new rollover values are additions. Clauses changed in CONTRACT-v1.md are marked **(1.5)**.

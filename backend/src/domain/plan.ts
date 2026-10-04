@@ -66,7 +66,11 @@ export const SourceDocument = z.strictObject({
   path: z.string().min(1),
   sha256: z.string().regex(/^[a-f0-9]{64}$/),
   media_type: z.literal("text/markdown"),
-  plan_version_id: Id,
+  /**
+   * (1.6) The plan versions whose document packet includes this source (e.g. an employer
+   * enrollment guide covering every option of one group). Never another group's plan.
+   */
+  plan_version_ids: z.array(Id).min(1),
   retrieved_at: IsoDateTime,
   synthetic: z.boolean(),
   /**
@@ -229,6 +233,22 @@ export const RolloverValue = z.strictObject({
   applies_to_next_plan_version_ids: z.array(Id).min(1),
 });
 
+/**
+ * (1.6) Member premium (CONTRACT §2.5). Plan-derived and evidenced, but never an adjudication
+ * input. Each enum lists only documented values.
+ */
+export const PremiumValue = z.strictObject({
+  basis: z.enum(["EMPLOYEE_MONTHLY_CONTRIBUTION"]),
+  tiers: z
+    .array(
+      z.strictObject({
+        coverage_tier: z.enum(["EMPLOYEE_ONLY", "EMPLOYEE_SPOUSE", "EMPLOYEE_CHILDREN", "FAMILY"]),
+        cents: Cents,
+      }),
+    )
+    .min(1),
+});
+
 export const ClaimSubmissionValue = z.strictObject({
   /** Member may ask the office not to submit a claim and pay directly. */
   member_may_decline_claim: z.boolean(),
@@ -274,6 +294,7 @@ export const PlanRule = z.discriminatedUnion("rule_type", [
   rule("pretreatment_estimate", PretreatmentEstimateValue),
   rule("limitations_index", LimitationsIndexValue),
   rule("coordination_of_benefits", CoordinationOfBenefitsValue),
+  rule("premium", PremiumValue),
 ]);
 export type PlanRule = z.infer<typeof PlanRule>;
 export type PlanRuleType = PlanRule["rule_type"];
@@ -333,6 +354,19 @@ export const PlanRegistry = z.strictObject({
   sources: z.array(SourceDocument),
 });
 export type PlanRegistry = z.infer<typeof PlanRegistry>;
+
+/**
+ * (1.6) Rule ids are unique across the whole registry, because results cite them as
+ * `rule:<id>` and evidence lookup is by id. Returns one problem per duplicated id.
+ */
+export function registryRuleIdProblems(registry: Pick<PlanRegistry, "plans">): string[] {
+  const owners = new Map<string, string[]>();
+  for (const p of registry.plans) for (const r of p.rules) owners.set(r.rule_id, [...(owners.get(r.rule_id) ?? []), p.plan_version_id]);
+  return [...owners]
+    .filter(([, pvs]) => pvs.length > 1)
+    .map(([id, pvs]) => `rule id ${id} is used by ${pvs.join(", ")}`)
+    .sort();
+}
 
 /** Same identity check used by every module: never borrow from a similar plan. */
 export function samePlanKey(a: PlanKey, b: PlanKey): boolean {

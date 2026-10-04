@@ -48,6 +48,41 @@ const ROLLOVER_2026 = {
 };
 const rp = (m) => Math.floor((m.x * m.bps + 5000) / 10000);
 
+// (1.6) 2026 plan options, read by hand from data/sources (option summaries p2-p5, enrollment guide p1).
+// In-network only (the plan-option golden uses network events). Same CDT classes as PPO Standard
+// (p3); D6010 is excluded under Value (p4) and D8080 is orthodontic under Enhanced (p3).
+const OPTIONS_2026 = {
+  "ppo-enhanced": {
+    pv: "nwd-ppo-enhanced-2026",
+    premium: 3160, // guide "| PPO Enhanced | $31.60 | ..."
+    ded: 5000, // p2 "Individual deductible: $50"
+    max: 250000, // p2 "Annual maximum: $2,500"
+    rateIn: { dp: 10000, basic: 9000, major: 6000 }, // p2 "| Basic | 90% | 80% |", "| Major | 60% | 50% |"
+    majorWaitMonths: 0, // p3 "There are no waiting periods for any service class"
+    orthoLifetime: 150000, // p2 "Orthodontic lifetime maximum: $1,500 per member."
+    // p5 carryover applies only to "nwd-ppo-enhanced-2027", which is not among data/sources -> next plan unknown.
+    rollover: "NEXT_PLAN_NOT_SEEDED",
+  },
+  "ppo-standard": {
+    pv: "nwd-ppo-standard-2026", premium: 1825, ded: PLAN[2026].ded, max: PLAN[2026].max, rateIn: RATE.in_network,
+    majorWaitMonths: 0, orthoLifetime: null, rollover: "STANDARD_2026",
+  },
+  "ppo-value": {
+    pv: "nwd-ppo-value-2026",
+    premium: 980, // guide "| PPO Value | $9.80 | ..."
+    ded: 10000, // p2 "Individual deductible: $100"
+    max: 100000, // p2 "Annual maximum: $1,000"
+    rateIn: { dp: 10000, basic: 7000, major: 4000 }, // p2 "| Basic | 70% | 50% |", "| Major | 40% | 30% |"
+    majorWaitMonths: 12, // p3 "Major services have a waiting period of 12 months from the member's coverage effective date."
+    orthoLifetime: null, // p2 "Orthodontic lifetime maximum: Not applicable."
+    rollover: null, // p5 "No maximum carryover feature applies for the 2026 benefit period."
+  },
+};
+const addMonthsIso = (d, m) => {
+  const t = +d.slice(0, 4) * 12 + (+d.slice(5, 7) - 1) + m;
+  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, "0")}${d.slice(7)}`;
+};
+
 // ---- money inputs (scenario resolution) ----
 const val = (inp, dir, scen) => {
   if (!inp) return null;
@@ -124,30 +159,68 @@ function adjudicate(events, member, providers, scen, asOfDate) {
     crownHist.push({ cdt_code: e.code, tooth: e.tooth, service_date: e.date, claimed: true });
     lines.push({ ...e, charge, adj, elig, ded, rate, prelim, plan, member: patient - plan, cap, bb, counts, state: { ...st } });
   }
-  return { lines, rollover: carryover2026(lines, member, scen, asOfDate) };
+  return { lines, rollover: carryover2026(lines, member, asOfDate) };
 }
 
 // (1.5) 2026 year close (CONTRACT §3.9), from the rider above. Basis: plan payments counting toward the maximum.
-function carryover2026(lines, member, scen, asOfDate) {
+// (1.6, R2-M1) The settled amount is a range taken the same way in every scenario (low end for the low
+// qualifying amount, high end for the high one); only an exact carryover balance is used.
+function carryover2026(lines, member, asOfDate) {
   const R = ROLLOVER_2026;
   const acc = member.accumulators.find((a) => a.plan_version_id === "nwd-ppo-standard-2026");
   if (!acc) return null;
-  const settled = val(acc.plan_paid_ytd, "higher_is_worse", scen);
+  const paid = acc.plan_paid_ytd.value;
+  const sLo = paid.kind === "exact" ? paid.cents : paid.low_cents, sHi = paid.kind === "exact" ? paid.cents : paid.high_cents;
   const pending = member.pending_claims.filter((c) => c.plan_version_id === "nwd-ppo-standard-2026")
     .reduce((t, c) => t + (c.estimated_plan_pay.value.kind === "exact" ? c.estimated_plan_pay.value.cents : c.estimated_plan_pay.value.high_cents), 0);
   const simulated = lines.filter((l) => yearOf(l.date) === 2026 && l.counts).reduce((t, l) => t + l.plan, 0);
-  const prior = acc.carryover_balance ? val(acc.carryover_balance, "higher_is_better", scen) : null;
-  const lo = settled + simulated, hi = lo + pending;
+  const prior = acc.carryover_balance?.value.kind === "exact" ? acc.carryover_balance.value.cents : null;
+  const lo = sLo + simulated, hi = sHi + simulated + pending;
   const under = (q) => (R.strict ? q < R.threshold : q <= R.threshold);
-  const paidLo = !R.needsClaim || settled > 0 || simulated > 0, paidHi = paidLo || pending > 0;
+  const paidLo = !R.needsClaim || sLo > 0 || simulated > 0, paidHi = paidLo || sHi > 0 || pending > 0;
   const best = under(lo) && paidHi, worst = under(hi) && paidLo;
+  const base = { closing_plan_version_id: "nwd-ppo-standard-2026", threshold_cents: R.threshold, settled_plan_paid: { low_cents: sLo, high_cents: sHi }, pending_plan_pay_cents: pending, qualifying_plan_paid: { low_cents: lo, high_cents: hi } };
+  if (best && prior === null) return { ...base, status: "NEEDS_CONFIRMATION", final_bank: null, lost_to_cap_cents: null, forfeited_cents: null };
   const bank = Math.min(R.cap, prior + R.award + R.bonus);
   const final_bank = { low_cents: worst ? bank : 0, high_cents: best ? bank : 0 };
   const status = final_bank.low_cents !== final_bank.high_cents ? "UNCERTAIN" : !best ? "NOT_EARNED" : asOfDate > "2026-12-31" && pending === 0 ? "EARNED" : "CONDITIONAL";
+  return { ...base, status, final_bank, lost_to_cap_cents: best ? Math.max(0, prior + R.award + R.bonus - R.cap) : 0, forfeited_cents: worst ? 0 : prior };
+}
+
+// (1.6) Plan-option golden (CONTRACT §3.10): a fresh 2026 member per option, network events only.
+function optionRun(o, effectiveFrom, events, providers) {
+  let dedAvail = o.ded, maxAvail = o.max;
+  const lines = events.map((e) => {
+    const price = providers.find((p) => p.provider_id === e.provider_id).pricing.find((r) => r.cdt_code === e.cdt_code);
+    assert.equal(providers.find((p) => p.provider_id === e.provider_id).network.tier, "in_network");
+    const allowed = price.contracted_allowed.value.cents;
+    const cls = CLASS[e.cdt_code];
+    if (cls === "major" && o.majorWaitMonths > 0 && e.service_date < addMonthsIso(effectiveFrom, o.majorWaitMonths)) {
+      return { event_id: e.event_id, status: "NOT_COVERED", deductible_applied_cents: 0, plan_pay_cents: 0, member_responsibility_cents: allowed };
+    }
+    const ded = DED_CLASSES.has(cls) ? Math.min(dedAvail, allowed) : 0;
+    const prelim = rp({ x: allowed - ded, bps: o.rateIn[cls] });
+    const plan = MAX_CLASSES.has(cls) ? Math.min(prelim, maxAvail) : prelim;
+    dedAvail -= ded;
+    if (MAX_CLASSES.has(cls)) maxAvail -= plan;
+    return { event_id: e.event_id, status: "OK", deductible_applied_cents: ded, plan_pay_cents: plan, member_responsibility_cents: allowed - plan };
+  });
+  const planPay = lines.reduce((t, l) => t + l.plan_pay_cents, 0);
+  const counted = lines.filter((l, i) => l.status === "OK" && MAX_CLASSES.has(CLASS[events[i].cdt_code])).reduce((t, l) => t + l.plan_pay_cents, 0);
+  const q = { low_cents: counted, high_cents: counted };
+  const rollover =
+    o.rollover === "STANDARD_2026"
+      ? { status: counted < ROLLOVER_2026.threshold ? "CONDITIONAL" : "NOT_EARNED", next_plan_version_id: "nwd-ppo-standard-2027", qualifying_plan_paid: q,
+          final_bank: counted < ROLLOVER_2026.threshold ? { low_cents: ROLLOVER_2026.award, high_cents: ROLLOVER_2026.award } : { low_cents: 0, high_cents: 0 }, issue_codes: [] }
+      : o.rollover === "NEXT_PLAN_NOT_SEEDED"
+        ? { status: "NEEDS_CONFIRMATION", next_plan_version_id: null, qualifying_plan_paid: q, final_bank: null, issue_codes: ["ROLLOVER_NEXT_PLAN_UNKNOWN"] }
+        : null;
   return {
-    closing_plan_version_id: "nwd-ppo-standard-2026", status, threshold_cents: R.threshold, settled_plan_paid_cents: settled, pending_plan_pay_cents: pending,
-    qualifying_plan_paid: { low_cents: lo, high_cents: hi }, final_bank,
-    lost_to_cap_cents: best ? Math.max(0, prior + R.award + R.bonus - R.cap) : 0, forfeited_cents: worst ? 0 : prior,
+    lines,
+    plan_pay_cents: planPay,
+    member_cost_cents: lines.reduce((t, l) => t + l.member_responsibility_cents, 0),
+    annual_max_remaining_after_cents: maxAvail,
+    rollover,
   };
 }
 
@@ -515,7 +588,7 @@ const rolloverShift = (r, alt, pid) => {
   };
 };
 { console.log("\n== ROLLOVER (1.5)");
-  const keys = ["closing_plan_version_id", "status", "threshold_cents", "settled_plan_paid_cents", "pending_plan_pay_cents", "qualifying_plan_paid", "final_bank", "lost_to_cap_cents", "forfeited_cents"];
+  const keys = ["closing_plan_version_id", "status", "threshold_cents", "settled_plan_paid", "pending_plan_pay_cents", "qualifying_plan_paid", "final_bank", "lost_to_cap_cents", "forfeited_cents"];
   const pick = (o) => Object.fromEntries(keys.map((k) => [k, o[k]]));
   B.alternatives.forEach((ga, i) => {
     const a = R.base.alts[i];
@@ -538,6 +611,24 @@ const rolloverShift = (r, alt, pid) => {
     }
   });
 }
+{ console.log("\n== PLAN OPTIONS (1.6)");
+  const PO = G.plan_options;
+  const listing = Object.entries(OPTIONS_2026)
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([id, o]) => ({
+      plan_option_id: id, plan_version_id: o.pv, is_member_plan: id === J("fixtures/synthetic/member.json").plan_key.plan_option_id,
+      premium_employee_only_cents: o.premium, deductible_cents: o.ded, annual_maximum_cents: o.max, basic_in_network_bps: o.rateIn.basic,
+      orthodontic_lifetime_maximum_cents: o.orthoLifetime,
+    }));
+  assert.deepEqual(listing, PO.listing, "plan-option listing");
+  const providers = J("fixtures/synthetic/providers.postvisit.json");
+  for (const run of PO.runs) {
+    const got = optionRun(OPTIONS_2026[run.plan_option_id], run.coverage_effective_from, PO.events, Array.isArray(providers) ? providers : providers.providers);
+    console.log(`  ${run.case}: plan ${got.plan_pay_cents}, member ${got.member_cost_cents}, max left ${got.annual_max_remaining_after_cents}, rollover ${got.rollover?.status ?? "none"}`);
+    const want = { lines: run.lines, plan_pay_cents: run.plan_pay_cents, member_cost_cents: run.member_cost_cents, annual_max_remaining_after_cents: run.annual_max_remaining_after_cents, rollover: run.rollover };
+    assert.deepEqual(got, want, `plan option run ${run.case}`);
+  }
+}
 // AT-01: missing annual maximum → NEEDS_CONFIRMATION, no alternatives
 assert.equal(R.missing_max.alts.length, 0, "missing annual_maximum.2026 → alternatives []");
-console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced, route comparisons and rollover included (contract ${V10 ? "1.0.0" : CURRENT} rules)`);
+console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced, route comparisons, rollover and plan options included (contract ${V10 ? "1.0.0" : CURRENT} rules)`);

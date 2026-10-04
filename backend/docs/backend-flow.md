@@ -2,7 +2,7 @@
 
 How the backend turns member data, plan documents and dentist instructions into
 evidence-backed timing and cost recommendations, and how the frontend consumes
-the result. Reflects contract **v1.5.0**.
+the result. Reflects contract **v1.6.0**.
 
 ## 1. The big picture
 
@@ -202,6 +202,7 @@ synthetic data, not for real data.
 ```
 GET  /api/scenario          → member, providers, documents, as_of dates
 POST /api/passport          {as_of, member}                       → BenefitPassport
+POST /api/plan-options      {as_of, member}                       → PlanOptionsResult (1.6: group options, premiums, rule items)
 POST /api/visit-navigator   {as_of, member, providers, visit:{intent, expected_codes,
                              symptoms}, known_procedures:[], max_options:3}
                                                                    → VisitNavigatorResult

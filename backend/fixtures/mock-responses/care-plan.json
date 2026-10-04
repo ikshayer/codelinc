@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.5.0",
+  "contract_version": "1.6.0",
   "ok": true,
   "data": {
-    "contract_version": "1.5.0",
+    "contract_version": "1.6.0",
     "engine_id": "optimizer-enum-1",
     "status": "OK",
     "as_of": "2026-10-15T21:00:00Z",
@@ -1893,7 +1893,10 @@
             "status": "NOT_EARNED",
             "threshold_cents": 50000,
             "threshold_comparison": "LT",
-            "settled_plan_paid_cents": 60000,
+            "settled_plan_paid": {
+              "low_cents": 60000,
+              "high_cents": 60000
+            },
             "pending_plan_pay_cents": 7600,
             "qualifying_plan_paid": {
               "low_cents": 142400,
@@ -3525,7 +3528,10 @@
             "status": "NOT_EARNED",
             "threshold_cents": 50000,
             "threshold_comparison": "LT",
-            "settled_plan_paid_cents": 60000,
+            "settled_plan_paid": {
+              "low_cents": 60000,
+              "high_cents": 60000
+            },
             "pending_plan_pay_cents": 7600,
             "qualifying_plan_paid": {
               "low_cents": 142400,

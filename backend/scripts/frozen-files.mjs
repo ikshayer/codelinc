@@ -1,4 +1,5 @@
 // PLANNER-OWNED. The set of frozen paths for the current contract version.
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -44,4 +45,30 @@ export function listFrozen(root) {
   for (const d of FROZEN_DIRS) walk(d);
   for (const f of FROZEN_FILES) if (fs.existsSync(path.join(root, f))) out.push(f);
   return [...new Set(out)].sort();
+}
+
+/**
+ * (1.6) sha256 of a frozen file as committed. A checkout with core.autocrlf=true turns LF into CRLF,
+ * so text files are hashed with CRLF normalized to LF; every other byte change still changes the hash.
+ * data/sources/** is hashed byte for byte: it is `-text` in .gitattributes and its manifest checksums
+ * cover the exact bytes.
+ */
+export function frozenDigest(root, rel) {
+  const bytes = fs.readFileSync(path.join(root, rel));
+  const exact = rel.startsWith("data/sources/") || bytes.includes(0);
+  const content = exact ? bytes : Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n"), "utf8");
+  return crypto.createHash("sha256").update(content).digest("hex");
+}
+
+/** Parses docs/contracts/FROZEN.sha256 (LF or CRLF line endings) into path → hash. */
+export function parseFrozenManifest(text) {
+  return new Map(
+    text
+      .split(/\r?\n/)
+      .filter((l) => l && !l.startsWith("#"))
+      .map((l) => {
+        const [hash, ...rest] = l.split("  ");
+        return [rest.join("  "), hash];
+      }),
+  );
 }

@@ -1050,6 +1050,22 @@
       ],
       "conflicts_with": [],
       "note": null
+    },
+    {
+      "rule_id": "premium.2027",
+      "rule_type": "premium",
+      "status": "UNKNOWN",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [],
+      "conflicts_with": [],
+      "note": "Not addressed in the plan document."
     }
   ]
 }

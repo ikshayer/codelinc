@@ -161,6 +161,9 @@ const fakeBenefits: BenefitEngine = {
   passport: () => {
     throw new Error("not used by optimizer tests");
   },
+  planOptions: () => {
+    throw new Error("not used by optimizer tests");
+  },
   evidenceFor: () => [],
 };
 

@@ -29,6 +29,9 @@ import {
   RolloverOutcome,
   RouteComparison,
   VisitNavigatorResponse,
+  PlanOptionsResponse,
+  type PassportItem,
+  type PlanOptionsResult,
   VisitNavigatorResult,
   VisitOption,
   calcStepId,
@@ -281,7 +284,7 @@ const ev = (eventId: string, l: AdjudicationLine, slot: string, funding: ReturnT
 // Steps omitted in the mock (the engine emits the ten rollover.<pv>.* steps).
 const rollover2026 = (simulated: number): RolloverOutcome => ({
   rule_id: "rollover.2026", closing_plan_version_id: "nwd-ppo-standard-2026", closing_period_end: "2026-12-31", next_plan_version_id: "nwd-ppo-standard-2027",
-  status: "NOT_EARNED", threshold_cents: 50000, threshold_comparison: "LT", settled_plan_paid_cents: 60000, pending_plan_pay_cents: 7600,
+  status: "NOT_EARNED", threshold_cents: 50000, threshold_comparison: "LT", settled_plan_paid: range(60000), pending_plan_pay_cents: 7600,
   qualifying_plan_paid: { low_cents: 60000 + simulated, high_cents: 67600 + simulated }, base_award_cents: 25000, network_bonus: range(0),
   prior_bank_cents: 0, bank_cap_cents: 100000, final_bank: range(0), lost_to_cap_cents: 0, forfeited_cents: 0, applied_rule_ids: ["rollover.2026"],
   input_ids: ["member.acc.2026.carryover_balance", "member.acc.2026.plan_paid_ytd", "member.pending.claim-2026-0928-d2391.plan_pay"], steps: [], issues: [],
@@ -435,8 +438,44 @@ const explanation = {
   fell_back_to_template: false,
 };
 
+// (1.6) CONTRACT §3.10 plan options for the golden member on 2026-10-15 (headline items only; the engine
+// also emits coverage, rule and orthodontic items).
+const optionItem = (item_id: string, label: string, rule_id: string, value: Partial<Pick<PassportItem, "value_cents" | "value_bps">>): PassportItem => ({
+  item_id, label, value_cents: null, value_range: null, value_bps: null, value_date: null, value_text: null, ...value,
+  source: "PLAN_VERIFIED", rule_status: "VERIFIED", rule_ids: [rule_id], input_ids: [], observed_at: null,
+});
+const option = (opt: string, name: string, suffix: string, premium: number, ded: number, max: number, basicBps: number): PlanOptionsResult["options"][number] => ({
+  plan_version_id: `nwd-${opt}-2026`, plan_id: `nwd-${opt}`, plan_option_id: opt, plan_name: name, plan_type: "DPPO",
+  coverage_period_start: "2026-01-01", coverage_period_end: "2026-12-31", is_member_plan: opt === "ppo-standard", adjudication_supported: true,
+  items: [
+    optionItem("premium.employee_only", "Monthly premium: employee only", `premium${suffix}`, { value_cents: premium }),
+    optionItem("coverage.in_network.basic", "Basic", `plan_share.in_network.basic${suffix}`, { value_bps: basicBps }),
+    optionItem("rules.deductible", "Deductible", `deductible${suffix}`, { value_cents: ded }),
+    optionItem("rules.annual_maximum", "Annual maximum", `annual_maximum${suffix}`, { value_cents: max }),
+  ],
+});
+const planOptions: PlanOptionsResult = {
+  contract_version: CONTRACT_VERSION, as_of: "2026-10-15T09:00:00-04:00", member_plan_version_id: "nwd-ppo-standard-2026",
+  options: [
+    option("ppo-enhanced", "PPO Enhanced", ".enhanced.2026", 3160, 5000, 250000, 9000),
+    option("ppo-standard", "PPO Standard", ".2026", 1825, 5000, 150000, 8000),
+    option("ppo-value", "PPO Value", ".value.2026", 980, 10000, 100000, 7000),
+  ],
+  issues: [],
+};
+
 const outputs: [string, unknown, { parse: (v: unknown) => unknown }][] = [
-  ["health.json", env("health", { contract_version: CONTRACT_VERSION, ai_mode: "synthetic", registry_version: "mock", plan_version_ids: ["nwd-ppo-standard-2026", "nwd-ppo-standard-2027"] }), HealthResponse],
+  [
+    "health.json",
+    env("health", {
+      contract_version: CONTRACT_VERSION,
+      ai_mode: "synthetic",
+      registry_version: "mock",
+      plan_version_ids: ["nwd-ppo-enhanced-2026", "nwd-ppo-standard-2026", "nwd-ppo-standard-2027", "nwd-ppo-value-2026"],
+    }),
+    HealthResponse,
+  ],
+  ["plan-options.json", env("plan-options", planOptions), PlanOptionsResponse],
   ["passport.json", env("passport", passport), { parse: (v) => v }],
   ["visit-navigator.json", env("visit", visitResult), VisitNavigatorResponse],
   ["intake-extract.json", env("extract", extraction), ExtractResponse],
