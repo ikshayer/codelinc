@@ -78,21 +78,17 @@ const outcome = (s: SimulationResult, pv: string): RolloverOutcome | null => {
 };
 const plan = (reg: PlanRegistry, pv: string): PlanDefinition => reg.plans.find((p) => p.plan_version_id === pv)!;
 
-/** Adds a minimal PPO Enhanced 2027 version (same key) so the Enhanced 2026 carryover has a next plan. */
-function withEnhanced2027(reg: PlanRegistry = registry()): PlanRegistry {
-  const copy = structuredClone(reg);
-  const p = structuredClone(plan(copy, PV["ppo-enhanced"]));
-  p.plan_version_id = "nwd-ppo-enhanced-2027";
-  p.coverage_period = { start: "2027-01-01", end: "2027-12-31" };
-  p.rules = p.rules.map((r) => ({ ...r, rule_id: r.rule_id.replace(/\.enhanced\.2026$/, ".enhanced.2027"), effective_from: "2027-01-01", effective_to: "2027-12-31" }));
-  copy.plans.push(p);
-  return copy;
-}
-
 describe("AT-22 PLAN-004 the registry loads Value, Standard and Enhanced", () => {
   it("every option validates and carries the required rule families", () => {
     const reg = registry();
-    expect(reg.plans.map((p) => p.plan_version_id).sort()).toEqual(["nwd-ppo-enhanced-2026", PV2026, "nwd-ppo-standard-2027", "nwd-ppo-value-2026"]);
+    expect(reg.plans.map((p) => p.plan_version_id).sort()).toEqual([
+      "nwd-ppo-enhanced-2026",
+      "nwd-ppo-enhanced-2027",
+      PV2026,
+      "nwd-ppo-standard-2027",
+      "nwd-ppo-value-2026",
+      "nwd-ppo-value-2027",
+    ]);
     for (const option of Object.keys(PV) as Option[]) {
       const p = plan(reg, PV[option]);
       expect(benefits.validatePlan(reg, p).ok, option).toBe(true);
@@ -162,18 +158,14 @@ describe("AT-22 PLAN-004 the registry loads Value, Standard and Enhanced", () =>
 });
 
 describe("AT-22 PLAN-001 each option resolves only through its own key", () => {
-  it("2026 dates resolve to the option's own version; 2027 never borrows Standard 2027", () => {
+  it("2026 and 2027 dates resolve to each option's own exact version", () => {
     const reg = registry();
     for (const option of Object.keys(PV) as Option[]) {
       const key = { ...fx.member().plan_key, plan_option_id: option };
       const r = benefits.resolvePlanVersion(reg, key, "2026-11-02");
       expect(r.ok && r.plan.plan_version_id).toBe(PV[option]);
       const next = benefits.resolvePlanVersion(reg, key, "2027-01-05");
-      if (option === "ppo-standard") expect(next.ok && next.plan.plan_version_id).toBe("nwd-ppo-standard-2027");
-      else {
-        expect(next.ok).toBe(false);
-        expect(next.issues.map((i) => i.code)).toContain("PLAN_NOT_FOUND");
-      }
+      expect(next.ok && next.plan.plan_version_id).toBe(`nwd-ppo-${option.slice(4)}-2027`);
     }
   });
 
@@ -258,16 +250,16 @@ describe("AT-22 §14.1 #8 waiting period, exclusion and orthodontics on the new 
 });
 
 describe("AT-22 ROLL-003/004/006/007 the Enhanced carryover on shipped data", () => {
-  it("shipped: the 2027 Enhanced plan is not in the registry → NEEDS_CONFIRMATION, nothing carried", () => {
+  it("shipped: the exact 2027 Enhanced successor makes carryover deterministic", () => {
     const o = outcome(sim([E1], optionMember("ppo-enhanced")), PV["ppo-enhanced"])!;
-    expect(o.status).toBe("NEEDS_CONFIRMATION");
-    expect(o.next_plan_version_id).toBeNull();
-    expect(o.final_bank).toBeNull();
-    expect(o.issues.map((i) => i.code)).toContain("ROLLOVER_NEXT_PLAN_UNKNOWN");
+    expect(o.status).toBe("CONDITIONAL");
+    expect(o.next_plan_version_id).toBe("nwd-ppo-enhanced-2027");
+    expect(o.final_bank).toEqual({ low_cents: 50000, high_cents: 50000 });
+    expect(o.issues).toEqual([]);
   });
 
-  it("with a 2027 Enhanced version: base award plus in-network bonus, LTE boundary, cap", () => {
-    const reg = withEnhanced2027();
+  it("base award plus in-network bonus, LTE boundary, and cap", () => {
+    const reg = registry();
     const pv = PV["ppo-enhanced"];
     const at = (o: { ytd?: number; carry?: number }, events: ClaimEvent[] = [E1]) => outcome(sim(events, optionMember("ppo-enhanced", o), reg), pv)!;
     const base = at({});
@@ -339,11 +331,17 @@ describe("AT-22 CONTRACT §3.10 POST /api/plan-options", () => {
     for (const p of passportItems) expect(item(own, p.item_id), p.item_id).toEqual(p);
   });
 
-  it("2027: only Standard 2027 is effective; its premium needs confirmation and is never $0", async () => {
+  it("2027: all exact option versions are effective; undocumented premiums need confirmation and are never $0", async () => {
     const r = PlanOptionsResult.parse(((await call({ as_of: "2027-02-01T15:00:00Z", member: fx.member() })).body as { data: unknown }).data);
-    expect(r.options.map((o) => o.plan_version_id)).toEqual(["nwd-ppo-standard-2027"]);
-    const premium = item(r.options[0]!, "premium")!;
-    expect([premium.source, premium.rule_status, premium.value_cents]).toEqual(["NEEDS_CONFIRMATION", "UNKNOWN", null]);
+    expect(r.options.map((o) => o.plan_version_id)).toEqual([
+      "nwd-ppo-enhanced-2027",
+      "nwd-ppo-standard-2027",
+      "nwd-ppo-value-2027",
+    ]);
+    for (const option of r.options) {
+      const premium = item(option, "premium")!;
+      expect([premium.source, premium.rule_status, premium.value_cents]).toEqual(["NEEDS_CONFIRMATION", "UNKNOWN", null]);
+    }
   });
 
   it("a member whose own plan does not resolve still gets the list, with an info PLAN_NOT_FOUND", async () => {

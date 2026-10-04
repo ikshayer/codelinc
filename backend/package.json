@@ -9,7 +9,7 @@
   "scripts": {
     "dev:api": "tsx src/api/mongo-server.ts",
     "dev:voice": "tsx src/voice/server.ts",
-    "db:verify": "tsx scripts/verify-dental-demo.ts",
+    "db:verify:demo": "tsx scripts/verify-dental-demo.ts",
     "test:data": "node --import tsx --test tests/data/*.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -20,13 +20,16 @@
     "check:frozen": "node scripts/check-frozen.mjs",
     "freeze": "node scripts/freeze.mjs",
     "golden:check": "node scripts/golden-check.mjs",
-    "demo:cli": "tsx src/api/demo-cli.ts",
+    "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed-database.ts",
+    "db:verify:engine": "tsx --env-file-if-exists=.env.local scripts/verify-database.ts",
+    "db:verify": "npm run db:verify:demo && npm run db:verify:engine",
+    "demo:cli": "tsx --env-file-if-exists=.env.local src/api/demo-cli.ts",
     "verify": "npm run check:frozen && npm run golden:check && npm run typecheck && npm run lint && npm run test:contracts && npm test && npm run test:acceptance && npm run test:integration",
-    "serve": "tsx src/api/server.ts"
+    "serve": "tsx --env-file-if-exists=.env.local src/api/server.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1146.0",
-    "mongodb": "^6.20.0",
+    "mongodb": "^6.21.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

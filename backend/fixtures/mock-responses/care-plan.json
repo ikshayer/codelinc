@@ -580,7 +580,8 @@
               }
             ],
             "route_comparison": null,
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           },
           {
             "event_id": "alt-1-e2",
@@ -1156,7 +1157,8 @@
               }
             ],
             "route_comparison": null,
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           },
           {
             "event_id": "alt-1-e3",
@@ -1727,7 +1729,8 @@
                 }
               ]
             },
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           }
         ],
         "unscheduled": [],
@@ -2502,7 +2505,8 @@
               }
             ],
             "route_comparison": null,
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           },
           {
             "event_id": "alt-2-e2",
@@ -2807,7 +2811,8 @@
               "winner_claim_route": "SELF_PAY_NO_CLAIM",
               "missing": []
             },
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           },
           {
             "event_id": "alt-2-e3",
@@ -3383,7 +3388,8 @@
               }
             ],
             "route_comparison": null,
-            "rollover_shift": null
+            "rollover_shift": null,
+            "user_locked": false
           }
         ],
         "unscheduled": [],

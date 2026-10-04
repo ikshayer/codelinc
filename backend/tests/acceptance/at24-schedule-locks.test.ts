@@ -61,16 +61,16 @@ describe("AT-24 exact appointment locks", () => {
     expect(result.unresolved.some((issue) => issue.procedure_id === lock.procedure_id && issue.field === "schedule_locks")).toBe(true);
   });
 
-  it("reports two pins occupying one chair slot and keeps the clinical dependency constraint", () => {
+  it("rejects two pins occupying one chair slot before optimization", () => {
     const result = optimize((body) => {
       const root = body.procedures.find((p) => p.procedure_id === "proc-rc-30")!;
       root.latest_safe_date = "2026-11-05";
       const crown = baseline.alternatives[0]!.events.find((event) => event.procedure_id === "proc-crown-30")!;
       body.schedule_locks = [lockOf(crown), { ...lockOf(crown), procedure_id: root.procedure_id }];
     });
-    expect(result.status).toBe("NO_FEASIBLE_SCHEDULE");
+    expect(result.status).toBe("INVALID_INPUT");
     expect(result.alternatives).toEqual([]);
-    expect(result.unresolved.filter((issue) => issue.field === "schedule_locks")).toHaveLength(2);
+    expect(result.unresolved).toContainEqual(expect.objectContaining({ code: "SCHEMA_INVALID", field: "schedule_locks", procedure_id: "proc-rc-30" }));
   });
 
   it("can pin every appointment in a returned plan", () => {

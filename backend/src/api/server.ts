@@ -7,10 +7,20 @@
 import http from "node:http";
 import { API_LIMITS, API_ROUTES, type ApiRouteId } from "@/domain";
 import type { ApiResponseLike } from "@/domain/ports";
-import { createApiHandlers, errorResponse, requestIdFrom } from "./index";
+import { closeDatabase, getDatabase, migrateDatabase, MongoCareWindowRepository, type CareWindowRepository } from "@/db";
+import { errorResponse, requestIdFrom } from "./index";
+import { createRuntimeHandlers } from "./runtime";
 import { calculateRequest } from "./calculate";
 
-const handlers = createApiHandlers();
+let repository: CareWindowRepository | null = null;
+
+if (process.env.MONGODB_URI) {
+  const db = getDatabase();
+  await migrateDatabase(db);
+  repository = new MongoCareWindowRepository(db);
+}
+const handlers = await createRuntimeHandlers(repository);
+
 const routes = new Map<string, { id: ApiRouteId; method: "GET" | "POST" }>(Object.entries(API_ROUTES).map(([id, r]) => [r.path, { id: id as ApiRouteId, method: r.method }]));
 const allowedOrigins = new Set((process.env.ALLOWED_ORIGINS ?? "http://localhost:3000").split(",").map((s) => s.trim()).filter(Boolean));
 
@@ -73,4 +83,13 @@ const server = http.createServer(async (req, res) => {
 });
 
 const port = Number(process.env.PORT ?? 4000);
-server.listen(port, () => console.log(`CareWindow API on http://localhost:${port}`));
+server.listen(port, () => console.log(`CareWindow API on http://localhost:${port} (${repository ? "mongodb" : "file fixtures"})`));
+
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.once(signal, () => {
+    server.close(async (error) => {
+      await closeDatabase();
+      process.exitCode = error ? 1 : 0;
+    });
+  });
+}

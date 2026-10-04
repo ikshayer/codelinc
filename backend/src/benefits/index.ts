@@ -30,19 +30,25 @@ import {
 } from "@/domain";
 import type { BenefitEngine, BenefitsModule } from "@/domain/ports";
 import enhanced2026 from "../../data/plans/nwd-ppo-enhanced-2026.json";
+import enhanced2027 from "../../data/plans/nwd-ppo-enhanced-2027.json";
 import plan2026 from "../../data/plans/nwd-ppo-standard-2026.json";
 import plan2027 from "../../data/plans/nwd-ppo-standard-2027.json";
 import value2026 from "../../data/plans/nwd-ppo-value-2026.json";
+import value2027 from "../../data/plans/nwd-ppo-value-2027.json";
 import sources from "../../data/plans/sources.generated.json";
 import { cmp, normalizeIssues, resolvePlanVersion, rulesOf, supportsPlanType } from "./rules";
 import { money, openLedger, openPeriod, simulate } from "./simulate";
 
-const REGISTRY_VERSION = "synthetic-2026.10.04";
+const REGISTRY_VERSION = "synthetic-2026.10.04-six-plan";
 
 let cached: PlanRegistry | null = null;
 
 export function loadRegistry(): PlanRegistry {
-  cached ??= PlanRegistry.parse({ registry_version: REGISTRY_VERSION, plans: [plan2026, plan2027, value2026, enhanced2026], sources });
+  cached ??= PlanRegistry.parse({
+    registry_version: REGISTRY_VERSION,
+    plans: [plan2026, plan2027, value2026, value2027, enhanced2026, enhanced2027],
+    sources,
+  });
   return cached;
 }
 
@@ -345,15 +351,17 @@ function planOptions(registry: PlanRegistry, member: MemberState, asOf: string):
   };
 }
 
-function evidenceFor(registry: PlanRegistry, ruleIds: readonly string[]): EvidenceIndexEntry[] {
+function evidenceFor(registry: PlanRegistry, ruleIds: readonly string[], planVersionIds?: readonly string[]): EvidenceIndexEntry[] {
   const wanted = new Set(ruleIds);
+  const versions = planVersionIds ? new Set(planVersionIds) : null;
   return registry.plans
+    .filter((plan) => !versions || versions.has(plan.plan_version_id))
     .flatMap((p) =>
       p.rules
         .filter((r) => wanted.has(r.rule_id) && r.evidence.length > 0)
         .map((r) => ({ rule_id: r.rule_id, plan_version_id: p.plan_version_id, evidence: r.evidence })),
     )
-    .sort((a, b) => (a.rule_id < b.rule_id ? -1 : a.rule_id > b.rule_id ? 1 : 0));
+    .sort((a, b) => cmp(a.rule_id, b.rule_id) || cmp(a.plan_version_id, b.plan_version_id));
 }
 
 export const benefitEngine: BenefitEngine = {

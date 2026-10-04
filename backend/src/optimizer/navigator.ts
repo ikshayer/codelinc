@@ -321,6 +321,9 @@ export function makeVisitNavigator(benefits: BenefitEngine): VisitNavigator {
             ? "NEEDS_CONFIRMATION"
             : "NO_FEASIBLE_SCHEDULE";
       const ruleIds = [...new Set(limited.flatMap((candidate) => candidate.appliedRuleIds))].sort(compareStrings);
+      const planVersionIds = [
+        ...new Set(limited.flatMap((candidate) => candidate.option.lines.map((line) => line.plan_version_id)).filter((id): id is string => id !== null)),
+      ].sort(compareStrings);
       return {
         contract_version: CONTRACT_VERSION,
         engine_id: ENGINE_IDS.optimizer,
@@ -335,7 +338,7 @@ export function makeVisitNavigator(benefits: BenefitEngine): VisitNavigator {
         options: limited.map((candidate) => candidate.option),
         excluded: excluded.sort((a, b) => compareStrings(a.provider_id, b.provider_id)),
         conditional_scenarios: [],
-        evidence: benefits.evidenceFor(registry, ruleIds).sort((a, b) => compareStrings(a.rule_id, b.rule_id)),
+        evidence: benefits.evidenceFor(registry, ruleIds, planVersionIds).sort((a, b) => compareStrings(`${a.rule_id}:${a.plan_version_id}`, `${b.rule_id}:${b.plan_version_id}`)),
         issues: allIssues,
         decision_trace: trace,
       };

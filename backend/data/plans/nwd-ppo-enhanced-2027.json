@@ -1,0 +1,1093 @@
+{
+  "plan_id": "nwd-ppo-enhanced",
+  "plan_version_id": "nwd-ppo-enhanced-2027",
+  "plan_type": "DPPO",
+  "key": {
+    "carrier_id": "northwind-mutual",
+    "group_id": "acme-synthetic-001",
+    "plan_option_id": "ppo-enhanced",
+    "jurisdiction": "VA",
+    "network_id": "nwd-ppo"
+  },
+  "carrier_name": "Northwind Mutual Dental",
+  "plan_name": "PPO Enhanced",
+  "coverage_period": {
+    "start": "2027-01-01",
+    "end": "2027-12-31"
+  },
+  "synthetic": true,
+  "source_documents": [
+    {
+      "source_id": "nwd-ppo-enhanced-2027-summary",
+      "sha256": "5d2e157dc48549c1e1bdcd8d2b2e14c6597a13157b92aa4e13cb66b11dd7f8b2"
+    }
+  ],
+  "source_precedence": [
+    "nwd-ppo-enhanced-2027-summary"
+  ],
+  "review": {
+    "status": "REVIEWED",
+    "reviewed_by": "dental-benefits",
+    "reviewed_at": "2026-10-03T00:00:00Z"
+  },
+  "rules": [
+    {
+      "rule_id": "benefit_period.enhanced.2027",
+      "rule_type": "benefit_period",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "period_start": "2027-01-01",
+        "period_end": "2027-12-31",
+        "accumulator_basis": "service_date"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 1,
+          "section": "Benefit Period",
+          "locator": "page 1, Benefit Period",
+          "quote": "The benefit period is the calendar year: January 1, 2027 through December 31, 2027."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 1,
+          "section": "Benefit Period",
+          "locator": "page 1, Benefit Period",
+          "quote": "Benefits are applied based on the date of service."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "deductible.enhanced.2027",
+      "rule_type": "deductible",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "individual_cents": 2500,
+        "applies_to_classes": [
+          "basic",
+          "major"
+        ],
+        "shared_across_networks": true
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "Individual deductible: $25 per member per benefit period."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "The deductible applies to Basic and Major services."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "The deductible is combined for in-network and out-of-network services."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "annual_maximum.enhanced.2027",
+      "rule_type": "annual_maximum",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "individual_cents": 200000,
+        "counts_classes": [
+          "basic",
+          "major"
+        ],
+        "shared_across_networks": true
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "Annual maximum: $2,000 per member per benefit period, combined for in-network and out-of-network services."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "Plan payments for Basic and Major services count toward the annual maximum."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "lifetime_maximum.orthodontic.enhanced.2027",
+      "rule_type": "lifetime_maximum",
+      "status": "NOT_APPLICABLE",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": "orthodontic",
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Deductible and Maximums",
+          "locator": "page 2, Deductible and Maximums",
+          "quote": "Orthodontic lifetime maximum: Not applicable."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.in_network.preventive.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "in_network",
+        "service_class": "preventive",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 10000,
+        "basis": "allowed_amount_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Diagnostic & Preventive | 100% | 90% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "In-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.in_network.basic.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "in_network",
+        "service_class": "basic",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 9000,
+        "basis": "allowed_amount_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Basic | 90% | 70% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "In-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.in_network.major.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "in_network",
+        "service_class": "major",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 6000,
+        "basis": "allowed_amount_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Major | 60% | 50% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "In-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.out_of_network.preventive.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "out_of_network",
+        "service_class": "preventive",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 9000,
+        "basis": "oon_allowance_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Diagnostic & Preventive | 100% | 90% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "Out-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.out_of_network.basic.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "out_of_network",
+        "service_class": "basic",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 7000,
+        "basis": "oon_allowance_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Basic | 90% | 70% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "Out-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "plan_share.out_of_network.major.enhanced.2027",
+      "rule_type": "plan_share",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "out_of_network",
+        "service_class": "major",
+        "cdt_codes": null
+      },
+      "value": {
+        "rate_bps": 5000,
+        "basis": "oon_allowance_after_deductible"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "| Major | 60% | 50% |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 2,
+          "section": "Coverage Levels",
+          "locator": "page 2, Coverage Levels",
+          "quote": "Out-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "service_class_map.preventive.enhanced.2027",
+      "rule_type": "service_class_map",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": "preventive",
+        "cdt_codes": null
+      },
+      "value": {
+        "service_class": "preventive",
+        "cdt_codes": [
+          "D0120",
+          "D0140",
+          "D0150",
+          "D0210",
+          "D0220",
+          "D0274",
+          "D1110"
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Service Classifications",
+          "locator": "page 3, Service Classifications",
+          "quote": "| Diagnostic & Preventive | D0120, D0140, D0150, D0210, D0220, D0274, D1110 |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "service_class_map.basic.enhanced.2027",
+      "rule_type": "service_class_map",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": "basic",
+        "cdt_codes": null
+      },
+      "value": {
+        "service_class": "basic",
+        "cdt_codes": [
+          "D2140",
+          "D2391",
+          "D2392",
+          "D3330"
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Service Classifications",
+          "locator": "page 3, Service Classifications",
+          "quote": "| Basic | D2140, D2391, D2392, D3330 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Service Classifications",
+          "locator": "page 3, Service Classifications",
+          "quote": "Endodontic therapy (D3330) is classified as a Basic service under this plan."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "service_class_map.major.enhanced.2027",
+      "rule_type": "service_class_map",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": "major",
+        "cdt_codes": null
+      },
+      "value": {
+        "service_class": "major",
+        "cdt_codes": [
+          "D2740",
+          "D2750",
+          "D2950",
+          "D6010"
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Service Classifications",
+          "locator": "page 3, Service Classifications",
+          "quote": "| Major | D2740, D2750, D2950, D6010 |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "waiting_period.all.enhanced.2027",
+      "rule_type": "waiting_period",
+      "status": "NOT_APPLICABLE",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Waiting Periods",
+          "locator": "page 3, Waiting Periods",
+          "quote": "There are no waiting periods for any service class under this plan."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "frequency_limit.evaluations.enhanced.2027",
+      "rule_type": "frequency_limit",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D0120",
+          "D0140",
+          "D0150"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D0120",
+          "D0140",
+          "D0150"
+        ],
+        "max_count": 2,
+        "window": {
+          "kind": "benefit_period"
+        },
+        "scope": "per_member"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "| D0120, D0140, D0150 (oral evaluations) | 2 per member per benefit period, combined |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "frequency_limit.prophylaxis.enhanced.2027",
+      "rule_type": "frequency_limit",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D1110"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D1110"
+        ],
+        "max_count": 2,
+        "window": {
+          "kind": "benefit_period"
+        },
+        "scope": "per_member"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "| D1110 (prophylaxis) | 2 per member per benefit period |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "frequency_limit.fmx.enhanced.2027",
+      "rule_type": "frequency_limit",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D0210"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D0210"
+        ],
+        "max_count": 1,
+        "window": {
+          "kind": "rolling_months",
+          "months": 60
+        },
+        "scope": "per_member"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "| D0210 (full-mouth radiographs) | 1 per member per 60 months |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "frequency_limit.crowns.enhanced.2027",
+      "rule_type": "frequency_limit",
+      "status": "CONFLICT",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D2740",
+          "D2750"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D2740",
+          "D2750"
+        ],
+        "max_count": 1,
+        "window": {
+          "kind": "rolling_months",
+          "months": 60
+        },
+        "scope": "per_tooth"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "| D2740, D2750 (crowns) | 1 per tooth per 60 months |"
+        }
+      ],
+      "conflicts_with": [
+        "frequency_limit.crowns_note_4.enhanced.2027"
+      ],
+      "note": null
+    },
+    {
+      "rule_id": "frequency_limit.crowns_note_4.enhanced.2027",
+      "rule_type": "frequency_limit",
+      "status": "CONFLICT",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D2740",
+          "D2750"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D2740",
+          "D2750"
+        ],
+        "max_count": 1,
+        "window": {
+          "kind": "rolling_months",
+          "months": 84
+        },
+        "scope": "per_tooth"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "Note 4: Crowns (D2740, D2750) are limited to 1 per tooth per 84 months."
+        }
+      ],
+      "conflicts_with": [
+        "frequency_limit.crowns.enhanced.2027"
+      ],
+      "note": null
+    },
+    {
+      "rule_id": "exclusion.cosmetic.enhanced.2027",
+      "rule_type": "exclusion",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": [
+          "D9972"
+        ]
+      },
+      "value": {
+        "cdt_codes": [
+          "D9972"
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Exclusions",
+          "locator": "page 3, Exclusions",
+          "quote": "Cosmetic services, including D9972 external bleaching, are not covered."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "alternate_benefit.posterior_composite.enhanced.2027",
+      "rule_type": "alternate_benefit",
+      "status": "NOT_APPLICABLE",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Alternate Benefits",
+          "locator": "page 3, Alternate Benefits",
+          "quote": "This plan does not apply an alternate benefit to posterior composite (tooth-colored) restorations."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "sublimit.all.enhanced.2027",
+      "rule_type": "sublimit",
+      "status": "NOT_APPLICABLE",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Sublimits",
+          "locator": "page 3, Sublimits",
+          "quote": "No service-specific sublimits apply under this plan."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "limitations_index.enhanced.2027",
+      "rule_type": "limitations_index",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "frequency_limits_complete": true,
+        "exclusions_complete": true,
+        "alternate_benefits_complete": true,
+        "sublimits_complete": true
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Limitations",
+          "locator": "page 3, Limitations",
+          "quote": "This section lists every frequency limitation that applies under this plan."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Exclusions",
+          "locator": "page 4, Exclusions",
+          "quote": "This section lists every exclusion that applies under this plan."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Alternate Benefits",
+          "locator": "page 3, Alternate Benefits",
+          "quote": "No other alternate benefit provisions apply."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 3,
+          "section": "Sublimits",
+          "locator": "page 3, Sublimits",
+          "quote": "No service-specific sublimits apply under this plan."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "oon_allowance_schedule.enhanced.2027",
+      "rule_type": "oon_allowance_schedule",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": "out_of_network",
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "allowances": [
+          {
+            "cdt_code": "D0120",
+            "cents": 4000
+          },
+          {
+            "cdt_code": "D0140",
+            "cents": 6500
+          },
+          {
+            "cdt_code": "D0150",
+            "cents": 7500
+          },
+          {
+            "cdt_code": "D0210",
+            "cents": 9000
+          },
+          {
+            "cdt_code": "D0220",
+            "cents": 2500
+          },
+          {
+            "cdt_code": "D1110",
+            "cents": 7000
+          },
+          {
+            "cdt_code": "D2392",
+            "cents": 15000
+          },
+          {
+            "cdt_code": "D3330",
+            "cents": 90000
+          },
+          {
+            "cdt_code": "D2740",
+            "cents": 95000
+          }
+        ],
+        "balance_billing_permitted": true
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| Procedure code | Out-of-Network Allowance |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "Out-of-network dentists may bill the member for the difference between their charge and the plan's payment (balance billing)."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D0120 | $40 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D0140 | $65 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D0150 | $75 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D0210 | $90 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D0220 | $25 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D1110 | $70 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D2392 | $150 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D3330 | $900 |"
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Out-of-Network Allowance Schedule",
+          "locator": "page 4, Out-of-Network Allowance Schedule",
+          "quote": "| D2740 | $950 |"
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "claim_submission.enhanced.2027",
+      "rule_type": "claim_submission",
+      "status": "UNKNOWN",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Claim Submission and Direct Payment",
+          "locator": "page 4, Claim Submission and Direct Payment",
+          "quote": "A member may ask a network dentist not to submit a claim and pay the dentist directly."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Claim Submission and Direct Payment",
+          "locator": "page 4, Claim Submission and Direct Payment",
+          "quote": "Services paid without a claim are not recorded by the plan: they do not reduce the deductible or annual maximum and do not count toward frequency limitations."
+        },
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 4,
+          "section": "Claim Submission and Direct Payment",
+          "locator": "page 4, Claim Submission and Direct Payment",
+          "quote": "The network fee schedule does not apply to services paid without a claim"
+        }
+      ],
+      "conflicts_with": [],
+      "note": "Not addressed in the plan document."
+    },
+    {
+      "rule_id": "rollover.enhanced.2027",
+      "rule_type": "rollover",
+      "status": "NOT_APPLICABLE",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 5,
+          "section": "Maximum Carryover",
+          "locator": "page 5, Maximum Carryover",
+          "quote": "No maximum carryover feature applies for the 2027 benefit period."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "pretreatment_estimate.enhanced.2027",
+      "rule_type": "pretreatment_estimate",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "recommended_above_cents": 30000
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 5,
+          "section": "Pre-Treatment Estimates",
+          "locator": "page 5, Pre-Treatment Estimates",
+          "quote": "A pre-treatment estimate is recommended when planned treatment is expected to exceed $300."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "coordination_of_benefits.enhanced.2027",
+      "rule_type": "coordination_of_benefits",
+      "status": "VERIFIED",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "method": "standard"
+      },
+      "evidence": [
+        {
+          "source_id": "nwd-ppo-enhanced-2027-summary",
+          "page": 5,
+          "section": "Coordination of Benefits",
+          "locator": "page 5, Coordination of Benefits",
+          "quote": "When a member is covered by more than one dental plan, benefits are coordinated using the standard method."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "premium.enhanced.2027",
+      "rule_type": "premium",
+      "status": "UNKNOWN",
+      "effective_from": "2027-01-01",
+      "effective_to": "2027-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": null,
+      "evidence": [],
+      "conflicts_with": [],
+      "note": "Not addressed in the plan document."
+    }
+  ]
+}

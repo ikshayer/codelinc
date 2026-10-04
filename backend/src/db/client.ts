@@ -14,14 +14,13 @@ function connectionUri(): string {
   return uri;
 }
 
+/** One process-wide pool, including during development module reloads. */
 export function getMongoClient(): MongoClient {
-  if (!globalThis.__carewindowMongoClient) {
-    globalThis.__carewindowMongoClient = new MongoClient(connectionUri(), {
-      appName: "carewindow",
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 15_000,
-    });
-  }
+  globalThis.__carewindowMongoClient ??= new MongoClient(connectionUri(), {
+    appName: "carewindow",
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 15_000,
+  });
   return globalThis.__carewindowMongoClient;
 }
 
@@ -30,8 +29,7 @@ export function getDatabase(): Db {
 }
 
 export async function closeDatabase(): Promise<void> {
-  if (globalThis.__carewindowMongoClient) {
-    await globalThis.__carewindowMongoClient.close();
-    globalThis.__carewindowMongoClient = undefined;
-  }
+  if (!globalThis.__carewindowMongoClient) return;
+  await globalThis.__carewindowMongoClient.close();
+  globalThis.__carewindowMongoClient = undefined;
 }

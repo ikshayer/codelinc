@@ -5,6 +5,7 @@
 Frontend alignment change request authorized by the task's exact-pin acceptance criteria. The attachment asserted existing locks, but this checkout lacked them; this additive extension supplies the required backend behavior. No existing golden values change.
 
 - Add strict `ScheduleLock`, optional `CarePlanRequest.schedule_locks`, and `ScheduledEvent.user_locked`.
+- Branch integration preserves the 1.8 exact-pin limit of eight, combines the registry and persistence additions, and adopts early `INVALID_INPUT` validation when two locks claim the same provider appointment. AT-24 and integration assertions use that shared behavior.
 - Filter exact pin tuples before bounded search, forbid unscheduling pins, preserve clinical/dependency/slot constraints, and explicitly reject invalid or impossible pins.
 - Add registry-derived `BenefitPassport.plan_option_id` and `.network_id`; export `HealthData` type.
 - Regenerate schema-valid mocks and frozen manifest. AT-24 covers preservation, mode changes, reset, validation, incompatible pins, all-event pins, bounded-search preservation, and API strictness.

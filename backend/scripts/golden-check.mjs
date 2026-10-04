@@ -60,8 +60,8 @@ const OPTIONS_2026 = {
     rateIn: { dp: 10000, basic: 9000, major: 6000 }, // p2 "| Basic | 90% | 80% |", "| Major | 60% | 50% |"
     majorWaitMonths: 0, // p3 "There are no waiting periods for any service class"
     orthoLifetime: 150000, // p2 "Orthodontic lifetime maximum: $1,500 per member."
-    // p5 carryover applies only to "nwd-ppo-enhanced-2027", which is not among data/sources -> next plan unknown.
-    rollover: "NEXT_PLAN_NOT_SEEDED",
+    // p5 carryover applies to the exact Enhanced 2027 successor now present in data/sources.
+    rollover: "ENHANCED_2026",
   },
   "ppo-standard": {
     pv: "nwd-ppo-standard-2026", premium: 1825, ded: PLAN[2026].ded, max: PLAN[2026].max, rateIn: RATE.in_network,
@@ -212,8 +212,9 @@ function optionRun(o, effectiveFrom, events, providers) {
     o.rollover === "STANDARD_2026"
       ? { status: counted < ROLLOVER_2026.threshold ? "CONDITIONAL" : "NOT_EARNED", next_plan_version_id: "nwd-ppo-standard-2027", qualifying_plan_paid: q,
           final_bank: counted < ROLLOVER_2026.threshold ? { low_cents: ROLLOVER_2026.award, high_cents: ROLLOVER_2026.award } : { low_cents: 0, high_cents: 0 }, issue_codes: [] }
-      : o.rollover === "NEXT_PLAN_NOT_SEEDED"
-        ? { status: "NEEDS_CONFIRMATION", next_plan_version_id: null, qualifying_plan_paid: q, final_bank: null, issue_codes: ["ROLLOVER_NEXT_PLAN_UNKNOWN"] }
+      : o.rollover === "ENHANCED_2026"
+        ? { status: counted <= 70000 ? "CONDITIONAL" : "NOT_EARNED", next_plan_version_id: "nwd-ppo-enhanced-2027", qualifying_plan_paid: q,
+            final_bank: counted <= 70000 ? { low_cents: 50000, high_cents: 50000 } : { low_cents: 0, high_cents: 0 }, issue_codes: [] }
         : null;
   return {
     lines,

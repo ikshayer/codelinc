@@ -80,6 +80,32 @@
       ],
       "retrieved_at": "2026-10-01T12:00:00Z",
       "synthetic": true
+    },
+    {
+      "source_id": "nwd-ppo-enhanced-2027-summary",
+      "title": "Northwind Mutual Dental PPO Enhanced 2027 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
+      "path": "data/sources/northwind-ppo-enhanced-2027-benefit-summary.md",
+      "sha256": "5d2e157dc48549c1e1bdcd8d2b2e14c6597a13157b92aa4e13cb66b11dd7f8b2",
+      "media_type": "text/markdown",
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true,
+      "plan_version_ids": [
+        "nwd-ppo-enhanced-2027"
+      ]
+    },
+    {
+      "source_id": "nwd-ppo-value-2027-summary",
+      "title": "Northwind Mutual Dental PPO Value 2027 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
+      "path": "data/sources/northwind-ppo-value-2027-benefit-summary.md",
+      "sha256": "eadd995626006b52b866b78ec3ce0a4daf3ef023e89648eb6a8dbec4ab6fd3ec",
+      "media_type": "text/markdown",
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true,
+      "plan_version_ids": [
+        "nwd-ppo-value-2027"
+      ]
     }
   ]
 }
