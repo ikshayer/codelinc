@@ -1,0 +1,165 @@
+{
+  "member_id": "member-alex-synthetic",
+  "display_name": "Alex Morgan (synthetic)",
+  "time_zone": "America/New_York",
+  "plan_key": {
+    "carrier_id": "northwind-mutual",
+    "group_id": "acme-synthetic-001",
+    "plan_option_id": "ppo-standard",
+    "jurisdiction": "VA",
+    "network_id": "nwd-ppo"
+  },
+  "coverage_effective_from": "2024-01-01",
+  "observed_at": "2026-10-05T13:00:00Z",
+  "accumulators": [
+    {
+      "plan_version_id": "nwd-ppo-standard-2026",
+      "period_start": "2026-01-01",
+      "period_end": "2026-12-31",
+      "deductible_remaining": {
+        "input_id": "member.acc.2026.deductible_remaining",
+        "value": {
+          "kind": "exact",
+          "cents": 5000
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
+      },
+      "annual_max_remaining": {
+        "input_id": "member.acc.2026.annual_max_remaining",
+        "value": {
+          "kind": "exact",
+          "cents": 90000
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
+      },
+      "plan_paid_ytd": {
+        "input_id": "member.acc.2026.plan_paid_ytd",
+        "value": {
+          "kind": "exact",
+          "cents": 60000
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
+      }
+    }
+  ],
+  "pending_claims": [
+    {
+      "claim_id": "claim-2026-0928-d2391",
+      "plan_version_id": "nwd-ppo-standard-2026",
+      "service_date": "2026-09-28",
+      "cdt_code": "D2391",
+      "tooth": "3",
+      "estimated_plan_pay": {
+        "input_id": "member.pending.claim-2026-0928-d2391.plan_pay",
+        "value": {
+          "kind": "exact",
+          "cents": 7600
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
+      },
+      "estimated_deductible_applied": {
+        "input_id": "member.pending.claim-2026-0928-d2391.deductible",
+        "value": {
+          "kind": "exact",
+          "cents": 5000
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
+      }
+    }
+  ],
+  "procedure_history": [
+    {
+      "cdt_code": "D0120",
+      "tooth": null,
+      "service_date": "2026-03-10",
+      "source": "CLAIM_EOB",
+      "claimed": true
+    },
+    {
+      "cdt_code": "D1110",
+      "tooth": null,
+      "service_date": "2026-03-10",
+      "source": "CLAIM_EOB",
+      "claimed": true
+    },
+    {
+      "cdt_code": "D0210",
+      "tooth": null,
+      "service_date": "2020-05-12",
+      "source": "CLAIM_EOB",
+      "claimed": true
+    }
+  ],
+  "secondary_coverage": null,
+  "funding_accounts": [
+    {
+      "source_id": "fsa-2026",
+      "type": "FSA",
+      "label": "2026 Health FSA",
+      "balance": {
+        "input_id": "member.fsa-2026.balance",
+        "value": {
+          "kind": "exact",
+          "cents": 120000
+        },
+        "source": "MEMBER_CONFIRMED",
+        "observed_at": "2026-10-05T13:00:00Z"
+      },
+      "eligible_service_from": "2026-01-01",
+      "eligible_service_through": "2026-12-31",
+      "claim_deadline": "2027-03-31",
+      "reserve_cents": 0
+    }
+  ],
+  "budget": {
+    "input_id": "member.budget",
+    "hard_monthly_limit_cents": 30000,
+    "preferred_monthly_limit_cents": 20000,
+    "source": "MEMBER_CONFIRMED",
+    "observed_at": "2026-10-05T13:00:00Z"
+  },
+  "availability": {
+    "input_id": "member.availability",
+    "weekly": [
+      {
+        "weekday": 2,
+        "start_time": "08:00",
+        "end_time": "18:00"
+      },
+      {
+        "weekday": 4,
+        "start_time": "08:00",
+        "end_time": "18:00"
+      },
+      {
+        "weekday": 6,
+        "start_time": "09:00",
+        "end_time": "13:00"
+      }
+    ],
+    "unavailable": [
+      {
+        "start": "2026-11-24",
+        "end": "2026-11-28"
+      },
+      {
+        "start": "2026-12-21",
+        "end": "2027-01-03"
+      }
+    ],
+    "source": "MEMBER_CONFIRMED",
+    "observed_at": "2026-10-05T13:00:00Z"
+  },
+  "travel": {
+    "input_id": "member.travel",
+    "hard_max_miles": 15,
+    "preferred_max_miles": 10,
+    "source": "MEMBER_CONFIRMED",
+    "observed_at": "2026-10-05T13:00:00Z"
+  }
+}

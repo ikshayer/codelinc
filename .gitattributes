@@ -1,0 +1,5 @@
+# Frozen/imported sources are checksummed; never convert line endings or
+# whitespace-normalize their original bytes.
+backend/** text eol=lf
+backend/data/sources/** -text
+backend/data/reference/** -text -whitespace

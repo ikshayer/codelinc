@@ -1,0 +1,18 @@
+{
+  "contract_version": "1.1.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.1.0",
+    "ai_mode": "synthetic",
+    "registry_version": "mock",
+    "plan_version_ids": [
+      "nwd-ppo-standard-2026",
+      "nwd-ppo-standard-2027"
+    ]
+  },
+  "meta": {
+    "request_id": "mock-health",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}
