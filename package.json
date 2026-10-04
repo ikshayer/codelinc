@@ -1,0 +1,50 @@
+{
+  "name": "codelinc-dental-optimizer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:contracts": "vitest run --project contracts",
+    "test:acceptance": "vitest run --project acceptance",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
+    "check:frozen": "node scripts/check-frozen.mjs",
+    "freeze": "node scripts/freeze.mjs",
+    "golden:check": "node scripts/golden-check.mjs",
+    "demo:cli": "tsx src/api/demo-cli.ts",
+    "verify": "npm run check:frozen && npm run golden:check && npm run typecheck && npm run lint && npm run test:contracts && npm test && npm run test:acceptance && npm run test:integration && npm run build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1146.0",
+    "next": "^16.3.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.8",
+    "jsdom": "^29.1.1",
+    "shadcn": "^4.21.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}

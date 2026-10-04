@@ -1,0 +1,152 @@
+{
+  "contract_version": "1.1.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.1.0",
+    "mode": "synthetic",
+    "document_id": "doc-card-2026-10-15",
+    "procedures": [
+      {
+        "procedure_id": "proc-d3330-30",
+        "description": "Root canal, molar, tooth 30",
+        "cdt_code": "D3330",
+        "tooth": "30",
+        "dentist_fee": {
+          "input_id": "proc.proc-d3330-30.dentist_fee",
+          "value": {
+            "kind": "exact",
+            "cents": 145000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-15T20:00:00Z"
+        },
+        "urgency": "act_now",
+        "earliest_safe_date": "2026-10-16",
+        "target_date": "2026-10-20",
+        "latest_safe_date": "2026-10-30",
+        "dependencies": [],
+        "allowed_specialties": [
+          "general",
+          "endodontist"
+        ],
+        "alternative_group_id": null,
+        "source": {
+          "kind": "card_photo",
+          "document_id": "doc-card-2026-10-15",
+          "dentist_statements": [
+            "Dentist timing: ACT NOW. Earliest 10/16/2026. Target 10/20/2026. No later than 10/30/2026.",
+            "May be performed by a general dentist or an endodontist."
+          ]
+        },
+        "inferred_fields": [],
+        "confirmation": {
+          "status": "UNVERIFIED",
+          "confirmed_by": null,
+          "confirmed_at": null
+        }
+      },
+      {
+        "procedure_id": "proc-d2740-30",
+        "description": "Crown, porcelain/ceramic, tooth 30",
+        "cdt_code": "D2740",
+        "tooth": "30",
+        "dentist_fee": {
+          "input_id": "proc.proc-d2740-30.dentist_fee",
+          "value": {
+            "kind": "exact",
+            "cents": 160000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-15T20:00:00Z"
+        },
+        "urgency": "schedule_soon",
+        "earliest_safe_date": "2026-10-30",
+        "target_date": "2026-11-15",
+        "latest_safe_date": "2026-12-15",
+        "dependencies": [
+          {
+            "depends_on": "proc-d3330-30",
+            "min_gap_days": 14,
+            "max_gap_days": 60
+          }
+        ],
+        "allowed_specialties": [
+          "general"
+        ],
+        "alternative_group_id": null,
+        "source": {
+          "kind": "card_photo",
+          "document_id": "doc-card-2026-10-15",
+          "dentist_statements": [
+            "After #1. Wait at least 14 days and no more than 60 days after the root canal.",
+            "Dentist timing: SCHEDULE SOON. Earliest 10/30/2026. Target 11/15/2026. No later than 12/15/2026."
+          ]
+        },
+        "inferred_fields": [],
+        "confirmation": {
+          "status": "UNVERIFIED",
+          "confirmed_by": null,
+          "confirmed_at": null
+        }
+      },
+      {
+        "procedure_id": "proc-d2392-14",
+        "description": "Filling, tooth-colored, 2 surfaces, tooth 14",
+        "cdt_code": "D2392",
+        "tooth": "14",
+        "dentist_fee": {
+          "input_id": "proc.proc-d2392-14.dentist_fee",
+          "value": {
+            "kind": "exact",
+            "cents": 26000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-15T20:00:00Z"
+        },
+        "urgency": "can_plan_later",
+        "earliest_safe_date": "2026-10-16",
+        "target_date": "2027-02-28",
+        "latest_safe_date": "2027-03-31",
+        "dependencies": [],
+        "allowed_specialties": [
+          "general"
+        ],
+        "alternative_group_id": null,
+        "source": {
+          "kind": "card_photo",
+          "document_id": "doc-card-2026-10-15",
+          "dentist_statements": [
+            "Dentist timing: CAN PLAN LATER. Earliest 10/16/2026. Target 02/28/2027. No later than 03/31/2027."
+          ]
+        },
+        "inferred_fields": [
+          "cdt_code"
+        ],
+        "confirmation": {
+          "status": "UNVERIFIED",
+          "confirmed_by": null,
+          "confirmed_at": null
+        }
+      }
+    ],
+    "ignored_instructions": [],
+    "warnings": [
+      {
+        "code": "EXTRACTION_UNVERIFIED",
+        "severity": "info",
+        "message": "Please confirm every field. Your dentist's words are shown beside each value.",
+        "field": null,
+        "rule_id": null,
+        "input_id": null,
+        "procedure_id": null,
+        "provider_id": null
+      }
+    ],
+    "raw_retained": false
+  },
+  "meta": {
+    "request_id": "mock-extract",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}

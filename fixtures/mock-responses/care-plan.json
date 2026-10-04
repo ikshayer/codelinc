@@ -1,0 +1,3691 @@
+{
+  "contract_version": "1.1.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.1.0",
+    "engine_id": "optimizer-enum-1",
+    "status": "OK",
+    "as_of": "2026-10-15T21:00:00Z",
+    "as_of_date": "2026-10-15",
+    "recommended_alternative_id": "alt-1",
+    "alternatives": [
+      {
+        "alternative_id": "alt-1",
+        "labels": [
+          "lowest_total_cost",
+          "smoothest_monthly_payments"
+        ],
+        "schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2027-01-05@prov-rivera@IN_NETWORK_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM",
+        "events": [
+          {
+            "event_id": "alt-1-e1",
+            "procedure_id": "proc-rc-30",
+            "service_date": "2026-10-20",
+            "slot_id": "prov-rivera-t-20261020-0800",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "IN_NETWORK_CLAIM",
+            "line_worst": {
+              "line_id": "alt-1-e1",
+              "event_id": "alt-1-e1",
+              "procedure_id": "proc-rc-30",
+              "cdt_code": "D3330",
+              "tooth": "30",
+              "service_date": "2026-10-20",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 145000,
+              "contractual_adjustment_cents": 45000,
+              "patient_charge_cents": 100000,
+              "eligible_basis_cents": 100000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 80000,
+              "cap_applied": "none",
+              "plan_pay_cents": 80000,
+              "member_responsibility_cents": 20000,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 90000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 82400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.basic.2026",
+                "service_class_map.basic.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d3330.charge",
+                "provider.prov-rivera.price.d3330.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e1.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 82400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 82400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.plan_pay"
+                    }
+                  ],
+                  "result_cents": 20000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 145000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.charge"
+                    }
+                  ],
+                  "result_cents": 45000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-1-e1",
+              "event_id": "alt-1-e1",
+              "procedure_id": "proc-rc-30",
+              "cdt_code": "D3330",
+              "tooth": "30",
+              "service_date": "2026-10-20",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 145000,
+              "contractual_adjustment_cents": 45000,
+              "patient_charge_cents": 100000,
+              "eligible_basis_cents": 100000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 80000,
+              "cap_applied": "none",
+              "plan_pay_cents": 80000,
+              "member_responsibility_cents": 20000,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 90000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 82400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.basic.2026",
+                "service_class_map.basic.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d3330.charge",
+                "provider.prov-rivera.price.d3330.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e1.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 82400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 82400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e1.plan_pay"
+                    }
+                  ],
+                  "result_cents": 20000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e1.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 145000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.charge"
+                    }
+                  ],
+                  "result_cents": 45000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 20000,
+              "high_cents": 20000
+            },
+            "plan_pay": {
+              "low_cents": 80000,
+              "high_cents": 80000
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-1-e1-f1",
+                "event_id": "alt-1-e1",
+                "source_id": "fsa-2026",
+                "source_type": "FSA",
+                "payment_date": "2026-10-20",
+                "amount_cents": 20000,
+                "fees_cents": 0,
+                "input_id": "member.fsa-2026.balance"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "USES_EXPIRING_FUNDS"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261020-0800",
+                "by_date": null
+              },
+              {
+                "kind": "REQUEST_PRETREATMENT_ESTIMATE",
+                "provider_id": "prov-rivera",
+                "slot_id": null,
+                "by_date": null
+              },
+              {
+                "kind": "SUBMIT_FSA_CLAIM",
+                "provider_id": null,
+                "slot_id": null,
+                "by_date": "2027-03-31"
+              }
+            ]
+          },
+          {
+            "event_id": "alt-1-e2",
+            "procedure_id": "proc-crown-30",
+            "service_date": "2026-11-05",
+            "slot_id": "prov-rivera-t-20261105-1500",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "IN_NETWORK_CLAIM",
+            "line_worst": {
+              "line_id": "alt-1-e2",
+              "event_id": "alt-1-e2",
+              "procedure_id": "proc-crown-30",
+              "cdt_code": "D2740",
+              "tooth": "30",
+              "service_date": "2026-11-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "major",
+              "modeled_charge_cents": 160000,
+              "contractual_adjustment_cents": 50000,
+              "patient_charge_cents": 110000,
+              "eligible_basis_cents": 110000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 5000,
+              "preliminary_plan_pay_cents": 55000,
+              "cap_applied": "annual_maximum",
+              "plan_pay_cents": 2400,
+              "member_responsibility_cents": 107600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 7600,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 0,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 82400,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.major.2026",
+                "service_class_map.major.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2740.charge",
+                "provider.prov-rivera.price.d2740.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e2.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 5000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": 55000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 55000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.plan_pay"
+                    }
+                  ],
+                  "result_cents": 107600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 160000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.charge"
+                    }
+                  ],
+                  "result_cents": 50000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-1-e2",
+              "event_id": "alt-1-e2",
+              "procedure_id": "proc-crown-30",
+              "cdt_code": "D2740",
+              "tooth": "30",
+              "service_date": "2026-11-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "major",
+              "modeled_charge_cents": 160000,
+              "contractual_adjustment_cents": 50000,
+              "patient_charge_cents": 110000,
+              "eligible_basis_cents": 110000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 5000,
+              "preliminary_plan_pay_cents": 55000,
+              "cap_applied": "annual_maximum",
+              "plan_pay_cents": 2400,
+              "member_responsibility_cents": 107600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 7600,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 0,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 82400,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.major.2026",
+                "service_class_map.major.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2740.charge",
+                "provider.prov-rivera.price.d2740.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e2.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 5000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": 55000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 55000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e2.plan_pay"
+                    }
+                  ],
+                  "result_cents": 107600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e2.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 160000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.charge"
+                    }
+                  ],
+                  "result_cents": 50000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 107600,
+              "high_cents": 107600
+            },
+            "plan_pay": {
+              "low_cents": 2400,
+              "high_cents": 2400
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-1-e2-f1",
+                "event_id": "alt-1-e2",
+                "source_id": "fsa-2026",
+                "source_type": "FSA",
+                "payment_date": "2026-11-05",
+                "amount_cents": 100000,
+                "fees_cents": 0,
+                "input_id": "member.fsa-2026.balance"
+              },
+              {
+                "allocation_id": "alt-1-e2-f2",
+                "event_id": "alt-1-e2",
+                "source_id": "cash",
+                "source_type": "CASH",
+                "payment_date": "2026-11-05",
+                "amount_cents": 7600,
+                "fees_cents": 0,
+                "input_id": "member.budget"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "HEALING_INTERVAL",
+              "USES_EXPIRING_FUNDS",
+              "FITS_MONTHLY_BUDGET"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261105-1500",
+                "by_date": null
+              },
+              {
+                "kind": "REQUEST_PRETREATMENT_ESTIMATE",
+                "provider_id": "prov-rivera",
+                "slot_id": null,
+                "by_date": null
+              },
+              {
+                "kind": "SUBMIT_FSA_CLAIM",
+                "provider_id": null,
+                "slot_id": null,
+                "by_date": "2027-03-31"
+              }
+            ]
+          },
+          {
+            "event_id": "alt-1-e3",
+            "procedure_id": "proc-fill-14",
+            "service_date": "2027-01-05",
+            "slot_id": "prov-rivera-t-20270105-1000",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "IN_NETWORK_CLAIM",
+            "line_worst": {
+              "line_id": "alt-1-e3",
+              "event_id": "alt-1-e3",
+              "procedure_id": "proc-fill-14",
+              "cdt_code": "D2392",
+              "tooth": "14",
+              "service_date": "2027-01-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2027",
+              "service_class": "basic",
+              "modeled_charge_cents": 26000,
+              "contractual_adjustment_cents": 8000,
+              "patient_charge_cents": 18000,
+              "eligible_basis_cents": 18000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 7500,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 8400,
+              "cap_applied": "none",
+              "plan_pay_cents": 8400,
+              "member_responsibility_cents": 9600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2027",
+                "period_start": "2027-01-01",
+                "period_end": "2027-12-31",
+                "opened_from": "plan_rules",
+                "deductible_remaining_cents": 7500,
+                "annual_max_remaining_cents": 150000,
+                "pending_reserved_max_cents": 0,
+                "pending_reserved_deductible_cents": 0,
+                "annual_max_available_cents": 150000,
+                "deductible_available_cents": 7500,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "PLAN_VERIFIED"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2027",
+                "period_start": "2027-01-01",
+                "period_end": "2027-12-31",
+                "opened_from": "plan_rules",
+                "deductible_remaining_cents": 0,
+                "annual_max_remaining_cents": 141600,
+                "pending_reserved_max_cents": 0,
+                "pending_reserved_deductible_cents": 0,
+                "annual_max_available_cents": 141600,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 8400,
+                "source": "PLAN_VERIFIED"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2027",
+                "benefit_period.2027",
+                "deductible.2027",
+                "limitations_index.2027",
+                "plan_share.in_network.basic.2027",
+                "service_class_map.basic.2027"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2392.charge",
+                "provider.prov-rivera.price.d2392.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e3.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.allowed"
+                    }
+                  ],
+                  "result_cents": 18000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.allowed"
+                    }
+                  ],
+                  "result_cents": 18000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 7500,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:deductible.2027"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 7500,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2027"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 7500,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2027"
+                    }
+                  ],
+                  "result_cents": 8400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 150000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:annual_maximum.2027"
+                    }
+                  ],
+                  "result_cents": 150000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 8400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 8400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 8400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.plan_pay"
+                    }
+                  ],
+                  "result_cents": 9600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 26000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.charge"
+                    }
+                  ],
+                  "result_cents": 8000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-1-e3",
+              "event_id": "alt-1-e3",
+              "procedure_id": "proc-fill-14",
+              "cdt_code": "D2392",
+              "tooth": "14",
+              "service_date": "2027-01-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2027",
+              "service_class": "basic",
+              "modeled_charge_cents": 26000,
+              "contractual_adjustment_cents": 8000,
+              "patient_charge_cents": 18000,
+              "eligible_basis_cents": 18000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 7500,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 8400,
+              "cap_applied": "none",
+              "plan_pay_cents": 8400,
+              "member_responsibility_cents": 9600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2027",
+                "period_start": "2027-01-01",
+                "period_end": "2027-12-31",
+                "opened_from": "plan_rules",
+                "deductible_remaining_cents": 7500,
+                "annual_max_remaining_cents": 150000,
+                "pending_reserved_max_cents": 0,
+                "pending_reserved_deductible_cents": 0,
+                "annual_max_available_cents": 150000,
+                "deductible_available_cents": 7500,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "PLAN_VERIFIED"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2027",
+                "period_start": "2027-01-01",
+                "period_end": "2027-12-31",
+                "opened_from": "plan_rules",
+                "deductible_remaining_cents": 0,
+                "annual_max_remaining_cents": 141600,
+                "pending_reserved_max_cents": 0,
+                "pending_reserved_deductible_cents": 0,
+                "annual_max_available_cents": 141600,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 8400,
+                "source": "PLAN_VERIFIED"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2027",
+                "benefit_period.2027",
+                "deductible.2027",
+                "limitations_index.2027",
+                "plan_share.in_network.basic.2027",
+                "service_class_map.basic.2027"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2392.charge",
+                "provider.prov-rivera.price.d2392.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-1-e3.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.allowed"
+                    }
+                  ],
+                  "result_cents": 18000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.allowed"
+                    }
+                  ],
+                  "result_cents": 18000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 7500,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:deductible.2027"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 7500,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2027"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 7500,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2027"
+                    }
+                  ],
+                  "result_cents": 8400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 150000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:annual_maximum.2027"
+                    }
+                  ],
+                  "result_cents": 150000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 8400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 8400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 18000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 8400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-1-e3.plan_pay"
+                    }
+                  ],
+                  "result_cents": 9600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-1-e3.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 26000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.charge"
+                    }
+                  ],
+                  "result_cents": 8000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 9600,
+              "high_cents": 9600
+            },
+            "plan_pay": {
+              "low_cents": 8400,
+              "high_cents": 8400
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-1-e3-f1",
+                "event_id": "alt-1-e3",
+                "source_id": "cash",
+                "source_type": "CASH",
+                "payment_date": "2027-01-05",
+                "amount_cents": 9600,
+                "fees_cents": 0,
+                "input_id": "member.budget"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "AFTER_PLAN_RESET",
+              "FITS_MONTHLY_BUDGET"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20270105-1000",
+                "by_date": null
+              }
+            ]
+          }
+        ],
+        "unscheduled": [],
+        "totals": {
+          "modeled_charge": {
+            "low_cents": 331000,
+            "high_cents": 331000
+          },
+          "contractual_adjustment": {
+            "low_cents": 103000,
+            "high_cents": 103000
+          },
+          "plan_pay": {
+            "low_cents": 90800,
+            "high_cents": 90800
+          },
+          "member_cost": {
+            "low_cents": 137200,
+            "high_cents": 137200
+          },
+          "fees_cents": 0
+        },
+        "funding_gap_cents": 0,
+        "monthly": [
+          {
+            "month": "2026-10",
+            "cash_cents": 0,
+            "by_source": [
+              {
+                "source_type": "FSA",
+                "amount_cents": 20000
+              }
+            ],
+            "exceeds_preferred": false,
+            "exceeds_hard": false
+          },
+          {
+            "month": "2026-11",
+            "cash_cents": 7600,
+            "by_source": [
+              {
+                "source_type": "FSA",
+                "amount_cents": 100000
+              },
+              {
+                "source_type": "CASH",
+                "amount_cents": 7600
+              }
+            ],
+            "exceeds_preferred": false,
+            "exceeds_hard": false
+          },
+          {
+            "month": "2027-01",
+            "cash_cents": 9600,
+            "by_source": [
+              {
+                "source_type": "CASH",
+                "amount_cents": 9600
+              }
+            ],
+            "exceeds_preferred": false,
+            "exceeds_hard": false
+          }
+        ],
+        "benefit_states": [
+          {
+            "event_id": "alt-1-e1",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "period_start": "2026-01-01",
+              "period_end": "2026-12-31",
+              "opened_from": "snapshot",
+              "deductible_remaining_cents": 5000,
+              "annual_max_remaining_cents": 10000,
+              "pending_reserved_max_cents": 7600,
+              "pending_reserved_deductible_cents": 5000,
+              "annual_max_available_cents": 2400,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 80000,
+              "source": "CLAIM_EOB"
+            }
+          },
+          {
+            "event_id": "alt-1-e2",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "period_start": "2026-01-01",
+              "period_end": "2026-12-31",
+              "opened_from": "snapshot",
+              "deductible_remaining_cents": 5000,
+              "annual_max_remaining_cents": 7600,
+              "pending_reserved_max_cents": 7600,
+              "pending_reserved_deductible_cents": 5000,
+              "annual_max_available_cents": 0,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 82400,
+              "source": "CLAIM_EOB"
+            }
+          },
+          {
+            "event_id": "alt-1-e3",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2027",
+              "period_start": "2027-01-01",
+              "period_end": "2027-12-31",
+              "opened_from": "plan_rules",
+              "deductible_remaining_cents": 0,
+              "annual_max_remaining_cents": 141600,
+              "pending_reserved_max_cents": 0,
+              "pending_reserved_deductible_cents": 0,
+              "annual_max_available_cents": 141600,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 8400,
+              "source": "PLAN_VERIFIED"
+            }
+          }
+        ],
+        "objective": {
+          "unscheduled_by_urgency": [
+            0,
+            0,
+            0
+          ],
+          "lateness_days_by_urgency": [
+            0,
+            0,
+            0
+          ],
+          "funding_shortfall_cents": 0,
+          "total_member_cost_cents": 137200,
+          "total_fees_cents": 0,
+          "peak_monthly_cash_cents": 9600,
+          "travel_minutes_total": 42,
+          "visit_days": 3,
+          "wait_days_total": 108,
+          "expiring_funds_unused_cents": 0,
+          "completion_date": "2027-01-05"
+        },
+        "applied_rule_ids": [
+          "annual_maximum.2026",
+          "annual_maximum.2027",
+          "benefit_period.2026",
+          "benefit_period.2027",
+          "deductible.2026",
+          "deductible.2027",
+          "limitations_index.2026",
+          "limitations_index.2027",
+          "plan_share.in_network.basic.2026",
+          "plan_share.in_network.basic.2027",
+          "plan_share.in_network.major.2026",
+          "service_class_map.basic.2026",
+          "service_class_map.basic.2027",
+          "service_class_map.major.2026"
+        ],
+        "issues": []
+      },
+      {
+        "alternative_id": "alt-2",
+        "labels": [
+          "earliest_safe_completion"
+        ],
+        "schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2026-10-22@prov-rivera@SELF_PAY_NO_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM",
+        "events": [
+          {
+            "event_id": "alt-2-e1",
+            "procedure_id": "proc-rc-30",
+            "service_date": "2026-10-20",
+            "slot_id": "prov-rivera-t-20261020-0800",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "IN_NETWORK_CLAIM",
+            "line_worst": {
+              "line_id": "alt-2-e1",
+              "event_id": "alt-2-e1",
+              "procedure_id": "proc-rc-30",
+              "cdt_code": "D3330",
+              "tooth": "30",
+              "service_date": "2026-10-20",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 145000,
+              "contractual_adjustment_cents": 45000,
+              "patient_charge_cents": 100000,
+              "eligible_basis_cents": 100000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 80000,
+              "cap_applied": "none",
+              "plan_pay_cents": 80000,
+              "member_responsibility_cents": 20000,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 90000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 82400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.basic.2026",
+                "service_class_map.basic.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d3330.charge",
+                "provider.prov-rivera.price.d3330.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e1.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 82400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 82400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.plan_pay"
+                    }
+                  ],
+                  "result_cents": 20000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 145000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.charge"
+                    }
+                  ],
+                  "result_cents": 45000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-2-e1",
+              "event_id": "alt-2-e1",
+              "procedure_id": "proc-rc-30",
+              "cdt_code": "D3330",
+              "tooth": "30",
+              "service_date": "2026-10-20",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 145000,
+              "contractual_adjustment_cents": 45000,
+              "patient_charge_cents": 100000,
+              "eligible_basis_cents": 100000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 8000,
+              "preliminary_plan_pay_cents": 80000,
+              "cap_applied": "none",
+              "plan_pay_cents": 80000,
+              "member_responsibility_cents": 20000,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 90000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 82400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 0,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.basic.2026",
+                "service_class_map.basic.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d3330.charge",
+                "provider.prov-rivera.price.d3330.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e1.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.allowed"
+                    }
+                  ],
+                  "result_cents": 100000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 8000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 8000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.basic.2026"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 82400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 82400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 80000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 100000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 80000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e1.plan_pay"
+                    }
+                  ],
+                  "result_cents": 20000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e1.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 145000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d3330.charge"
+                    }
+                  ],
+                  "result_cents": 45000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 20000,
+              "high_cents": 20000
+            },
+            "plan_pay": {
+              "low_cents": 80000,
+              "high_cents": 80000
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-2-e1-f1",
+                "event_id": "alt-2-e1",
+                "source_id": "fsa-2026",
+                "source_type": "FSA",
+                "payment_date": "2026-10-20",
+                "amount_cents": 20000,
+                "fees_cents": 0,
+                "input_id": "member.fsa-2026.balance"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "USES_EXPIRING_FUNDS"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261020-0800",
+                "by_date": null
+              },
+              {
+                "kind": "REQUEST_PRETREATMENT_ESTIMATE",
+                "provider_id": "prov-rivera",
+                "slot_id": null,
+                "by_date": null
+              },
+              {
+                "kind": "SUBMIT_FSA_CLAIM",
+                "provider_id": null,
+                "slot_id": null,
+                "by_date": "2027-03-31"
+              }
+            ]
+          },
+          {
+            "event_id": "alt-2-e2",
+            "procedure_id": "proc-fill-14",
+            "service_date": "2026-10-22",
+            "slot_id": "prov-rivera-t-20261022-1400",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "SELF_PAY_NO_CLAIM",
+            "line_worst": {
+              "line_id": "alt-2-e2",
+              "event_id": "alt-2-e2",
+              "procedure_id": "proc-fill-14",
+              "cdt_code": "D2392",
+              "tooth": "14",
+              "service_date": "2026-10-22",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "SELF_PAY_NO_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 15000,
+              "contractual_adjustment_cents": 0,
+              "patient_charge_cents": 15000,
+              "eligible_basis_cents": null,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": null,
+              "preliminary_plan_pay_cents": null,
+              "cap_applied": "none",
+              "plan_pay_cents": 0,
+              "member_responsibility_cents": 15000,
+              "counts_toward_maximum": false,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "benefit_period.2026",
+                "claim_submission.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2392.cash",
+                "provider.prov-rivera.self_pay"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e2.patient_charge",
+                  "label": "Verified cash price",
+                  "formula": "cash_quote",
+                  "operands": [
+                    {
+                      "name": "cash_quote",
+                      "cents": 15000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.cash"
+                    }
+                  ],
+                  "result_cents": 15000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e2.plan_pay",
+                  "label": "Plan pays (no claim submitted)",
+                  "formula": "0",
+                  "operands": [
+                    {
+                      "name": "claim_submission",
+                      "cents": null,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:claim_submission.2026"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e2.member_responsibility",
+                  "label": "You pay",
+                  "formula": "cash_quote",
+                  "operands": [
+                    {
+                      "name": "cash_quote",
+                      "cents": 15000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.cash"
+                    }
+                  ],
+                  "result_cents": 15000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-2-e2",
+              "event_id": "alt-2-e2",
+              "procedure_id": "proc-fill-14",
+              "cdt_code": "D2392",
+              "tooth": "14",
+              "service_date": "2026-10-22",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "SELF_PAY_NO_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "basic",
+              "modeled_charge_cents": 15000,
+              "contractual_adjustment_cents": 0,
+              "patient_charge_cents": 15000,
+              "eligible_basis_cents": null,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": null,
+              "preliminary_plan_pay_cents": null,
+              "cap_applied": "none",
+              "plan_pay_cents": 0,
+              "member_responsibility_cents": 15000,
+              "counts_toward_maximum": false,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "benefit_period.2026",
+                "claim_submission.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2392.cash",
+                "provider.prov-rivera.self_pay"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e2.patient_charge",
+                  "label": "Verified cash price",
+                  "formula": "cash_quote",
+                  "operands": [
+                    {
+                      "name": "cash_quote",
+                      "cents": 15000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.cash"
+                    }
+                  ],
+                  "result_cents": 15000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e2.plan_pay",
+                  "label": "Plan pays (no claim submitted)",
+                  "formula": "0",
+                  "operands": [
+                    {
+                      "name": "claim_submission",
+                      "cents": null,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "rule:claim_submission.2026"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e2.member_responsibility",
+                  "label": "You pay",
+                  "formula": "cash_quote",
+                  "operands": [
+                    {
+                      "name": "cash_quote",
+                      "cents": 15000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2392.cash"
+                    }
+                  ],
+                  "result_cents": 15000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 15000,
+              "high_cents": 15000
+            },
+            "plan_pay": {
+              "low_cents": 0,
+              "high_cents": 0
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-2-e2-f1",
+                "event_id": "alt-2-e2",
+                "source_id": "fsa-2026",
+                "source_type": "FSA",
+                "payment_date": "2026-10-22",
+                "amount_cents": 15000,
+                "fees_cents": 0,
+                "input_id": "member.fsa-2026.balance"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "BEFORE_PLAN_RESET",
+              "USES_EXPIRING_FUNDS",
+              "SELF_PAY_LOWER_PORTFOLIO_COST"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261022-1400",
+                "by_date": null
+              },
+              {
+                "kind": "CONFIRM_SELF_PAY_WITH_OFFICE",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261022-1400",
+                "by_date": "2026-10-22"
+              },
+              {
+                "kind": "SUBMIT_FSA_CLAIM",
+                "provider_id": null,
+                "slot_id": null,
+                "by_date": "2027-03-31"
+              }
+            ]
+          },
+          {
+            "event_id": "alt-2-e3",
+            "procedure_id": "proc-crown-30",
+            "service_date": "2026-11-05",
+            "slot_id": "prov-rivera-t-20261105-1500",
+            "provider_id": "prov-rivera",
+            "location_id": "loc-rivera-fairfax",
+            "claim_route": "IN_NETWORK_CLAIM",
+            "line_worst": {
+              "line_id": "alt-2-e3",
+              "event_id": "alt-2-e3",
+              "procedure_id": "proc-crown-30",
+              "cdt_code": "D2740",
+              "tooth": "30",
+              "service_date": "2026-11-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "major",
+              "modeled_charge_cents": 160000,
+              "contractual_adjustment_cents": 50000,
+              "patient_charge_cents": 110000,
+              "eligible_basis_cents": 110000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 5000,
+              "preliminary_plan_pay_cents": 55000,
+              "cap_applied": "annual_maximum",
+              "plan_pay_cents": 2400,
+              "member_responsibility_cents": 107600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 7600,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 0,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 82400,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.major.2026",
+                "service_class_map.major.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2740.charge",
+                "provider.prov-rivera.price.d2740.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e3.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 5000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": 55000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 55000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.plan_pay"
+                    }
+                  ],
+                  "result_cents": 107600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 160000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.charge"
+                    }
+                  ],
+                  "result_cents": 50000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "line_best": {
+              "line_id": "alt-2-e3",
+              "event_id": "alt-2-e3",
+              "procedure_id": "proc-crown-30",
+              "cdt_code": "D2740",
+              "tooth": "30",
+              "service_date": "2026-11-05",
+              "claim_date": null,
+              "provider_id": "prov-rivera",
+              "network_tier": "in_network",
+              "claim_route": "IN_NETWORK_CLAIM",
+              "status": "OK",
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "service_class": "major",
+              "modeled_charge_cents": 160000,
+              "contractual_adjustment_cents": 50000,
+              "patient_charge_cents": 110000,
+              "eligible_basis_cents": 110000,
+              "balance_bill_cents": 0,
+              "deductible_applied_cents": 0,
+              "coverage_rate_bps": 5000,
+              "preliminary_plan_pay_cents": 55000,
+              "cap_applied": "annual_maximum",
+              "plan_pay_cents": 2400,
+              "member_responsibility_cents": 107600,
+              "counts_toward_maximum": true,
+              "state_before": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 10000,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 2400,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 80000,
+                "source": "CLAIM_EOB"
+              },
+              "state_after": {
+                "plan_version_id": "nwd-ppo-standard-2026",
+                "period_start": "2026-01-01",
+                "period_end": "2026-12-31",
+                "opened_from": "snapshot",
+                "deductible_remaining_cents": 5000,
+                "annual_max_remaining_cents": 7600,
+                "pending_reserved_max_cents": 7600,
+                "pending_reserved_deductible_cents": 5000,
+                "annual_max_available_cents": 0,
+                "deductible_available_cents": 0,
+                "sublimits": [],
+                "simulated_plan_paid_cents": 82400,
+                "source": "CLAIM_EOB"
+              },
+              "applied_rule_ids": [
+                "annual_maximum.2026",
+                "benefit_period.2026",
+                "deductible.2026",
+                "limitations_index.2026",
+                "plan_share.in_network.major.2026",
+                "service_class_map.major.2026"
+              ],
+              "input_ids": [
+                "provider.prov-rivera.price.d2740.charge",
+                "provider.prov-rivera.price.d2740.allowed"
+              ],
+              "steps": [
+                {
+                  "step_id": "alt-2-e3.patient_charge",
+                  "label": "Patient charge",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.eligible_basis",
+                  "label": "Amount the plan recognizes",
+                  "formula": "allowed_amount",
+                  "operands": [
+                    {
+                      "name": "allowed_amount",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.allowed"
+                    }
+                  ],
+                  "result_cents": 110000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.deductible",
+                  "label": "Deductible applied",
+                  "formula": "min(deductible_available, eligible_basis)",
+                  "operands": [
+                    {
+                      "name": "deductible_available",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.deductible_remaining"
+                    },
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.eligible_basis"
+                    }
+                  ],
+                  "result_cents": 0,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.coverage_rate",
+                  "label": "Plan coinsurance",
+                  "formula": "plan_share rate",
+                  "operands": [
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": null,
+                  "result_bps": 5000,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.preliminary_plan_pay",
+                  "label": "Plan share before the maximum",
+                  "formula": "round_half_up(rate × (eligible_basis − deductible))",
+                  "operands": [
+                    {
+                      "name": "eligible_basis",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.eligible_basis"
+                    },
+                    {
+                      "name": "deductible",
+                      "cents": 0,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.deductible"
+                    },
+                    {
+                      "name": "rate",
+                      "cents": null,
+                      "bps": 5000,
+                      "text": null,
+                      "fact_id": "rule:plan_share.in_network.major.2026"
+                    }
+                  ],
+                  "result_cents": 55000,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.cap",
+                  "label": "Annual maximum available",
+                  "formula": "annual_max_remaining − pending_reserved",
+                  "operands": [
+                    {
+                      "name": "annual_max_available",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:member.acc.2026.annual_max_remaining"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.plan_pay",
+                  "label": "Plan pays",
+                  "formula": "min(preliminary, annual_max_available)",
+                  "operands": [
+                    {
+                      "name": "preliminary",
+                      "cents": 55000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.preliminary_plan_pay"
+                    }
+                  ],
+                  "result_cents": 2400,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.member_responsibility",
+                  "label": "You pay",
+                  "formula": "patient_charge − plan_pay",
+                  "operands": [
+                    {
+                      "name": "patient_charge",
+                      "cents": 110000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.patient_charge"
+                    },
+                    {
+                      "name": "plan_pay",
+                      "cents": 2400,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "calc:alt-2-e3.plan_pay"
+                    }
+                  ],
+                  "result_cents": 107600,
+                  "result_bps": null,
+                  "result_text": null
+                },
+                {
+                  "step_id": "alt-2-e3.contractual_adjustment",
+                  "label": "Network discount",
+                  "formula": "provider_charge − allowed_amount",
+                  "operands": [
+                    {
+                      "name": "provider_charge",
+                      "cents": 160000,
+                      "bps": null,
+                      "text": null,
+                      "fact_id": "input:provider.prov-rivera.price.d2740.charge"
+                    }
+                  ],
+                  "result_cents": 50000,
+                  "result_bps": null,
+                  "result_text": null
+                }
+              ],
+              "issues": []
+            },
+            "member_cost": {
+              "low_cents": 107600,
+              "high_cents": 107600
+            },
+            "plan_pay": {
+              "low_cents": 2400,
+              "high_cents": 2400
+            },
+            "funding": [
+              {
+                "allocation_id": "alt-2-e3-f1",
+                "event_id": "alt-2-e3",
+                "source_id": "fsa-2026",
+                "source_type": "FSA",
+                "payment_date": "2026-11-05",
+                "amount_cents": 85000,
+                "fees_cents": 0,
+                "input_id": "member.fsa-2026.balance"
+              },
+              {
+                "allocation_id": "alt-2-e3-f2",
+                "event_id": "alt-2-e3",
+                "source_id": "cash",
+                "source_type": "CASH",
+                "payment_date": "2026-11-05",
+                "amount_cents": 22600,
+                "fees_cents": 0,
+                "input_id": "member.budget"
+              }
+            ],
+            "shortfall_cents": 0,
+            "reasons": [
+              "WITHIN_SAFE_WINDOW",
+              "MEETS_DENTIST_TARGET",
+              "HEALING_INTERVAL",
+              "USES_EXPIRING_FUNDS",
+              "FITS_MONTHLY_BUDGET"
+            ],
+            "next_actions": [
+              {
+                "kind": "REQUEST_APPOINTMENT",
+                "provider_id": "prov-rivera",
+                "slot_id": "prov-rivera-t-20261105-1500",
+                "by_date": null
+              },
+              {
+                "kind": "REQUEST_PRETREATMENT_ESTIMATE",
+                "provider_id": "prov-rivera",
+                "slot_id": null,
+                "by_date": null
+              },
+              {
+                "kind": "SUBMIT_FSA_CLAIM",
+                "provider_id": null,
+                "slot_id": null,
+                "by_date": "2027-03-31"
+              }
+            ]
+          }
+        ],
+        "unscheduled": [],
+        "totals": {
+          "modeled_charge": {
+            "low_cents": 320000,
+            "high_cents": 320000
+          },
+          "contractual_adjustment": {
+            "low_cents": 95000,
+            "high_cents": 95000
+          },
+          "plan_pay": {
+            "low_cents": 82400,
+            "high_cents": 82400
+          },
+          "member_cost": {
+            "low_cents": 142600,
+            "high_cents": 142600
+          },
+          "fees_cents": 0
+        },
+        "funding_gap_cents": 0,
+        "monthly": [
+          {
+            "month": "2026-10",
+            "cash_cents": 0,
+            "by_source": [
+              {
+                "source_type": "FSA",
+                "amount_cents": 35000
+              }
+            ],
+            "exceeds_preferred": false,
+            "exceeds_hard": false
+          },
+          {
+            "month": "2026-11",
+            "cash_cents": 22600,
+            "by_source": [
+              {
+                "source_type": "FSA",
+                "amount_cents": 85000
+              },
+              {
+                "source_type": "CASH",
+                "amount_cents": 22600
+              }
+            ],
+            "exceeds_preferred": true,
+            "exceeds_hard": false
+          }
+        ],
+        "benefit_states": [
+          {
+            "event_id": "alt-2-e1",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "period_start": "2026-01-01",
+              "period_end": "2026-12-31",
+              "opened_from": "snapshot",
+              "deductible_remaining_cents": 5000,
+              "annual_max_remaining_cents": 10000,
+              "pending_reserved_max_cents": 7600,
+              "pending_reserved_deductible_cents": 5000,
+              "annual_max_available_cents": 2400,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 80000,
+              "source": "CLAIM_EOB"
+            }
+          },
+          {
+            "event_id": "alt-2-e2",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "period_start": "2026-01-01",
+              "period_end": "2026-12-31",
+              "opened_from": "snapshot",
+              "deductible_remaining_cents": 5000,
+              "annual_max_remaining_cents": 10000,
+              "pending_reserved_max_cents": 7600,
+              "pending_reserved_deductible_cents": 5000,
+              "annual_max_available_cents": 2400,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 80000,
+              "source": "CLAIM_EOB"
+            }
+          },
+          {
+            "event_id": "alt-2-e3",
+            "state_after": {
+              "plan_version_id": "nwd-ppo-standard-2026",
+              "period_start": "2026-01-01",
+              "period_end": "2026-12-31",
+              "opened_from": "snapshot",
+              "deductible_remaining_cents": 5000,
+              "annual_max_remaining_cents": 7600,
+              "pending_reserved_max_cents": 7600,
+              "pending_reserved_deductible_cents": 5000,
+              "annual_max_available_cents": 0,
+              "deductible_available_cents": 0,
+              "sublimits": [],
+              "simulated_plan_paid_cents": 82400,
+              "source": "CLAIM_EOB"
+            }
+          }
+        ],
+        "objective": {
+          "unscheduled_by_urgency": [
+            0,
+            0,
+            0
+          ],
+          "lateness_days_by_urgency": [
+            0,
+            0,
+            0
+          ],
+          "funding_shortfall_cents": 0,
+          "total_member_cost_cents": 142600,
+          "total_fees_cents": 0,
+          "peak_monthly_cash_cents": 22600,
+          "travel_minutes_total": 42,
+          "visit_days": 3,
+          "wait_days_total": 33,
+          "expiring_funds_unused_cents": 0,
+          "completion_date": "2026-11-05"
+        },
+        "applied_rule_ids": [
+          "annual_maximum.2026",
+          "benefit_period.2026",
+          "claim_submission.2026",
+          "deductible.2026",
+          "limitations_index.2026",
+          "plan_share.in_network.basic.2026",
+          "plan_share.in_network.major.2026",
+          "service_class_map.basic.2026",
+          "service_class_map.major.2026"
+        ],
+        "issues": []
+      }
+    ],
+    "evidence": [
+      {
+        "rule_id": "annual_maximum.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "annual_maximum.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "benefit_period.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "benefit_period.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "claim_submission.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "deductible.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "deductible.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "limitations_index.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "limitations_index.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "plan_share.in_network.basic.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "plan_share.in_network.basic.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "plan_share.in_network.major.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "service_class_map.basic.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "service_class_map.basic.2027",
+        "plan_version_id": "nwd-ppo-standard-2027",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2027-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
+        "rule_id": "service_class_map.major.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      }
+    ],
+    "unresolved": [
+      {
+        "code": "RULE_UNKNOWN",
+        "severity": "warning",
+        "message": "2027 self-pay was not evaluated: the 2027 plan document does not address paying a network dentist without a claim.",
+        "field": null,
+        "rule_id": "claim_submission.2027",
+        "input_id": null,
+        "procedure_id": null,
+        "provider_id": null
+      },
+      {
+        "code": "RULE_UNVERIFIED",
+        "severity": "warning",
+        "message": "The 2026 maximum carryover is not verified, so no carryover was added to 2027.",
+        "field": null,
+        "rule_id": "rollover.2026",
+        "input_id": null,
+        "procedure_id": null,
+        "provider_id": null
+      },
+      {
+        "code": "PENDING_CLAIMS_PRESENT",
+        "severity": "info",
+        "message": "A claim from Sep 28, 2026 is still pending; its estimated payment is reserved.",
+        "field": null,
+        "rule_id": null,
+        "input_id": "member.pending.claim-2026-0928-d2391.plan_pay",
+        "procedure_id": null,
+        "provider_id": null
+      }
+    ],
+    "decision_trace": [
+      {
+        "seq": 0,
+        "kind": "INPUT_VALIDATED",
+        "message": "mock",
+        "data": {}
+      }
+    ],
+    "search_stats": {
+      "candidates_built": 0,
+      "schedules_evaluated": 0,
+      "schedules_feasible": 0,
+      "pass": 1
+    }
+  },
+  "meta": {
+    "request_id": "mock-care",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}

@@ -1,0 +1,2 @@
+# Frozen sources are checksummed (AT-00); never convert line endings.
+data/sources/** -text

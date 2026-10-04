@@ -1,1 +1,31 @@
+# dependencies
 node_modules
+/.pnp
+.pnp.*
+
+# next.js / build
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+
+# env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# Planner-only unfreeze marker (never commit)
+.claude/UNFREEZE
+.claude/settings.local.json
+
+# misc
+.DS_Store
+npm-debug.log*
+.vercel
