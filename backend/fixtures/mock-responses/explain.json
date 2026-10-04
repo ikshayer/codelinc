@@ -1,0 +1,31 @@
+{
+  "contract_version": "1.1.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.1.0",
+    "mode": "template",
+    "explanation": {
+      "summary": "Estimated member cost is $1,372 across three visits (MOCK TEXT).",
+      "claims": [
+        {
+          "text": "The crown's plan payment is limited to $24 because the 2026 annual maximum is nearly used.",
+          "fact_ids": [
+            "rule:annual_maximum.2026",
+            "calc:alt-1-e2.plan_pay"
+          ]
+        }
+      ],
+      "missing_data": []
+    },
+    "validation": {
+      "ok": true,
+      "violations": []
+    },
+    "fell_back_to_template": false
+  },
+  "meta": {
+    "request_id": "mock-explain",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}

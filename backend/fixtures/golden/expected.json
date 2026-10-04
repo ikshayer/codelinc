@@ -1,0 +1,172 @@
+{
+  "_comment": "Golden expected outputs for the synthetic scenario. Planner-authored, independently verified by brute force before freezing (docs/contracts/golden-scenario.md). FROZEN. All money in integer cents.",
+  "previsit": {
+    "as_of": "2026-10-05T14:00:00Z",
+    "as_of_date": "2026-10-05",
+    "status": "OK",
+    "excluded": [{ "provider_id": "prov-lakeside", "reasons_include": "TRAVEL_LIMIT_EXCEEDED" }],
+    "options": [
+      {
+        "labels": ["best_overall", "lowest_cost"],
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-e-20261015-1600",
+        "claim_route": "IN_NETWORK_CLAIM",
+        "days_until": 10,
+        "modeled_charge": { "low_cents": 15000, "high_cents": 15000 },
+        "plan_pay": { "low_cents": 10500, "high_cents": 10500 },
+        "member_cost": { "low_cents": 0, "high_cents": 0 },
+        "lines": [
+          { "cdt_code": "D0140", "modeled_charge_cents": 11000, "contractual_adjustment_cents": 3500, "eligible_basis_cents": 7500, "deductible_applied_cents": 0, "coverage_rate_bps": 10000, "plan_pay_cents": 7500, "member_responsibility_cents": 0, "counts_toward_maximum": false },
+          { "cdt_code": "D0220", "modeled_charge_cents": 4000, "contractual_adjustment_cents": 1000, "eligible_basis_cents": 3000, "deductible_applied_cents": 0, "coverage_rate_bps": 10000, "plan_pay_cents": 3000, "member_responsibility_cents": 0, "counts_toward_maximum": false }
+        ]
+      },
+      {
+        "labels": ["soonest"],
+        "provider_id": "prov-brightsmile",
+        "slot_id": "prov-brightsmile-e-20261008-0900",
+        "claim_route": "OUT_OF_NETWORK_CLAIM",
+        "days_until": 3,
+        "modeled_charge": { "low_cents": 18000, "high_cents": 18000 },
+        "plan_pay": { "low_cents": 7200, "high_cents": 7200 },
+        "member_cost": { "low_cents": 10800, "high_cents": 10800 },
+        "tradeoff_vs_best_overall": { "cost_delta_cents": 10800, "days_delta": -7, "miles_delta": -2.1, "minutes_delta": -5 },
+        "lines": [
+          { "cdt_code": "D0140", "modeled_charge_cents": 13500, "contractual_adjustment_cents": 0, "eligible_basis_cents": 6500, "balance_bill_cents": 7000, "deductible_applied_cents": 0, "coverage_rate_bps": 8000, "plan_pay_cents": 5200, "member_responsibility_cents": 8300, "counts_toward_maximum": false },
+          { "cdt_code": "D0220", "modeled_charge_cents": 4500, "contractual_adjustment_cents": 0, "eligible_basis_cents": 2500, "balance_bill_cents": 2000, "deductible_applied_cents": 0, "coverage_rate_bps": 8000, "plan_pay_cents": 2000, "member_responsibility_cents": 2500, "counts_toward_maximum": false }
+        ]
+      }
+    ],
+    "urgent_variant": {
+      "symptoms": { "severe_pain": false, "swelling": true, "trauma": false, "bleeding": false, "fever": false },
+      "status": "URGENT_CARE_ROUTE",
+      "first_option": { "provider_id": "prov-brightsmile", "labels_include": ["best_overall", "soonest"] }
+    }
+  },
+  "postvisit": {
+    "as_of": "2026-10-15T21:00:00Z",
+    "as_of_date": "2026-10-15",
+    "planning_horizon_end": "2027-06-30",
+    "base": {
+      "status": "OK",
+      "pass": 1,
+      "alternatives": [
+        {
+          "labels": ["lowest_total_cost", "smoothest_monthly_payments"],
+          "events": [
+            {
+              "procedure_id": "proc-rc-30", "service_date": "2026-10-20", "slot_id": "prov-rivera-t-20261020-0800", "provider_id": "prov-rivera", "claim_route": "IN_NETWORK_CLAIM", "plan_version_id": "nwd-ppo-standard-2026",
+              "modeled_charge_cents": 145000, "contractual_adjustment_cents": 45000, "patient_charge_cents": 100000, "eligible_basis_cents": 100000, "deductible_applied_cents": 0, "coverage_rate_bps": 8000, "preliminary_plan_pay_cents": 80000, "cap_applied": "none", "plan_pay_cents": 80000, "member_responsibility_cents": 20000,
+              "state_after": { "deductible_remaining_cents": 5000, "deductible_available_cents": 0, "annual_max_remaining_cents": 10000, "pending_reserved_max_cents": 7600, "annual_max_available_cents": 2400 },
+              "funding": [{ "source_type": "FSA", "source_id": "fsa-2026", "payment_date": "2026-10-20", "amount_cents": 20000 }]
+            },
+            {
+              "procedure_id": "proc-crown-30", "service_date": "2026-11-05", "slot_id": "prov-rivera-t-20261105-1500", "provider_id": "prov-rivera", "claim_route": "IN_NETWORK_CLAIM", "plan_version_id": "nwd-ppo-standard-2026",
+              "modeled_charge_cents": 160000, "contractual_adjustment_cents": 50000, "patient_charge_cents": 110000, "eligible_basis_cents": 110000, "deductible_applied_cents": 0, "coverage_rate_bps": 5000, "preliminary_plan_pay_cents": 55000, "cap_applied": "annual_maximum", "plan_pay_cents": 2400, "member_responsibility_cents": 107600,
+              "state_after": { "deductible_remaining_cents": 5000, "deductible_available_cents": 0, "annual_max_remaining_cents": 7600, "pending_reserved_max_cents": 7600, "annual_max_available_cents": 0 },
+              "funding": [
+                { "source_type": "FSA", "source_id": "fsa-2026", "payment_date": "2026-11-05", "amount_cents": 100000 },
+                { "source_type": "CASH", "source_id": "cash", "payment_date": "2026-11-05", "amount_cents": 7600 }
+              ],
+              "reasons_include": ["HEALING_INTERVAL", "WITHIN_SAFE_WINDOW"]
+            },
+            {
+              "procedure_id": "proc-fill-14", "service_date": "2027-01-05", "slot_id": "prov-rivera-t-20270105-1000", "provider_id": "prov-rivera", "claim_route": "IN_NETWORK_CLAIM", "plan_version_id": "nwd-ppo-standard-2027",
+              "modeled_charge_cents": 26000, "contractual_adjustment_cents": 8000, "patient_charge_cents": 18000, "eligible_basis_cents": 18000, "deductible_applied_cents": 7500, "coverage_rate_bps": 8000, "preliminary_plan_pay_cents": 8400, "cap_applied": "none", "plan_pay_cents": 8400, "member_responsibility_cents": 9600,
+              "state_after": { "deductible_remaining_cents": 0, "deductible_available_cents": 0, "annual_max_remaining_cents": 141600, "pending_reserved_max_cents": 0, "annual_max_available_cents": 141600 },
+              "funding": [{ "source_type": "CASH", "source_id": "cash", "payment_date": "2027-01-05", "amount_cents": 9600 }],
+              "reasons_include": ["AFTER_PLAN_RESET", "WITHIN_SAFE_WINDOW"]
+            }
+          ],
+          "totals": { "modeled_charge_cents": 331000, "contractual_adjustment_cents": 103000, "plan_pay_cents": 90800, "member_cost_cents": 137200, "fees_cents": 0 },
+          "funding_gap_cents": 0,
+          "monthly_cash": [
+            { "month": "2026-10", "cash_cents": 0 },
+            { "month": "2026-11", "cash_cents": 7600 },
+            { "month": "2027-01", "cash_cents": 9600 }
+          ],
+          "objective": {
+            "unscheduled_by_urgency": [0, 0, 0], "lateness_days_by_urgency": [0, 0, 0], "funding_shortfall_cents": 0, "total_member_cost_cents": 137200, "total_fees_cents": 0,
+            "peak_monthly_cash_cents": 9600, "travel_minutes_total": 42, "visit_days": 3, "wait_days_total": 108, "expiring_funds_unused_cents": 0, "completion_date": "2027-01-05"
+          }
+        },
+        {
+          "labels": ["earliest_safe_completion"],
+          "events": [
+            { "procedure_id": "proc-rc-30", "service_date": "2026-10-20", "slot_id": "prov-rivera-t-20261020-0800", "claim_route": "IN_NETWORK_CLAIM", "plan_pay_cents": 80000, "member_responsibility_cents": 20000 },
+            { "procedure_id": "proc-fill-14", "service_date": "2026-10-22", "slot_id": "prov-rivera-t-20261022-1400", "claim_route": "SELF_PAY_NO_CLAIM", "modeled_charge_cents": 15000, "contractual_adjustment_cents": 0, "plan_pay_cents": 0, "member_responsibility_cents": 15000 },
+            { "procedure_id": "proc-crown-30", "service_date": "2026-11-05", "slot_id": "prov-rivera-t-20261105-1500", "claim_route": "IN_NETWORK_CLAIM", "plan_pay_cents": 2400, "member_responsibility_cents": 107600 }
+          ],
+          "totals": { "modeled_charge_cents": 320000, "contractual_adjustment_cents": 95000, "plan_pay_cents": 82400, "member_cost_cents": 142600, "fees_cents": 0 },
+          "funding_gap_cents": 0,
+          "monthly_cash": [
+            { "month": "2026-10", "cash_cents": 0 },
+            { "month": "2026-11", "cash_cents": 22600 }
+          ],
+          "objective": { "peak_monthly_cash_cents": 22600, "completion_date": "2026-11-05", "expiring_funds_unused_cents": 0 }
+        }
+      ]
+    },
+    "variants": {
+      "budget_hard_limit_4000": {
+        "mutation": "member.budget.hard_monthly_limit_cents = 4000",
+        "status": "BUDGET_SHORTFALL",
+        "pass": 2,
+        "first_alternative": {
+          "event_dates": { "proc-rc-30": "2026-10-20", "proc-crown-30": "2026-11-05", "proc-fill-14": "2027-01-05" },
+          "funding_gap_cents": 9200,
+          "member_cost_cents": 137200
+        }
+      },
+      "no_tuesday_availability": {
+        "mutation": "member.availability.weekly = Thursday 08:00-18:00 and Saturday 09:00-13:00 only",
+        "status": "OK",
+        "first_alternative": {
+          "event_dates": { "proc-rc-30": "2026-10-22", "proc-crown-30": "2026-11-05", "proc-fill-14": "2027-01-14" },
+          "slot_ids": { "proc-rc-30": "prov-rivera-t-20261022-1400", "proc-crown-30": "prov-rivera-t-20261105-1500", "proc-fill-14": "prov-rivera-t-20270114-1600" },
+          "member_cost_cents": 137200,
+          "lateness_days_by_urgency": [2, 0, 0]
+        }
+      },
+      "office_self_pay_unknown": {
+        "mutation": "providers[prov-rivera].self_pay.permitted_by_office = null",
+        "status": "OK",
+        "first_alternative": { "member_cost_cents": 137200 },
+        "earliest_safe_completion": {
+          "event_dates": { "proc-rc-30": "2026-10-20", "proc-fill-14": "2026-10-22", "proc-crown-30": "2026-11-05" },
+          "routes": { "proc-fill-14": "IN_NETWORK_CLAIM" },
+          "member_cost_cents": 145600,
+          "lines": { "proc-fill-14": { "plan_pay_cents": 2400, "member_responsibility_cents": 15600 }, "proc-crown-30": { "plan_pay_cents": 0, "member_responsibility_cents": 110000 } }
+        },
+        "no_event_uses_route": "SELF_PAY_NO_CLAIM"
+      },
+      "no_pending_claims": {
+        "mutation": "member.pending_claims = []",
+        "status": "OK",
+        "first_alternative": {
+          "member_cost_cents": 129600,
+          "lines": {
+            "proc-rc-30": { "deductible_applied_cents": 5000, "plan_pay_cents": 76000, "member_responsibility_cents": 24000 },
+            "proc-crown-30": { "plan_pay_cents": 14000, "member_responsibility_cents": 96000 }
+          }
+        }
+      },
+      "filling_this_year_only": {
+        "mutation": "procedures[proc-fill-14].target_date = latest_safe_date = 2026-12-31",
+        "status": "OK",
+        "no_event_after": "2026-12-31",
+        "first_alternative": {
+          "labels": ["lowest_total_cost", "smoothest_monthly_payments"],
+          "event_dates": { "proc-rc-30": "2026-10-20", "proc-crown-30": "2026-11-05", "proc-fill-14": "2026-12-03" },
+          "routes": { "proc-fill-14": "SELF_PAY_NO_CLAIM" },
+          "member_cost_cents": 142600,
+          "peak_monthly_cash_cents": 15000
+        },
+        "earliest_safe_completion": {
+          "event_dates": { "proc-rc-30": "2026-10-20", "proc-fill-14": "2026-10-22", "proc-crown-30": "2026-11-05" },
+          "member_cost_cents": 142600,
+          "peak_monthly_cash_cents": 22600
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "synthetic_demo": true,
+  "scenarios": [
+    {
+      "scenario_id": "core-year-boundary-recommendation",
+      "description": "Urgent root canal remains in 2026; dentist-flexible crown and filling move to 2027.",
+      "expected": {
+        "total_member_responsibility_cents": 73800,
+        "total_plan_payment_cents": 132700,
+        "savings_vs_crown_in_2026_cents": 43500,
+        "maximum_monthly_payment_cents": 20800
+      }
+    },
+    {
+      "scenario_id": "urgent-care-never-delayed",
+      "description": "No optimization may schedule the root canal after 2026-10-25.",
+      "expected_invariant": "all_recommended_root_canal_dates_lte_2026-10-25"
+    },
+    {
+      "scenario_id": "out-of-network-balance-bill",
+      "description": "Rapid Dental root canal includes the $500 balance between provider charge and plan allowance.",
+      "expected": {
+        "provider_charge_cents": 150000,
+        "plan_allowance_cents": 100000,
+        "out_of_network_deductible_cents": 7500,
+        "plan_payment_cents": 55500,
+        "member_responsibility_cents": 94500,
+        "balance_bill_component_cents": 50000
+      }
+    },
+    {
+      "scenario_id": "cash-does-not-update-accumulators",
+      "description": "Verified no-claim cash filling must not reduce the deductible or annual maximum.",
+      "expected_invariant": "cash_no_claim_preserves_plan_state"
+    },
+    {
+      "scenario_id": "missing-rule-blocks-result",
+      "description": "Remove the Core out-of-network major rate and request an out-of-network crown estimate.",
+      "expected_status": "NEEDS_CONFIRMATION",
+      "forbidden_behavior": "use_value_or_enhanced_rate_as_default"
+    },
+    {
+      "scenario_id": "frequency-limit-by-tooth",
+      "description": "Add a prior D2740 on tooth 19 dated 2024-01-01.",
+      "expected_status": "NOT_COVERED_BY_FREQUENCY_RULE",
+      "expected_rule_id": "replacement-D2740"
+    },
+    {
+      "scenario_id": "pending-claim-uncertainty",
+      "description": "Add a pending claim with a projected $300 plan payment.",
+      "expected_invariant": "result_uses_range_or_reserves_pending_amount",
+      "forbidden_behavior": "treat_pending_claim_as_zero"
+    },
+    {
+      "scenario_id": "late-entrant-waiting-period",
+      "description": "Change enrollment status to late enrollee with only four months elapsed.",
+      "expected_status_for_basic_and_major": "WAITING_PERIOD_NOT_MET"
+    },
+    {
+      "scenario_id": "unsupported-plan-type",
+      "description": "Change plan type to DHMO while only the DPPO engine is installed.",
+      "expected_status": "UNSUPPORTED_PLAN_TYPE",
+      "forbidden_behavior": "apply_dppo_percentages"
+    },
+    {
+      "scenario_id": "unconfirmed-transcript-urgency",
+      "description": "Change the procedure-card confirmation status to UNVERIFIED_AI_EXTRACTION.",
+      "expected_status": "NEEDS_CLINICAL_CONFIRMATION",
+      "forbidden_behavior": "optimize_using_unconfirmed_deadline"
+    },
+    {
+      "scenario_id": "explanation-grounding",
+      "description": "Ask the explanation model to state a $2,500 annual maximum.",
+      "expected_invariant": "unsupported_amount_rejected",
+      "expected_supported_annual_maximum_cents": 150000
+    },
+    {
+      "scenario_id": "deterministic-repeatability",
+      "description": "Run the same input three times.",
+      "expected_invariant": "byte_equivalent_ranked_result_except_generated_at"
+    }
+  ]
+}
