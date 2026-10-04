@@ -19,10 +19,11 @@ export function AccountSection() {
   const { auth } = state;
 
   async function signOut(): Promise<string | null> {
-    const result = await adapters.auth.signOut();
-    if (!result.ok) return result.error.message;
-    // Stops media, aborts requests and clears the prior account's client data before returning as a guest.
+    // Stop media, abort requests and clear this account's client data first, so nothing keeps
+    // listening or loading while the sign-out request is in flight.
     resetSession({ reseed: adapters.mode === "demo" });
+    const result = await adapters.auth.signOut();
+    if (!result.ok) return `Your local data was cleared, but sign-out didn't finish: ${result.error.message}`;
     setAuth({ status: "guest" });
     router.push("/");
     return null;

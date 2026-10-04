@@ -82,3 +82,10 @@ Trust boundaries the code enforces:
 ## shadcn MCP
 
 `.mcp.json` configures `shadcn@latest mcp`. The Claude Code session that built this app was started from the repository root, so the server wasn't auto-loaded. `scripts/shadcn-mcp.mjs` drives the same server over stdio with the MCP SDK (`node scripts/shadcn-mcp.mjs list-tools`, `… call search_items_in_registries '{"query":"…"}'`). It was used to list registries, browse the `@shadcn` UI items, search `@react-bits`, view items and produce the install command for every primitive in `src/components/ui/` plus React Bits **BlurText** (the landing headline reveal). The style is `radix-nova` (Radix primitives, Lucide icons, Geist).
+
+## Known gaps and decisions
+
+- **Not connected:** the real calculation engine, report extraction, voice transport, `/api/interpret`, history persistence, Auth.js and a live `/api/profile`. Each one has a typed live adapter and a documented contract, and each reports itself unavailable until the backend exists.
+- **Late source results after an edit:** report and typed-interpret replies are still accepted after an unrelated manual edit. They're keyed by request ID and session epoch, and `applyProposals` never overwrites an edited value; a clash becomes a visible conflict instead. File replacement, Clear, delete and sign-out reject late replies.
+- **Voice leave guard:** it covers in-app link clicks (including method switching) and tab close. Browser Back isn't intercepted, but unmount always stops the microphone and ends the session.
+- **Session memory:** refreshing the page restores the seeded demo data and drops in-progress drafts, by design: nothing is written to browser storage.

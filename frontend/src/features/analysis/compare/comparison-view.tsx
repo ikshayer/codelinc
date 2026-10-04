@@ -48,7 +48,7 @@ function SourceNote({ sourceMode, fixtureName, engineVersion }: Pick<ComparisonV
   if (sourceMode === "fixturePreview") {
     return (
       <Notice title="Fixture preview">
-        Fixture preview: precomputed for the named synthetic scenario “{fixtureName ?? "unnamed scenario"}”. The calculation engine isn&apos;t connected.
+        Precomputed for the named synthetic scenario “{fixtureName ?? "unnamed scenario"}”. The calculation engine isn&apos;t connected.
       </Notice>
     );
   }
@@ -98,6 +98,7 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
                 title="Best dentist-permitted alternative"
                 description="The lowest estimated cost among schedules your dentist permits"
                 record={best}
+                emphasized={status === "cheaperPermittedAlternative"}
               />
             )}
           </div>

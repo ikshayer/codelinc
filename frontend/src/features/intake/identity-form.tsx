@@ -5,6 +5,8 @@ import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { ChevronDownIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { compareIso, isoFromParts, partsFromIso, todayIso } from "@/lib/domain/dates";
 import type { PatientDetails } from "@/lib/domain/types";
 
@@ -19,6 +21,7 @@ interface IdentityFormProps {
   /** Extra actions beside the submit button, e.g. "Continue with Google". */
   secondary?: ReactNode;
   busy?: boolean;
+  compact?: boolean;
 }
 
 type Errors = Partial<Record<"displayName" | "dateOfBirth" | "contactEmail", string>>;
@@ -63,7 +66,7 @@ function validate(values: Values): { errors: Errors; details: PatientDetails | n
   };
 }
 
-export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }: IdentityFormProps) {
+export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy, compact = false }: IdentityFormProps) {
   const id = useId();
   const dob = partsFromIso(initial?.dateOfBirth);
   const [values, setValues] = useState<Values>({
@@ -77,6 +80,7 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
   // Errors appear after blur or submit, not on every keystroke.
   const [touched, setTouched] = useState<Partial<Record<keyof Errors, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [optionalOpen, setOptionalOpen] = useState(!compact);
   const { errors } = validate(values);
   const visible = (key: keyof Errors) => (submitted || touched[key] ? errors[key] : undefined);
 
@@ -90,7 +94,8 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
     if (!result.details) {
       const first = Object.keys(result.errors)[0];
       const target = first === "dateOfBirth" ? `${id}-dob-month` : `${id}-${first}`;
-      document.getElementById(target)?.focus();
+      if (first === "contactEmail") setOptionalOpen(true);
+      requestAnimationFrame(() => document.getElementById(target)?.focus());
       return;
     }
     onSubmit(result.details);
@@ -99,7 +104,7 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
   const dobError = visible("dateOfBirth");
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-8">
+    <form onSubmit={handleSubmit} noValidate className={cn("space-y-6", compact && "rounded-xl border bg-card p-5 shadow-xs sm:p-7")}>
       <FieldGroup>
         <Field data-invalid={Boolean(visible("displayName"))}>
           <FieldLabel htmlFor={`${id}-displayName`}>Name</FieldLabel>
@@ -109,34 +114,28 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
             onChange={set("displayName")}
             onBlur={blur("displayName")}
             autoComplete="name"
+            placeholder="e.g. Alex Morgan"
             aria-invalid={Boolean(visible("displayName"))}
             aria-describedby={`${id}-displayName-help${visible("displayName") ? ` ${id}-displayName-error` : ""}`}
             className="max-w-md"
           />
-          <FieldDescription id={`${id}-displayName-help`}>The name you go by. Shown on the analysis so you can catch a wrong-person report.</FieldDescription>
+          <FieldDescription id={`${id}-displayName-help`}>Shown on your analysis and saved comparisons.</FieldDescription>
           {visible("displayName") && <FieldError id={`${id}-displayName-error`}>{visible("displayName")}</FieldError>}
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor={`${id}-fullName`}>
-            Full name <span className="font-normal text-muted-foreground">(optional)</span>
-          </FieldLabel>
-          <Input id={`${id}-fullName`} value={values.fullName} onChange={set("fullName")} autoComplete="name" className="max-w-md" />
         </Field>
 
         <FieldSet aria-describedby={`${id}-dob-help${dobError ? ` ${id}-dob-error` : ""}`} data-invalid={Boolean(dobError)}>
           <FieldLegend variant="label">
             Date of birth <span className="font-normal text-muted-foreground">(optional)</span>
           </FieldLegend>
-          <div className="flex gap-3">
+          <div className="grid max-w-[296px] grid-cols-[1fr_1fr_1.4fr] gap-3">
             {(
               [
-                ["month", "Month", "MM", 2, "w-20"],
-                ["day", "Day", "DD", 2, "w-20"],
-                ["year", "Year", "YYYY", 4, "w-28"],
+                ["month", "Month", "MM", 2],
+                ["day", "Day", "DD", 2],
+                ["year", "Year", "YYYY", 4],
               ] as const
-            ).map(([key, label, placeholder, maxLength, width]) => (
-              <Field key={key} className={width}>
+            ).map(([key, label, placeholder, maxLength]) => (
+              <Field key={key} className="min-w-0">
                 <FieldLabel htmlFor={`${id}-dob-${key}`} className="text-sm font-normal text-muted-foreground">
                   {label}
                 </FieldLabel>
@@ -158,23 +157,35 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
           {dobError && <FieldError id={`${id}-dob-error`}>{dobError}</FieldError>}
         </FieldSet>
 
-        <Field data-invalid={Boolean(visible("contactEmail"))}>
-          <FieldLabel htmlFor={`${id}-contactEmail`}>
-            Email <span className="font-normal text-muted-foreground">(optional)</span>
-          </FieldLabel>
-          <Input
-            id={`${id}-contactEmail`}
-            type="email"
-            value={values.contactEmail}
-            onChange={set("contactEmail")}
-            onBlur={blur("contactEmail")}
-            autoComplete="email"
-            aria-invalid={Boolean(visible("contactEmail"))}
-            aria-describedby={visible("contactEmail") ? `${id}-contactEmail-error` : undefined}
-            className="max-w-md"
-          />
-          {visible("contactEmail") && <FieldError id={`${id}-contactEmail-error`}>{visible("contactEmail")}</FieldError>}
-        </Field>
+        <details open={optionalOpen} onToggle={(event) => setOptionalOpen(event.currentTarget.open)} className="group rounded-lg border bg-muted/20 px-4">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            More details (optional)
+            <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="space-y-5 border-t py-5">
+            <Field>
+              <FieldLabel htmlFor={`${id}-fullName`}>Full name <span className="font-normal text-muted-foreground">(optional)</span></FieldLabel>
+              <Input id={`${id}-fullName`} value={values.fullName} onChange={set("fullName")} autoComplete="name" className="max-w-md" />
+            </Field>
+            <Field data-invalid={Boolean(visible("contactEmail"))}>
+              <FieldLabel htmlFor={`${id}-contactEmail`}>
+                Email <span className="font-normal text-muted-foreground">(optional)</span>
+              </FieldLabel>
+              <Input
+                id={`${id}-contactEmail`}
+                type="email"
+                value={values.contactEmail}
+                onChange={set("contactEmail")}
+                onBlur={blur("contactEmail")}
+                autoComplete="email"
+                aria-invalid={Boolean(visible("contactEmail"))}
+                aria-describedby={visible("contactEmail") ? `${id}-contactEmail-error` : undefined}
+                className="max-w-md"
+              />
+              {visible("contactEmail") && <FieldError id={`${id}-contactEmail-error`}>{visible("contactEmail")}</FieldError>}
+            </Field>
+          </div>
+        </details>
       </FieldGroup>
 
       {submitted && Object.keys(errors).length > 0 && (
@@ -184,7 +195,7 @@ export function IdentityForm({ initial, submitLabel, onSubmit, secondary, busy }
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy} className={compact ? "w-full sm:w-auto" : undefined}>
           {submitLabel}
         </Button>
         {secondary}

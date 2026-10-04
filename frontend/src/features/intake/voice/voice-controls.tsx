@@ -1,11 +1,12 @@
 "use client";
 
-import { KeyboardIcon, MicIcon, MicOffIcon, SendIcon, SquareIcon, VolumeXIcon, XIcon } from "lucide-react";
+import { FlaskConicalIcon, KeyboardIcon, MicIcon, MicOffIcon, SendIcon, SquareIcon, VolumeXIcon, XIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 import type { VoicePhase } from "./voice-session-state";
 
@@ -16,6 +17,7 @@ export interface VoiceControlsProps {
   typingOpen: boolean;
   onToggleTyping(): void;
   onStart(): void;
+  onPlayDemo?: () => void;
   onEnd(): void;
   onToggleMute(): void;
   onStopSpeaking(): void;
@@ -74,14 +76,22 @@ export function VoiceControls(props: VoiceControlsProps) {
   const canStart = !busyStarting && !inSession;
 
   return (
-    <div className="sticky bottom-0 z-10 space-y-3 rounded-b-lg border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
+    <div className={cn("space-y-3 rounded-b-lg border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6", inSession && "sticky bottom-0 z-10")}>
       {typingOpen && <TypedInput onSend={props.onSend} />}
       <div className="flex flex-wrap items-center gap-2">
         {canStart && (
-          <Button variant={phase === "ended" ? "outline" : "default"} onClick={props.onStart}>
-            <MicIcon data-icon="inline-start" aria-hidden />
-            {startLabel(phase)}
-          </Button>
+          <>
+            {props.onPlayDemo && phase !== "permissionDenied" && (
+              <Button onClick={props.onPlayDemo} className="h-auto min-h-11 py-3 whitespace-normal">
+                <FlaskConicalIcon data-icon="inline-start" aria-hidden />
+                Play demo conversation
+              </Button>
+            )}
+            <Button variant={props.onPlayDemo || phase === "ended" ? "outline" : "default"} onClick={props.onStart} className="h-auto min-h-11 py-3 whitespace-normal">
+              <MicIcon data-icon="inline-start" aria-hidden />
+              {props.onPlayDemo && phase === "ready" ? "Test microphone" : startLabel(phase)}
+            </Button>
+          </>
         )}
         {inSession && (
           <Button variant="outline" aria-pressed={muted} onClick={props.onToggleMute}>

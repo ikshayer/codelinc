@@ -3,7 +3,7 @@
 import { AlertCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Page, PageHeader } from "@/components/shared/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,6 +22,8 @@ const GROUP_ANCHORS: Record<string, string> = { plan: "group-plan-title", care: 
 function focusIssue(path: string) {
   const input = document.getElementById(fieldDomId(path));
   const container = document.getElementById(fieldContainerId(path)) ?? document.getElementById(GROUP_ANCHORS[path] ?? "");
+  const details = container?.closest("details");
+  if (details) details.open = true;
   container?.scrollIntoView({ block: "center" });
   (input ?? container)?.focus({ preventScroll: true });
 }
@@ -43,6 +45,20 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
   const timingRef = useRef<HTMLButtonElement>(null);
 
   const build = useMemo(() => (analysis ? buildConfirmedScenario(analysis.draft) : null), [analysis]);
+  useEffect(() => {
+    function revealHash() {
+      let id: string;
+      try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return; }
+      if (!id) return;
+      const target = document.getElementById(id);
+      const details = target?.closest("details");
+      if (details) details.open = true;
+      requestAnimationFrame(() => target?.scrollIntoView({ block: "start" }));
+    }
+    revealHash();
+    window.addEventListener("hashchange", revealHash);
+    return () => window.removeEventListener("hashchange", revealHash);
+  }, []);
   if (!analysis || !build) return null;
 
   // The summary persists after a Compare attempt and updates as issues are fixed.
@@ -88,7 +104,7 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
     <Page>
       <PageHeader
         title="Review your details"
-        description="Check every value and where it came from. Nothing is compared until you confirm, and your dentist's timing needs its own confirmation."
+        description="Review your plan, prescribed care and dentist-approved timing. Then confirm the details to compare."
       />
 
       {issues.length > 0 && (
@@ -128,13 +144,22 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
         </p>
       )}
 
-      <div className="space-y-8">
-        <PlanGroup analysisId={analysisId} errors={errors} />
-        <CareGroup analysisId={analysisId} errors={errors} />
-        <TimingGroup analysisId={analysisId} errors={errors} />
+      <nav aria-label="Review sections" className="sticky top-14 z-20 mb-6 grid grid-cols-4 gap-1 rounded-lg border bg-background/95 p-1 backdrop-blur md:top-16">
+        {[['group-plan-title', 'Plan'], ['group-care-title', 'Care'], ['group-timing-title', 'Timing'], ['confirm-title', 'Confirm']].map(([id, label]) => (
+          <a key={id} href={`#${id}`} className="flex min-h-11 items-center justify-center rounded-md px-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary" onClick={() => {
+            const details = document.getElementById(id)?.closest("details");
+            if (details) details.open = true;
+          }}>{label}</a>
+        ))}
+      </nav>
+
+      <div className="space-y-5">
+        <PlanGroup analysisId={analysisId} errors={errors} collapsible />
+        <CareGroup analysisId={analysisId} errors={errors} collapsible />
+        <TimingGroup analysisId={analysisId} errors={errors} collapsible />
 
         <section aria-labelledby="confirm-title" className="rounded-lg border bg-muted/30 px-5 py-6 md:px-6">
-          <h2 id="confirm-title" className="text-xl font-semibold tracking-tight">
+          <h2 id="confirm-title" className="scroll-mt-36 text-xl font-semibold tracking-tight">
             Everything look right?
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">Estimates use exactly the values above. Payment is not guaranteed.</p>

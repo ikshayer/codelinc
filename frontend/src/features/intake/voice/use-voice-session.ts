@@ -66,7 +66,8 @@ export function useVoiceSession(analysisId: string, storedTurns: Parameters<type
     stopStream(resources.stream);
     setStream(null);
     if (resources.ticket) {
-      if (how === "finish") controllerRef.current.finishRequest(resources.ticket);
+      // Without a session yet (still connecting), abort the pending createSession as well.
+      if (how === "finish" && resources.session) controllerRef.current.finishRequest(resources.ticket);
       else controllerRef.current.cancelRequest(resources.ticket);
     }
     try {

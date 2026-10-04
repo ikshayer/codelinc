@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation";
 import BlurText from "@/components/BlurText";
 import { Button } from "@/components/ui/button";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
-import { analysisStatus } from "@/features/analysis/state";
 import { fixtureComparison } from "@/fixtures/calculation-fixtures";
+import { SEEDED_DRAFT_ID } from "@/fixtures/seed-session";
 import { formatCents } from "@/lib/domain/money";
 
-const STEPS = ["Tell us who it's for", "Review the facts", "Compare dentist-approved options"];
+const STEPS = ["Add your details", "Review the facts", "Compare your options"];
 
 // Sample preview reads its numbers straight from the canonical fixture records.
 const preview = fixtureComparison("canonical", 0);
@@ -19,7 +19,7 @@ const preview = fixtureComparison("canonical", 0);
 export function Landing() {
   const controller = useAnalysisController();
   const router = useRouter();
-  const returning = Object.values(controller.state.analyses).some((a) => analysisStatus(a) !== "draft");
+  const returning = Object.values(controller.state.analyses).some((a) => a.id !== SEEDED_DRAFT_ID);
 
   function useSample() {
     const id = controller.startSampleAnalysis(controller.state.profile);
@@ -30,11 +30,12 @@ export function Landing() {
     <div className="mx-auto max-w-[1120px] px-5 md:px-8">
       <section className="grid gap-12 pt-14 pb-16 md:pt-24 md:pb-24 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16">
         <div>
+          <p className="mb-5 flex items-center gap-2 text-sm font-medium text-primary"><span aria-hidden className="size-1.5 rounded-full bg-primary" />Your dental plan, made clearer</p>
           <MotionConfig reducedMotion="user">
             <h1 className="text-display-sm font-semibold tracking-tight md:text-display">
               <BlurText
                 as="span"
-                text="Understand your dental costs before you book."
+                text="A clearer picture of your dental costs."
                 animateBy="words"
                 delay={60}
                 stepDuration={0.18}
@@ -44,8 +45,7 @@ export function Landing() {
             </h1>
           </MotionConfig>
           <p className="mt-6 max-w-[34rem] text-lg text-pretty text-muted-foreground">
-            Start with your dentist&apos;s report, a short conversation or the details you know. See what you&apos;d pay, and whether dates your dentist already approved
-            change it.
+            Upload a report or talk it through. Review your details, then see what you&apos;d pay across dates your dentist has approved.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Button asChild size="lg">
@@ -103,7 +103,7 @@ export function Landing() {
 function ProductPreview() {
   const later = preview.cheaperAlternative!;
   return (
-    <figure aria-label="Sample comparison preview" className="rounded-lg border bg-card p-6 md:p-8">
+    <figure aria-label="Sample comparison preview" className="rounded-2xl border border-primary/15 bg-gradient-to-b from-accent/70 to-card p-6 shadow-[0_20px_60px_-35px_rgba(23,107,91,0.3)] md:p-8">
       <figcaption className="mb-6 flex items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>Sample comparison</span>
         <span className="rounded-md border px-2 py-0.5 text-xs">Synthetic data</span>

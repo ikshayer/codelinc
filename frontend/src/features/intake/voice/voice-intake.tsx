@@ -130,8 +130,8 @@ export function VoiceIntake({ analysisId }: { analysisId: string }) {
                     Type instead
                   </Button>
                   {demo && (
-                    <Button variant="outline" size="sm" onClick={() => start(false)}>
-                      Play the simulated conversation without a microphone
+                    <Button variant="outline" size="sm" className="h-auto min-h-11 py-2 whitespace-normal" onClick={() => start(false)}>
+                      Play demo without a microphone
                     </Button>
                   )}
                 </div>
@@ -199,6 +199,7 @@ export function VoiceIntake({ analysisId }: { analysisId: string }) {
           typingOpen={typingOpen}
           onToggleTyping={() => setTypingOpen((open) => !open)}
           onStart={() => start()}
+          onPlayDemo={demo ? () => start(false) : undefined}
           onEnd={() => void voice.end()}
           onToggleMute={() => voice.setMuted(!micMuted)}
           onStopSpeaking={voice.stopSpeaking}

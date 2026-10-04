@@ -55,7 +55,7 @@ export function SiteHeader() {
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
               className={cn(
                 "inline-flex h-11 items-center rounded-md px-3 text-[15px] text-muted-foreground transition-colors hover:text-foreground",
-                "aria-[current=page]:font-medium aria-[current=page]:text-foreground",
+                "aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-primary",
               )}
             >
               {item.label}
@@ -70,7 +70,7 @@ export function SiteHeader() {
           </Button>
         </div>
 
-        {title && <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-muted-foreground md:hidden">{title}</span>}
+        {title && <span className="hidden min-w-0 flex-1 truncate text-[15px] font-medium text-muted-foreground sm:block md:hidden">{title}</span>}
 
         <div className="ml-auto flex shrink-0 items-center gap-2 md:hidden">
           {demo && <DemoLabel compact />}

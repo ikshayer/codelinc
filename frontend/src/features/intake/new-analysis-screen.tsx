@@ -10,6 +10,7 @@ import { useAnalysisController } from "@/features/analysis/analysis-provider";
 import type { IntakeMethod } from "@/features/analysis/state";
 import { SAMPLE_PROFILE } from "@/fixtures/sample-treatment";
 import { formatIsoDate } from "@/lib/domain/dates";
+import { cn } from "@/lib/utils";
 import type { PatientDetails } from "@/lib/domain/types";
 import { IdentityForm } from "./identity-form";
 import { IntakeMethodPicker } from "./intake-method-picker";
@@ -39,7 +40,10 @@ export function NewAnalysisScreen() {
       accountEmail: state.auth.status === "signedIn" ? (state.auth.account.email ?? undefined) : undefined,
     });
     setPatient(details);
-    requestAnimationFrame(() => document.getElementById("method-heading")?.focus());
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0 });
+      document.getElementById("new-analysis-progress")?.focus({ preventScroll: true });
+    });
   }
 
   function start() {
@@ -57,14 +61,14 @@ export function NewAnalysisScreen() {
   if (!patient) {
     return (
       <Page width="form">
-        <PageHeader title="Who is this analysis for?" description="A name is enough. Date of birth is optional and never used in the cost estimate." />
+        <NewAnalysisProgress step={1} />
+        <PageHeader title="Who is this analysis for?" description="Start with a name. Everything else is optional." className="mb-6 md:mb-8" />
         {demo && (
-          <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <span className="text-muted-foreground">Demo profile is synthetic.</span>
-            <Button variant="link" className="h-auto px-0" onClick={() => setFormSeed({ key: `demo-${Date.now()}`, initial: SAMPLE_PROFILE })}>
+          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <Button variant="link" className="px-0" onClick={() => setFormSeed({ key: `demo-${Date.now()}`, initial: SAMPLE_PROFILE })}>
               Use demo profile
             </Button>
-            <Button variant="link" className="h-auto px-0" onClick={() => setFormSeed({ key: `blank-${Date.now()}`, initial: null })}>
+            <Button variant="link" className="px-0" onClick={() => setFormSeed({ key: `blank-${Date.now()}`, initial: null })}>
               Start with a blank form
             </Button>
           </div>
@@ -74,24 +78,26 @@ export function NewAnalysisScreen() {
           initial={formSeed.initial}
           submitLabel={signedIn ? "Continue" : "Continue as guest"}
           onSubmit={savePatient}
+          compact
           secondary={
             !signedIn && (
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full sm:w-auto">
                 <Link href="/sign-in?callbackUrl=/analysis/new">Continue with Google</Link>
               </Button>
             )
           }
         />
-        {!signedIn && <p className="mt-6 text-sm text-muted-foreground">As a guest, your analysis lasts for this browser session. Signing in doesn’t confirm your coverage or replace these details.</p>}
+        <p className="mt-4 text-sm text-muted-foreground">{demo ? "Use fictional details only. " : ""}{!signedIn && "You can continue without an account. Guest work lasts for this session."}</p>
       </Page>
     );
   }
 
   return (
     <Page width="form">
-      <PageHeader title="How would you like to start?" description="You can switch methods at any time without losing what you've added." />
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3 border-y py-4">
-        <p>
+      <NewAnalysisProgress step={2} />
+      <PageHeader title="How would you like to start?" description="Choose one way to begin. You can add the others later." className="mb-6 md:mb-8" />
+      <div className="mb-6 flex items-start justify-between gap-3 rounded-lg bg-muted px-4 py-3">
+        <p className="min-w-0 break-words text-sm">
           <span className="text-muted-foreground">For </span>
           <span className="font-medium">{patient.displayName}</span>
           {patient.dateOfBirth && <span className="text-muted-foreground">, born {formatIsoDate(patient.dateOfBirth)}</span>}
@@ -117,8 +123,8 @@ export function NewAnalysisScreen() {
         </p>
       )}
       <div className="mt-8 flex flex-wrap items-center gap-4">
-        <Button size="lg" onClick={start}>
-          Continue
+        <Button size="lg" onClick={start} className="w-full sm:w-auto">
+          {method === "pdf" ? "Continue with PDF" : method === "voice" ? "Continue with voice" : method === "manual" ? "Continue manually" : "Continue"}
         </Button>
         <Button
           variant="link"
@@ -132,5 +138,19 @@ export function NewAnalysisScreen() {
         </Button>
       </div>
     </Page>
+  );
+}
+
+function NewAnalysisProgress({ step }: { step: 1 | 2 }) {
+  return (
+    <ol id="new-analysis-progress" tabIndex={-1} aria-label="New analysis setup" className="mb-6 flex items-center gap-3 text-sm outline-none">
+      {["Your details", "Choose input"].map((label, index) => (
+        <li key={label} aria-current={index + 1 === step ? "step" : undefined} className="flex items-center gap-2">
+          {index > 0 && <span aria-hidden className="mr-1 h-px w-6 bg-border" />}
+          <span aria-hidden className={cn("flex size-6 items-center justify-center rounded-full text-xs font-medium", index + 1 <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{index + 1}</span>
+          <span className={cn(index + 1 === step ? "font-medium" : "text-muted-foreground")}>{label}</span>
+        </li>
+      ))}
+    </ol>
   );
 }

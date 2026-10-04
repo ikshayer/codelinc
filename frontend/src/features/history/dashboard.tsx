@@ -67,8 +67,8 @@ export function Dashboard() {
       <div className="space-y-14">
         {draft && (
           <section aria-labelledby="continue-heading">
-            <SectionHeading id="continue-heading">Continue your draft</SectionHeading>
-            <div className="flex flex-col gap-4 border-y py-5 md:flex-row md:items-center md:justify-between">
+            <SectionHeading id="continue-heading">Pick up where you left off</SectionHeading>
+            <div className="flex flex-col gap-4 rounded-xl border border-primary/15 bg-accent/40 px-5 py-5 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 space-y-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <p className="text-base font-semibold break-words">{draft.title}</p>
@@ -88,13 +88,13 @@ export function Dashboard() {
         )}
 
         <section aria-labelledby={pickerLabelId}>
-          <SectionHeading id={pickerLabelId} description="You can add the other ways later. They all build the same draft.">
-            New analysis
+          <SectionHeading id={pickerLabelId} description="Choose one way to start. You can add the others later.">
+            Start a new analysis
           </SectionHeading>
           <IntakeMethodPicker value={method} onChange={setChosenMethod} labelledBy={pickerLabelId} />
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Button onClick={startAnalysis} disabled={!method}>
-              Continue
+              {method === "pdf" ? "Continue with PDF" : method === "voice" ? "Continue with voice" : method === "manual" ? "Continue manually" : "Continue"}
             </Button>
             <Button variant="link" onClick={startSample} className="px-0">
               <FlaskConicalIcon aria-hidden />

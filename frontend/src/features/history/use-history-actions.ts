@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
@@ -30,8 +31,19 @@ export function validateTitle(raw: string): { title: string } | { error: string 
 
 export function useHistoryActions() {
   const router = useRouter();
-  const { adapters, renameAnalysis, deleteAnalysis, removeSource, setReportFile, createFromSnapshot, bumpHistory } = useAnalysisController();
+  const { state, adapters, renameAnalysis, deleteAnalysis, removeSource, setReportFile, createFromSnapshot, clearSavedSnapshot, bumpHistory } = useAnalysisController();
   const repository = adapters.history;
+  // Session epoch at render time; a sign-out or reset in flight makes older work stale.
+  const epochRef = useRef(state.epoch);
+  const unmounted = useRef(new AbortController());
+  useEffect(() => {
+    epochRef.current = state.epoch;
+  }, [state.epoch]);
+  useEffect(() => {
+    const controller = new AbortController();
+    unmounted.current = controller;
+    return () => controller.abort();
+  }, []);
 
   /** Renames the title only. A saved snapshot's facts and results never change. */
   async function rename(target: ActionTarget, rawTitle: string): Promise<string | null> {
@@ -54,6 +66,7 @@ export function useHistoryActions() {
     } else {
       const result = await repository.remove(target.snapshotId);
       if (!result.ok) return result.error.message;
+      clearSavedSnapshot(target.snapshotId);
       bumpHistory();
     }
     toast.success(`Deleted “${target.title}”`);
@@ -74,8 +87,11 @@ export function useHistoryActions() {
   }
 
   async function duplicateById(snapshotId: string): Promise<string | null> {
-    const controller = new AbortController();
-    const result = await repository.get(snapshotId, controller.signal);
+    const epoch = epochRef.current;
+    const signal = unmounted.current.signal;
+    const result = await repository.get(snapshotId, signal);
+    // Navigated away, signed out or reset meanwhile: don't import the snapshot into the new session.
+    if (signal.aborted || epochRef.current !== epoch) return null;
     if (!result.ok) return result.error.message;
     duplicate(result.value);
     return null;

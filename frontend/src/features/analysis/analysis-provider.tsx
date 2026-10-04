@@ -69,6 +69,8 @@ export interface AnalysisController {
   setTimingAffirmed(analysisId: string, value: boolean): void;
   compare(analysisId: string): CompareAttempt;
   saveToHistory(analysisId: string): Promise<AdapterResult<AnalysisSnapshot>>;
+  /** A saved snapshot was deleted: analyses that pointed at it are no longer saved. */
+  clearSavedSnapshot(snapshotId: string): void;
   clearDraft(analysisId: string): void;
   setProfile(profile: PatientProfile | null): void;
   /** Records the auth session after sign-in/out. Account changes should also call resetSession. */
@@ -126,6 +128,10 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const forgetSaveKeys = useCallback((analysisId: string) => {
+    for (const key of saveKeys.current.keys()) if (key.startsWith(`${analysisId}:`)) saveKeys.current.delete(key);
+  }, []);
+
   const startRequest = useCallback(
     (analysisId: string, key: RequestKey): RequestTicket => {
       const record = stateRef.current.analyses[analysisId];
@@ -181,6 +187,10 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       const scenario = { ...built.scenario, revision: ticket.revision };
       void adapters.calculation
         .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal })
+        .catch((error: unknown) => {
+          console.error("Calculation adapter failed", error);
+          return { ok: false as const, error: { code: "UNKNOWN" as const, message: "The calculation failed unexpectedly. Your confirmed details are kept — try again.", retryable: true } };
+        })
         .then((outcome) => {
           releaseController(ticket);
           if (!outcome.ok && outcome.error.code === "CANCELLED") return;
@@ -285,6 +295,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       setMethod: (analysisId, method) => dispatch({ type: "setMethod", analysisId, method }),
       renameAnalysis: (analysisId, title) => dispatch({ type: "renameAnalysis", analysisId, title, now: nowIso() }),
       deleteAnalysis(analysisId) {
+        forgetSaveKeys(analysisId);
         abortWhere((key) => key.startsWith(`${analysisId}:`));
         runTeardowns((id) => id === analysisId);
         dispatch({ type: "deleteAnalysis", analysisId });
@@ -369,10 +380,13 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       compare,
       saveToHistory,
       clearDraft(analysisId) {
+        // Revisions restart after Clear, so earlier idempotency keys must not be reused.
+        forgetSaveKeys(analysisId);
         abortWhere((key) => key.startsWith(`${analysisId}:`));
         runTeardowns((id) => id === analysisId);
         dispatch({ type: "clearDraft", analysisId, now: nowIso() });
       },
+      clearSavedSnapshot: (snapshotId) => dispatch({ type: "clearSavedSnapshot", snapshotId }),
       setProfile: (profile) => dispatch({ type: "setProfile", profile }),
       setAuth: (auth) => dispatch({ type: "setAuth", auth }),
       resetSession,
@@ -383,7 +397,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
         return () => set.delete(teardown);
       },
     }),
-    [abortWhere, adapters, cancelRequest, compare, dispatch, finishRequest, historyVersion, releaseController, resetSession, runTeardowns, saveToHistory, startRequest, state],
+    [abortWhere, adapters, cancelRequest, compare, dispatch, finishRequest, forgetSaveKeys, historyVersion, releaseController, resetSession, runTeardowns, saveToHistory, startRequest, state],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;

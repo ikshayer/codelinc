@@ -138,6 +138,7 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
         <PageHeader
           title="Compare your options"
           description="Estimated costs for the dates your dentist has already approved. Select a procedure to see how it was calculated."
+          actions={<SaveControls analysisId={analysisId} saved={saved} />}
         />
         <ConfirmLinkProvider analysisId={analysisId}>
           <ComparisonView
@@ -155,7 +156,7 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
             Next steps
           </h2>
           <DeadlineEditor scenario={scenario} procedureLabels={procedureLabels} onApply={applyDeadline} />
-          <SaveControls analysisId={analysisId} saved={saved} />
+          <Button asChild variant="outline"><Link href={confirmHref}>Review or edit details</Link></Button>
         </section>
       </>
     );

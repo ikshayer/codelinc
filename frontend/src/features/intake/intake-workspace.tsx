@@ -17,6 +17,7 @@ import { PdfIntake } from "./pdf/pdf-intake";
 import { VoiceIntake } from "./voice/voice-intake";
 
 const SHORT_LABELS: Record<IntakeMethod, string> = { pdf: "Upload report", voice: "Talk it through", manual: "Enter manually" };
+const MOBILE_LABELS: Record<IntakeMethod, string> = { pdf: "PDF report", voice: "Voice chat", manual: "Manual" };
 
 function parseMethod(value: string | null): IntakeMethod | null {
   return value === "pdf" || value === "voice" || value === "manual" ? value : null;
@@ -42,11 +43,11 @@ export function IntakeWorkspace({ analysisId }: { analysisId: string }) {
     <Page>
       <PageHeader
         title="Tell us about your treatment plan"
-        description="Use any mix of methods. Everything lands in one set of facts you review before anything is compared."
+        description="Add your details below. You can switch methods and keep everything in one draft."
       />
 
-      <nav aria-label="Intake method" className="mb-8 -mx-5 overflow-x-auto px-5 md:mx-0 md:px-0">
-        <ul className="flex w-max gap-1 rounded-lg bg-muted p-1">
+      <nav aria-label="Intake method" className="mb-6">
+        <ul className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1 sm:w-fit">
           {INTAKE_METHODS.map(({ value, Icon }) => (
             <li key={value}>
               <Link
@@ -54,13 +55,15 @@ export function IntakeWorkspace({ analysisId }: { analysisId: string }) {
                 replace
                 scroll={false}
                 aria-current={method === value ? "page" : undefined}
+                aria-label={SHORT_LABELS[value]}
                 className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-md px-4 text-[15px] whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground",
-                  method === value && "bg-background font-medium text-foreground shadow-xs",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:min-h-11 sm:flex-row sm:gap-2 sm:px-4 sm:text-[15px]",
+                  method === value && "bg-background font-medium text-primary shadow-xs",
                 )}
               >
                 <Icon aria-hidden className="size-4" />
-                {SHORT_LABELS[value]}
+                <span className="sm:hidden">{MOBILE_LABELS[value]}</span>
+                <span className="hidden sm:inline">{SHORT_LABELS[value]}</span>
               </Link>
             </li>
           ))}
@@ -68,8 +71,8 @@ export function IntakeWorkspace({ analysisId }: { analysisId: string }) {
       </nav>
 
       {demo && (
-        <div className="mb-8">
-          <Notice>Demo mode: synthetic data only. Report analysis and conversation are simulated, and nothing leaves this browser.</Notice>
+        <div className="mb-6">
+          <Notice>Synthetic demo. Report analysis and conversations are simulated.</Notice>
         </div>
       )}
 

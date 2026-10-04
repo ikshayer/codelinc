@@ -64,7 +64,7 @@ export function ErrorPanel({
 /** Quiet notice for synthetic/simulated/session-only behavior. */
 export function Notice({ title, children, tone = "info" }: { title?: string; children: ReactNode; tone?: "info" | "warning" }) {
   return (
-    <Alert variant={tone === "warning" ? "warning" : "default"} className={tone === "info" ? "border-border bg-muted/60" : undefined}>
+    <Alert role={tone === "warning" ? "alert" : "note"} variant={tone === "warning" ? "warning" : "default"} className={tone === "info" ? "border-border bg-muted/60" : undefined}>
       <InfoIcon aria-hidden />
       {title && <AlertTitle className="font-medium">{title}</AlertTitle>}
       <AlertDescription className={tone === "info" ? "text-muted-foreground" : undefined}>{children}</AlertDescription>

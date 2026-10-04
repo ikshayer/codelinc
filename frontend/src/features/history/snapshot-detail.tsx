@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { EmptyState, ErrorPanel, Notice } from "@/components/shared/feedback";
+import { EmptyState, ErrorPanel } from "@/components/shared/feedback";
 import { Page, PageHeader, SectionHeading } from "@/components/shared/page";
 import { SourceBadge } from "@/components/shared/source-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComparisonView } from "@/features/analysis/compare/comparison-view";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
-import { formatIsoDate, formatTimestamp } from "@/lib/domain/dates";
+import { formatTimestamp } from "@/lib/domain/dates";
 import type { AnalysisSnapshot, EvidenceKind } from "@/lib/domain/types";
 import { SAMPLE_REPORT_FILE_NAME } from "@/fixtures/sample-report";
 import { DeleteDialog, RenameDialog } from "./history-dialogs";
@@ -90,7 +90,7 @@ function LoadedSnapshot({ snapshot }: { snapshot: AnalysisSnapshot }) {
 
       <PageHeader
         title={title}
-        description={`For ${snapshot.patientDisplayName}`}
+        description={`For ${snapshot.patientDisplayName}. This dated record never changes; duplicate it as a new analysis to review the facts again.`}
         actions={
           <>
             <Button onClick={() => actions.duplicate(snapshot)}>
@@ -110,10 +110,6 @@ function LoadedSnapshot({ snapshot }: { snapshot: AnalysisSnapshot }) {
       />
 
       <div className="space-y-12">
-        <Notice title={`Historical estimate — based on facts confirmed on ${formatIsoDate(snapshot.confirmedAt.slice(0, 10))}`}>
-          This is a dated record and never changes. Plan usage and dentist timing here may be out of date. Duplicate it as a new analysis to review the facts again.
-        </Notice>
-
         <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
           <Detail label="Patient" value={snapshot.patientDisplayName} />
           <Detail label="Version" value={`Version ${snapshot.version}`} />
@@ -179,7 +175,7 @@ function Detail({ label, value }: { label: string; value: string }) {
 
 function sourceModeLabel(snapshot: AnalysisSnapshot): string {
   if (snapshot.sourceMode === "live") return "Calculation engine";
-  return snapshot.fixtureName ? `Simulated analysis: ${snapshot.fixtureName}` : "Simulated analysis";
+  return snapshot.fixtureName ? `Fixture preview: ${snapshot.fixtureName}` : "Fixture preview";
 }
 
 interface SourceRow {
