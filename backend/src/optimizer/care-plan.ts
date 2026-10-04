@@ -152,6 +152,23 @@ function solverMeta(status: SolverMeta["status"], stats: CarePlanResult["search_
 function domainProblems(request: CarePlanRequest): Issue[] {
   const problems: Issue[] = [];
   const ids = new Set(request.procedures.map((procedure) => procedure.procedure_id));
+  const locked = new Set<string>();
+  for (const [index, lock] of (request.schedule_locks ?? []).entries()) {
+    const provider = request.providers.find((value) => value.provider_id === lock.provider_id);
+    const reason = locked.has(lock.procedure_id)
+      ? "Only one appointment may be pinned for each procedure."
+      : !ids.has(lock.procedure_id)
+        ? "The pinned appointment references an unknown procedure."
+        : !provider
+          ? "The pinned appointment references an unknown provider."
+          : !provider.slots.items.some((slot) => slot.slot_id === lock.slot_id)
+            ? "The pinned appointment references an unknown slot at this provider."
+            : null;
+    if (reason) problems.push(issue("SCHEMA_INVALID", "blocking", reason, {
+      procedure_id: lock.procedure_id, provider_id: lock.provider_id, field: `schedule_locks.${index}`,
+    }));
+    locked.add(lock.procedure_id);
+  }
   const adjacency = new Map<string, string[]>();
   for (const procedure of request.procedures) {
     adjacency.set(procedure.procedure_id, procedure.dependencies.map((dependency) => dependency.depends_on));
@@ -374,7 +391,14 @@ function selfPayIsStrictlyCheaper(
     if (candidate.route !== "SELF_PAY_NO_CLAIM") continue;
     const claim = simulateWithRoute(benefits, registry, request, candidates, index, providerClaimRoute(candidate.provider), "eval-claim");
     if (claim.total === null) return { eligible: false, issues: uniqueIssues(claim.issues) };
-    if (claim.total <= selfPayTotal) return { eligible: false, issues: [] };
+    if (claim.total <= selfPayTotal) return {
+      eligible: false,
+      issues: (request.schedule_locks ?? []).some((lock) => lock.procedure_id === candidate.procedure.procedure_id)
+        ? [issue("CLAIM_ROUTE_INVALID", "blocking", "The pinned direct-payment route is no longer cheaper across the full care plan. Unpin this appointment to compare eligible claim routes.", {
+            procedure_id: candidate.procedure.procedure_id, provider_id: candidate.provider.provider_id, field: "schedule_locks",
+          })]
+        : [],
+    };
   }
   return { eligible: true, issues: [] };
 }
@@ -904,6 +928,7 @@ function finalAlternative(
       provider_id: candidate.provider.provider_id,
       location_id: candidate.provider.location_id,
       claim_route: candidate.route,
+      user_locked: (request.schedule_locks ?? []).some((lock) => lock.procedure_id === candidate.procedure.procedure_id),
       line_worst: lineWorst,
       line_best: lineBest,
       member_cost: amountRange(lineWorst.member_responsibility_cents!, lineBest.member_responsibility_cents!),
@@ -1086,6 +1111,18 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
       });
 
       const candidates = buildCandidates(request);
+      const locks = new Map((request.schedule_locks ?? []).map((lock) => [lock.procedure_id, lock]));
+      const lockIssues: Issue[] = [];
+      for (const [procedureId, lock] of locks) {
+        const matching = (candidates.get(procedureId) ?? []).filter((candidate) =>
+          candidate.provider.provider_id === lock.provider_id && candidate.slot.slot_id === lock.slot_id && candidate.route === lock.claim_route,
+        );
+        candidates.set(procedureId, matching);
+        if (!matching.length) lockIssues.push(issue("NO_SLOT_IN_WINDOW", "blocking",
+          "This pinned appointment does not fit the confirmed care window, availability, travel limit, specialty, or claim route. Unpin it or check these details.",
+          { procedure_id: procedureId, provider_id: lock.provider_id, field: "schedule_locks" },
+        ));
+      }
       const candidateCount = [...candidates.values()].reduce((sum, value) => sum + value.length, 0);
       trace.push({
         seq: trace.length,
@@ -1179,6 +1216,9 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         });
       }
 
+      if (lockIssues.length) return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", lockIssues, trace, {
+        candidates_built: candidateCount, schedules_evaluated: 0, schedules_feasible: 0, pass: 1,
+      });
       const evaluated: EvaluatedSchedule[] = [];
       const rejectedIssues: Issue[] = [];
       let schedulesEvaluated = 0;
@@ -1239,7 +1279,8 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
           return;
         }
         const procedure = ordered[index]!;
-        const options: (Candidate | null)[] = [...(searchCandidates.get(procedure.procedure_id) ?? []), null];
+        const options: (Candidate | null)[] = [...(searchCandidates.get(procedure.procedure_id) ?? [])];
+        if (!locks.has(procedure.procedure_id)) options.push(null);
         for (const candidate of options) {
           const slotKey = candidate ? `${candidate.provider.provider_id}@${candidate.slot.slot_id}` : null;
           if (slotKey && usedSlots.has(slotKey)) continue;
@@ -1271,6 +1312,9 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
 
       const statsBase = { candidates_built: candidateCount, schedules_evaluated: schedulesEvaluated, schedules_feasible: evaluated.length };
       if (uAll !== null && (uOk === null || compareNumberVectors(uOk, uAll) > 0)) {
+        if (locks.size > 0 && uOk === null && rejectedIssues.length > 0 && rejectedIssues.every((value) => value.code === "CLAIM_ROUTE_INVALID")) {
+          return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", rejectedIssues, trace, { ...statsBase, pass: 1 }, boundsApplied);
+        }
         return emptyResult(request, asOfDate, "NEEDS_CONFIRMATION", rejectedIssues, trace, { ...statsBase, pass: 1 }, boundsApplied);
       }
       if (!evaluated.length) {
@@ -1281,7 +1325,11 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
               procedure_id: procedure.procedure_id,
             }),
           );
-        return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", noSlots, trace, { ...statsBase, pass: 1 }, boundsApplied);
+        const pinConflicts = [...locks.values()].map((lock) => issue("NO_SLOT_IN_WINDOW", "blocking",
+          "The pinned appointments cannot form a feasible plan with the confirmed dependencies, distinct slots, and verified claim routes. Unpin an appointment to try again.",
+          { procedure_id: lock.procedure_id, provider_id: lock.provider_id, field: "schedule_locks" },
+        ));
+        return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", [...noSlots, ...pinConflicts, ...rejectedIssues], trace, { ...statsBase, pass: 1 }, boundsApplied);
       }
 
       const minimumUnscheduled = uOk!;

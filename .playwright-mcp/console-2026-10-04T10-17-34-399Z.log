@@ -1,0 +1,74 @@
+[     159ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[     214ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[    1044ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[    2607ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[    2618ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[    2643ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54808ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54817ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54827ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54856ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54864ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54913ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   54949ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   54960ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   54991ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   55003ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   55031ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   55039ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   55089ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   87280ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/calculate:0
+[   89132ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   89147ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   89185ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   89216ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[   89226ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[   89256ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 1280837ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1280861ms] [LOG] [Fast Refresh] done in 125ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1281352ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1281352ms] [LOG] [Fast Refresh] done in 101ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1282592ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1282648ms] [LOG] [Fast Refresh] done in 156ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1291854ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1291892ms] [LOG] [Fast Refresh] done in 139ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1564931ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1565578ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1565786ms] [LOG] [Fast Refresh] done in 792ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1566339ms] [LOG] [Fast Refresh] done in 792ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1566666ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1566731ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1623835ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1623958ms] [LOG] [Fast Refresh] done in 106ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1624296ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1624357ms] [LOG] [Fast Refresh] done in 63ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1624452ms] [LOG] [Fast Refresh] done in 63ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1876198ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 1876203ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2283689ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2283705ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2336026ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2336477ms] [LOG] [Fast Refresh] done in 552ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2529121ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2529199ms] [LOG] [Fast Refresh] done in 184ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2929752ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2929841ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2930122ms] [LOG] [Fast Refresh] done in 366ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2931323ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2931398ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2931583ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 2931881ms] [LOG] [Fast Refresh] done in 403ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776

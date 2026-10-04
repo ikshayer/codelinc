@@ -1,0 +1,5 @@
+{
+  "baseURL": "http://localhost:3010",
+  "results": [],
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('D3330').filter({ visible: true }).first() to be visible\u001b[22m\n\n    at visibleText (D:\\Work\\codelinc\\frontend\\scripts\\care-window-browser.mjs:66:82)\n    at voiceJourney (D:\\Work\\codelinc\\frontend\\scripts\\care-window-browser.mjs:310:11)\n    at async file:///D:/Work/codelinc/frontend/scripts/care-window-browser.mjs:330:82"
+}

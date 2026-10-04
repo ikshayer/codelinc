@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.7.0",
+  "contract_version": "1.8.0",
   "ok": true,
   "data": {
-    "contract_version": "1.7.0",
+    "contract_version": "1.8.0",
     "engine_id": "optimizer-enum-1",
     "status": "OK",
     "as_of": "2026-10-15T21:00:00Z",
@@ -26,6 +26,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "IN_NETWORK_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-1-e1",
               "event_id": "alt-1-e1",
@@ -589,6 +590,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "IN_NETWORK_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-1-e2",
               "event_id": "alt-1-e2",
@@ -1164,6 +1166,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "IN_NETWORK_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-1-e3",
               "event_id": "alt-1-e3",
@@ -1945,6 +1948,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "IN_NETWORK_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-2-e1",
               "event_id": "alt-2-e1",
@@ -2508,6 +2512,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "SELF_PAY_NO_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-2-e2",
               "event_id": "alt-2-e2",
@@ -2812,6 +2817,7 @@
             "provider_id": "prov-rivera",
             "location_id": "loc-rivera-fairfax",
             "claim_route": "IN_NETWORK_CLAIM",
+            "user_locked": false,
             "line_worst": {
               "line_id": "alt-2-e3",
               "event_id": "alt-2-e3",

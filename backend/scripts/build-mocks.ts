@@ -275,7 +275,7 @@ const fillSelf = line({ lineId: "alt-2-e2", procedureId: "proc-fill-14", code: "
 const fund = (id: string, ev: string, type: "FSA" | "CASH", date: string, cents: number) => ({ allocation_id: `${ev}-f${id.split("-f")[1]}`, event_id: ev, source_id: type === "FSA" ? "fsa-2026" : "cash", source_type: type, payment_date: date, amount_cents: cents, fees_cents: 0, input_id: type === "FSA" ? "member.fsa-2026.balance" : "member.budget" });
 const appt = (slot: string) => ({ kind: "REQUEST_APPOINTMENT" as const, provider_id: P1, slot_id: slot, by_date: null });
 const ev = (eventId: string, l: AdjudicationLine, slot: string, funding: ReturnType<typeof fund>[], reasons: Alternative["events"][number]["reasons"], extra: Alternative["events"][number]["next_actions"] = [], cmp: RouteComparison | null = null) => ({
-  event_id: eventId, procedure_id: l.procedure_id, service_date: l.service_date, slot_id: slot, provider_id: P1, location_id: "loc-rivera-fairfax", claim_route: l.claim_route,
+  event_id: eventId, procedure_id: l.procedure_id, service_date: l.service_date, slot_id: slot, provider_id: P1, location_id: "loc-rivera-fairfax", claim_route: l.claim_route, user_locked: false,
   line_worst: l, line_best: l, member_cost: range(l.member_responsibility_cents!), plan_pay: range(l.plan_pay_cents!), funding, shortfall_cents: 0, reasons, next_actions: [appt(slot), ...extra],
   route_comparison: cmp,
   rollover_shift: null,
@@ -402,6 +402,8 @@ const passport: BenefitPassport = {
   member_id: member.member_id,
   plan_version_id: "nwd-ppo-standard-2026",
   plan_name: "PPO Standard",
+  plan_option_id: "ppo-standard",
+  network_id: "nwd-ppo",
   carrier_name: "Northwind Mutual Dental (synthetic)",
   synthetic: true,
   coverage_period_start: "2026-01-01",

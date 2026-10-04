@@ -15,12 +15,12 @@ export function VoiceDisclosure({ mode }: { mode: ServiceMode }) {
       ) : (
         <>
           <p>
-            Your voice is streamed to CareWindow&apos;s voice service so the assistant can hear you and reply. This page doesn&apos;t save audio or
-            transcripts in your browser.
+            Your spoken or typed answers are sent to Google Gemini to gather details. Replies are spoken by Chatterbox on this computer. Review every
+            proposed fact before comparing.
           </p>
           <p>
-            The service&apos;s retention policy hasn&apos;t been confirmed for this prototype, so assume it may keep audio and transcripts. Use fictional
-            details only.
+            This prototype keeps the conversation in memory and doesn&apos;t save recordings. Google&apos;s data policies still apply, including use of
+            free-tier inputs to improve its products. Use fictional details only.
           </p>
         </>
       )}

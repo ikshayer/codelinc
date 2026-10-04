@@ -1,301 +1,112 @@
-import { adapterError, requestJson } from "../shared";
-import type {
-  AdapterError,
-  AdapterResult,
-  IntakeExtraction,
-  RequestScope,
-  VoiceAdapter,
-  VoiceAgentState,
-  VoiceEvent,
-  VoiceSessionHandle,
-  VoiceSessionInfo,
-} from "../types";
+import { adapterError, errorFromHttp, requestJson } from "../shared";
+import type { AdapterError, AdapterResult, IntakeExtraction, VoiceAdapter, VoiceAgentState, VoiceEvent, VoiceSessionHandle, VoiceSessionInfo } from "../types";
+import { captureUtterances } from "./voice-audio";
 
-// Proposed contract (FRONTEND_DESIGN.md §15), not a claim that the endpoints exist.
-//
-//   POST   /api/voice/sessions      {analysisId, revision, consent: true}
-//                                   -> {sessionId, transportUrl, expiresAt, capabilities}
-//   WebSocket transportUrl          server -> client: JSON VoiceEvent text frames
-//                                   client -> server: binary frames = audio chunks (MediaRecorder,
-//                                   provider-neutral container) and JSON text frames
-//                                   {type: "text", text} | {type: "mute", muted} | {type: "interrupt"} | {type: "end"}
-//   DELETE /api/voice/sessions/:id  releases the session
-//
-// The server echoes typed text as a final person transcript event so every
-// client shows the same transcript. No provider keys reach the browser; any
-// credential in `transportUrl` must be short-lived and issued by the backend.
+interface SessionResponse extends VoiceSessionInfo { token: string }
+type StreamFrame = { type: "person" | "reply" | "segment" | "complete"; turnId: string; text: string; index?: number; extraction?: IntakeExtraction } | { type: "error"; error: AdapterError };
+type EventBody = VoiceEvent extends infer E ? E extends VoiceEvent ? Omit<E, "sessionId" | "sequence"> : never : never;
 
-const OPEN_TIMEOUT_MS = 10_000;
-const MAX_TIMER_MS = 2_147_483_647;
-const AUDIO_TIMESLICE_MS = 250;
-const AGENT_STATES: readonly VoiceAgentState[] = ["connecting", "listening", "thinking", "speaking", "muted", "reconnecting", "ended", "failed"];
-const END_REASONS = ["user", "provider", "expired"] as const;
-
-interface SessionResponse {
-  sessionId: string;
-  transportUrl: string;
-  expiresAt: string;
-  capabilities: VoiceSessionInfo["capabilities"];
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isSessionResponse(value: unknown): value is SessionResponse {
-  if (!isRecord(value) || !isRecord(value.capabilities)) return false;
-  const { capabilities } = value;
-  return (
-    typeof value.sessionId === "string" &&
-    value.sessionId.length > 0 &&
-    typeof value.transportUrl === "string" &&
-    typeof value.expiresAt === "string" &&
-    typeof capabilities.interruption === "boolean" &&
-    typeof capabilities.transcription === "boolean" &&
-    typeof capabilities.simulated === "boolean"
-  );
-}
-
-function isAdapterError(value: unknown): value is AdapterError {
-  return isRecord(value) && typeof value.code === "string" && typeof value.message === "string" && typeof value.retryable === "boolean";
-}
-
-function isExtraction(value: unknown): value is IntakeExtraction {
-  return (
-    isRecord(value) &&
-    Array.isArray(value.proposals) &&
-    Array.isArray(value.evidence) &&
-    Array.isArray(value.overflow) &&
-    Array.isArray(value.missingFieldPaths) &&
-    Array.isArray(value.reviewNotes)
-  );
-}
-
-/** Returns a VoiceEvent only when the frame is well formed and belongs to this session. */
-function parseVoiceEvent(raw: unknown, sessionId: string): VoiceEvent | null {
-  if (!isRecord(raw) || raw.sessionId !== sessionId || typeof raw.sequence !== "number" || !Number.isInteger(raw.sequence)) return null;
-  const { sequence } = raw;
-  switch (raw.type) {
-    case "state":
-      return AGENT_STATES.includes(raw.state as VoiceAgentState) ? { type: "state", sessionId, sequence, state: raw.state as VoiceAgentState } : null;
-    case "transcript":
-      return typeof raw.turnId === "string" &&
-        (raw.speaker === "assistant" || raw.speaker === "person") &&
-        typeof raw.text === "string" &&
-        typeof raw.final === "boolean"
-        ? { type: "transcript", sessionId, sequence, turnId: raw.turnId, speaker: raw.speaker, text: raw.text, final: raw.final }
-        : null;
-    case "proposals":
-      return typeof raw.turnId === "string" && isExtraction(raw.extraction)
-        ? { type: "proposals", sessionId, sequence, turnId: raw.turnId, extraction: raw.extraction }
-        : null;
-    case "error":
-      return isAdapterError(raw.error) ? { type: "error", sessionId, sequence, error: raw.error } : null;
-    case "ended":
-      return END_REASONS.includes(raw.reason as (typeof END_REASONS)[number])
-        ? { type: "ended", sessionId, sequence, reason: raw.reason as (typeof END_REASONS)[number] }
-        : null;
-    default:
-      return null;
-  }
-}
-
-/** Resolves a backend-issued transport URL to a WebSocket URL. Anything else is rejected. */
-function resolveTransportUrl(transportUrl: string): URL | null {
-  let url: URL;
-  try {
-    url = new URL(transportUrl, window.location.href);
-  } catch (error) {
-    console.warn("Voice transport URL is not valid", error);
-    return null;
-  }
-  if (url.protocol === "http:") url.protocol = "ws:";
-  else if (url.protocol === "https:") url.protocol = "wss:";
-  return url.protocol === "ws:" || url.protocol === "wss:" ? url : null;
-}
-
-function openSocket(url: URL, signal: AbortSignal): Promise<AdapterResult<WebSocket>> {
-  return new Promise((resolve) => {
-    const socket = new WebSocket(url);
-    const finish = (result: AdapterResult<WebSocket>) => {
-      clearTimeout(timer);
-      signal.removeEventListener("abort", onAbort);
-      socket.removeEventListener("open", onOpen);
-      socket.removeEventListener("error", onError);
-      if (!result.ok) socket.close();
-      resolve(result);
-    };
-    const onOpen = () => finish({ ok: true, value: socket });
-    const onError = () => finish({ ok: false, error: adapterError("NETWORK", "Couldn't connect to the voice service. Check your connection and try again.", true) });
-    const onAbort = () => finish({ ok: false, error: adapterError("CANCELLED", "Request cancelled.") });
-    const timer = setTimeout(
-      () => finish({ ok: false, error: adapterError("TIMEOUT", "The voice service took too long to connect. Try again.", true) }),
-      OPEN_TIMEOUT_MS,
-    );
-    socket.addEventListener("open", onOpen);
-    socket.addEventListener("error", onError);
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
-}
-
-function releaseSession(sessionId: string): Promise<AdapterResult<void>> {
-  return requestJson<void>(`/api/voice/sessions/${encodeURIComponent(sessionId)}`, { method: "DELETE", timeoutMs: 5000 });
-}
-
-function preferredAudioType(): string | undefined {
-  return ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
-}
-
-function createLiveSession(info: VoiceSessionInfo, socket: WebSocket): VoiceSessionHandle {
-  const { sessionId } = info;
+export function createLiveSession(info: VoiceSessionInfo, token: string): VoiceSessionHandle {
   const listeners = new Set<(event: VoiceEvent) => void>();
-  let lastSequence = 0;
-  let ended = false;
-  /** The server announced the end, so the socket closing afterwards is expected. */
-  let serverEnded = false;
-  let recorder: MediaRecorder | null = null;
-  let expiryTimer: ReturnType<typeof setTimeout> | null = null;
-
-  const deliver = (event: VoiceEvent) => {
-    for (const listener of [...listeners]) listener(event);
+  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, url = `/api/voice/sessions/${encodeURIComponent(info.sessionId)}`;
+  let sequence = 0, ended = false, muted = false, busy = false, speechEpoch = 0;
+  let capture: ReturnType<typeof captureUtterances> | null = null, turnController: AbortController | null = null;
+  let speechController = new AbortController(), downloadChain = Promise.resolve(), playChain = Promise.resolve();
+  let player: HTMLAudioElement | null = null, stopPlayer: (() => void) | null = null;
+  let pendingSpeech = 0, audioFailed = false, suppressSpeech = false;
+  const emit = (event: EventBody) => { if (!ended) { sequence++; for (const listener of [...listeners]) listener({ ...event, sessionId: info.sessionId, sequence } as VoiceEvent); } };
+  const state = (value: VoiceAgentState) => emit({ type: "state", state: value });
+  const error = (value: AdapterError) => emit({ type: "error", error: value });
+  const idle = () => { if (!ended && !busy && !pendingSpeech) { state(muted ? "muted" : "listening"); capture?.setActive(!muted); } };
+  const stopSpeech = () => {
+    speechEpoch++; speechController.abort(); speechController = new AbortController();
+    stopPlayer?.(); player?.pause(); player = null; stopPlayer = null;
+    pendingSpeech = 0; downloadChain = Promise.resolve(); playChain = Promise.resolve(); idle();
   };
-
-  /** Events created by the adapter itself (connection loss, local failures) continue the server's sequence. */
-  const deliverLocal = (body: { type: "error"; error: AdapterError } | { type: "state"; state: VoiceAgentState } | { type: "ended"; reason: "expired" }) => {
-    lastSequence += 1;
-    deliver({ ...body, sessionId, sequence: lastSequence });
+  const enqueueSpeech = (turnId: string, index: number) => {
+    if (suppressSpeech) return;
+    const epoch = speechEpoch, signal = speechController.signal; pendingSpeech++;
+    // Synthesize the next sentence while the preceding sentence plays.
+    const download = downloadChain.then(async () => {
+      if (ended || epoch !== speechEpoch || audioFailed) return null;
+      const response = await fetch(`${url}/speech`, { method: "POST", headers, body: JSON.stringify({ turnId, index }), signal: AbortSignal.any([signal, AbortSignal.timeout(95_000)]), credentials: "same-origin" });
+      if (!response.ok) throw errorFromHttp(response.status, await response.json().catch(() => null), "speech service");
+      if (!response.headers.get("content-type")?.includes("audio/wav")) throw adapterError("UNREADABLE", "The spoken reply couldn't be played. Read the written reply instead.", true);
+      return await response.blob();
+    });
+    const safeDownload = download.catch((failure: unknown) => {
+      if (!signal.aborted && !ended && epoch === speechEpoch) { audioFailed = true; error(failure && typeof failure === "object" && "code" in failure ? failure as AdapterError : adapterError("UNAVAILABLE", "The spoken reply isn't available. You can continue with the written reply.", true)); }
+      return null;
+    });
+    downloadChain = safeDownload.then(() => undefined);
+    playChain = playChain.then(async () => {
+      const blob = await safeDownload; if (!blob || ended || epoch !== speechEpoch) return;
+      const objectUrl = URL.createObjectURL(blob), audio = new Audio(objectUrl); player = audio;
+      try {
+        await new Promise<void>((resolve, reject) => {
+          stopPlayer = resolve; audio.onended = () => resolve(); audio.onerror = () => reject(new Error("playback"));
+          state("speaking"); capture?.setActive(!muted && !busy);
+          void audio.play().catch(reject);
+        });
+      } catch { if (!ended && epoch === speechEpoch) { audioFailed = true; error(adapterError("UNAVAILABLE", "Your browser couldn't play the reply. Allow sound for this site or continue typing.", true)); } }
+      finally { audio.pause(); audio.src = ""; URL.revokeObjectURL(objectUrl); if (player === audio) { player = null; stopPlayer = null; } }
+    }).finally(() => { if (epoch === speechEpoch) { pendingSpeech--; idle(); } });
   };
-
-  const sendJson = (payload: UnknownRecord): boolean => {
-    if (socket.readyState !== WebSocket.OPEN) return false;
-    socket.send(JSON.stringify(payload));
-    return true;
-  };
-
-  const stopRecorder = () => {
-    if (recorder && recorder.state !== "inactive") recorder.stop();
-    recorder = null;
-  };
-
-  const release = async () => {
-    ended = true;
-    if (expiryTimer) clearTimeout(expiryTimer);
-    stopRecorder();
-    sendJson({ type: "end" });
-    socket.close(1000, "ended");
-    listeners.clear();
-    const released = await releaseSession(sessionId);
-    if (!released.ok) console.warn("Voice session could not be released", released.error);
-  };
-
-  socket.addEventListener("message", (message: MessageEvent) => {
-    if (ended || typeof message.data !== "string") return;
-    let raw: unknown;
+  const sendTurn = async (input: { text: string } | { audio: string; mimeType: "audio/wav" }) => {
+    if (ended) return;
+    if (busy) { error(adapterError("CONFLICT", "Wait for the current reply before sending another message.", true)); return; }
+    stopSpeech(); busy = true; audioFailed = false; suppressSpeech = false; state("thinking"); capture?.setActive(false);
+    const controller = new AbortController(); turnController = controller;
+    const timeout = AbortSignal.timeout(65_000); let complete = false;
     try {
-      raw = JSON.parse(message.data);
-    } catch (error) {
-      console.warn("Dropped an unreadable voice event", error);
-      return;
-    }
-    const event = parseVoiceEvent(raw, sessionId);
-    // Other sessions' events and out-of-order or replayed events never reach the UI.
-    if (!event || event.sequence <= lastSequence) return;
-    lastSequence = event.sequence;
-    if (event.type === "ended") serverEnded = true;
-    deliver(event);
-  });
-
-  socket.addEventListener("close", () => {
-    if (ended || serverEnded) return;
-    stopRecorder();
-    deliverLocal({ type: "error", error: adapterError("NETWORK", "The connection to the voice service was lost. What was gathered so far is kept.", true) });
-    deliverLocal({ type: "state", state: "failed" });
-  });
-
-  const msUntilExpiry = Date.parse(info.expiresAt) - Date.now();
-  if (Number.isFinite(msUntilExpiry)) {
-    expiryTimer = setTimeout(() => {
-      if (!ended) deliverLocal({ type: "ended", reason: "expired" });
-    }, Math.min(Math.max(msUntilExpiry, 0), MAX_TIMER_MS));
-  }
-
-  return {
-    info,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    attachMicrophone(stream) {
-      if (ended || recorder) return;
-      if (typeof MediaRecorder === "undefined") {
-        deliverLocal({ type: "error", error: adapterError("UNSUPPORTED_TYPE", "This browser can't stream audio. Type instead.") });
-        return;
-      }
-      const mimeType = preferredAudioType();
-      const next = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      next.addEventListener("dataavailable", (chunk: BlobEvent) => {
-        if (chunk.data.size > 0 && socket.readyState === WebSocket.OPEN) socket.send(chunk.data);
-      });
-      next.start(AUDIO_TIMESLICE_MS);
-      recorder = next;
-    },
-    setMuted(muted) {
-      if (ended) return;
-      if (recorder?.state === "recording" && muted) recorder.pause();
-      else if (recorder?.state === "paused" && !muted) recorder.resume();
-      sendJson({ type: "mute", muted });
-    },
-    stopSpeaking() {
-      if (!ended && info.capabilities.interruption) sendJson({ type: "interrupt" });
-    },
-    sendText(text) {
-      if (ended) return;
-      if (!sendJson({ type: "text", text })) {
-        deliverLocal({ type: "error", error: adapterError("NETWORK", "That message wasn't sent because the connection is closed.", true) });
-      }
-    },
-    async end() {
-      if (ended) return;
-      await release();
-    },
+      const response = await fetch(`${url}/turns`, { method: "POST", headers, body: JSON.stringify(input), signal: AbortSignal.any([controller.signal, timeout]), credentials: "same-origin" });
+      if (!response.ok) { error(errorFromHttp(response.status, await response.json().catch(() => null), "voice service")); return; }
+      if (!response.body) throw new Error("Missing voice stream");
+      const reader = response.body.getReader(), decoder = new TextDecoder(); let buffer = "";
+      try {
+        while (!ended) {
+          const { value, done } = await reader.read(); buffer += decoder.decode(value, { stream: !done });
+          let newline: number;
+          while ((newline = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, newline); buffer = buffer.slice(newline + 1); if (!line.trim()) continue;
+            const frame = JSON.parse(line) as StreamFrame;
+            if (frame.type === "error") { error(frame.error); complete = true; stopSpeech(); continue; }
+            if (frame.type === "person") emit({ type: "transcript", turnId: `${frame.turnId}:person`, speaker: "person", text: frame.text, final: true });
+            if (frame.type === "reply" && frame.text) emit({ type: "transcript", turnId: `${frame.turnId}:assistant`, speaker: "assistant", text: frame.text, final: false });
+            if (frame.type === "segment" && Number.isInteger(frame.index)) enqueueSpeech(frame.turnId, frame.index!);
+            if (frame.type === "complete") { complete = true; emit({ type: "transcript", turnId: `${frame.turnId}:assistant`, speaker: "assistant", text: frame.text, final: true }); if (frame.extraction) emit({ type: "proposals", turnId: `${frame.turnId}:person`, extraction: frame.extraction }); }
+          }
+          if (done) break;
+        }
+      } finally { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+      if (!complete && !ended) throw new Error("Incomplete voice stream");
+    } catch { if (!ended && !controller.signal.aborted) { stopSpeech(); error(adapterError(timeout.aborted ? "TIMEOUT" : "NETWORK", "The reply was interrupted. Please try again.", true)); } }
+    finally { busy = false; turnController = null; if (player) capture?.setActive(!muted); idle(); }
   };
+  const expiry = setTimeout(() => { emit({ type: "ended", reason: "expired" }); void handle.end(); }, Math.max(0, Date.parse(info.expiresAt) - Date.now()));
+  const handle: VoiceSessionHandle = {
+    info, subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    attachMicrophone(stream) {
+      if (ended || capture) return;
+      try { capture = captureUtterances(stream, (audio) => { void sendTurn({ audio, mimeType: "audio/wav" }); }, () => { if (player) { suppressSpeech = true; stopSpeech(); } }, () => { error(adapterError("UNSUPPORTED_TYPE", "Audio capture failed. You can type instead.", true)); capture?.setActive(false); }); }
+      catch { error(adapterError("UNSUPPORTED_TYPE", "This browser can't record audio. Type instead.")); }
+    },
+    setMuted(value) { muted = value; capture?.setActive(!muted && !busy); if (muted) state("muted"); else idle(); },
+    stopSpeaking() { suppressSpeech = true; stopSpeech(); }, sendText(text) { if (text.trim()) void sendTurn({ text: text.trim() }); },
+    async end() { if (ended) return; ended = true; clearTimeout(expiry); turnController?.abort(); stopSpeech(); capture?.close(); listeners.clear(); await requestJson<void>(url, { method: "DELETE", headers, timeoutMs: 5000 }); },
+  };
+  return handle;
 }
 
 export const liveVoiceAdapter: VoiceAdapter = {
   mode: "live",
-  async createSession(input, scope: RequestScope): Promise<AdapterResult<VoiceSessionHandle>> {
-    const created = await requestJson<unknown>("/api/voice/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ analysisId: scope.analysisId, revision: scope.revision, consent: input.consent }),
-      signal: scope.signal,
-      timeoutMs: 10_000,
-    });
-    if (!created.ok) {
-      if (created.error.code === "NOT_FOUND") {
-        return { ok: false, error: adapterError("UNAVAILABLE", "Voice isn't connected here. Type instead, upload a report or enter your details manually.") };
-      }
-      return created;
-    }
-    if (!isSessionResponse(created.value)) {
-      return { ok: false, error: adapterError("UNAVAILABLE", "The voice service returned an unusable reply. Try again or type instead.", true) };
-    }
-    const session = created.value;
-    const url = resolveTransportUrl(session.transportUrl);
-    const release = async (error: AdapterError): Promise<AdapterResult<VoiceSessionHandle>> => {
-      const released = await releaseSession(session.sessionId);
-      if (!released.ok) console.warn("Voice session could not be released", released.error);
-      return { ok: false, error };
-    };
-    if (!url) return release(adapterError("UNAVAILABLE", "The voice service returned an unusable connection address.", true));
-
-    const socket = await openSocket(url, scope.signal);
-    if (!socket.ok) return release(socket.error);
-    const info: VoiceSessionInfo = { sessionId: session.sessionId, expiresAt: session.expiresAt, capabilities: session.capabilities };
-    return { ok: true, value: createLiveSession(info, socket.value) };
+  async createSession(input, scope): Promise<AdapterResult<VoiceSessionHandle>> {
+    const created = await requestJson<SessionResponse>("/api/voice/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisId: scope.analysisId, revision: scope.revision, consent: input.consent }), signal: scope.signal, timeoutMs: 10_000, service: "voice service" });
+    if (!created.ok) return created;
+    const s = created.value;
+    if (typeof s.sessionId !== "string" || typeof s.token !== "string" || !Number.isFinite(Date.parse(s.expiresAt)) || s.capabilities?.simulated !== false) return { ok: false, error: adapterError("UNREADABLE", "The voice service returned an unusable session.", true) };
+    const handle = createLiveSession({ sessionId: s.sessionId, expiresAt: s.expiresAt, capabilities: s.capabilities }, s.token);
+    if (scope.signal.aborted) { await handle.end(); return { ok: false, error: adapterError("CANCELLED", "Request cancelled.") }; }
+    return { ok: true, value: handle };
   },
 };

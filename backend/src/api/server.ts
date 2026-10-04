@@ -8,13 +8,15 @@ import http from "node:http";
 import { API_LIMITS, API_ROUTES, type ApiRouteId } from "@/domain";
 import type { ApiResponseLike } from "@/domain/ports";
 import { createApiHandlers, errorResponse, requestIdFrom } from "./index";
+import { calculateRequest } from "./calculate";
 
 const handlers = createApiHandlers();
 const routes = new Map<string, { id: ApiRouteId; method: "GET" | "POST" }>(Object.entries(API_ROUTES).map(([id, r]) => [r.path, { id: id as ApiRouteId, method: r.method }]));
 const allowedOrigins = new Set((process.env.ALLOWED_ORIGINS ?? "http://localhost:3000").split(",").map((s) => s.trim()).filter(Boolean));
 
 async function handle(req: http.IncomingMessage, headers: Record<string, string>, requestId: string): Promise<[string, ApiResponseLike]> {
-  const route = routes.get(new URL(req.url ?? "/", "http://localhost").pathname);
+  const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+  const route = pathname === "/api/calculate" ? { id: "calculate" as const, method: "POST" as const } : routes.get(pathname);
   if (!route) return ["unknown", { ...errorResponse("INVALID_REQUEST", "Unknown route.", requestId), status: 404 }];
   if (req.method !== route.method) return [route.id, { ...errorResponse("INVALID_REQUEST", `Use ${route.method}.`, requestId), status: 405 }];
   const origin = headers.origin;
@@ -47,6 +49,7 @@ async function handle(req: http.IncomingMessage, headers: Record<string, string>
       return [route.id, errorResponse("INVALID_REQUEST", "Request body is not valid JSON.", requestId)];
     }
   }
+  if (route.id === "calculate") return [route.id, calculateRequest(body)];
   return [route.id, await handlers[route.id]({ method: route.method, body, headers })];
 }
 

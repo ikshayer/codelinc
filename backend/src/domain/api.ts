@@ -75,6 +75,7 @@ export const HealthData = z.strictObject({
   registry_version: z.string(),
   plan_version_ids: z.array(Id),
 });
+export type HealthData = z.infer<typeof HealthData>;
 export const HealthResponse = okEnvelope(HealthData);
 
 /** GET /api/scenario — synthetic INPUTS only (never precomputed results). */

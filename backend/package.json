@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev:api": "tsx src/api/mongo-server.ts",
+    "dev:voice": "tsx src/voice/server.ts",
     "db:verify": "tsx scripts/verify-dental-demo.ts",
     "test:data": "node --import tsx --test tests/data/*.test.ts",
     "lint": "eslint .",

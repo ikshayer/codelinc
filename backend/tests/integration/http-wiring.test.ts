@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createMongoServer } from "../../src/api/mongo-http.js";
 import { proxyBackend } from "../../../frontend/src/lib/server/backend.js";
+import { originalScenario } from "../analysis/helpers";
 
 describe("frontend proxy to backend HTTP boundary", () => {
   let server: Server;
@@ -40,10 +41,16 @@ describe("frontend proxy to backend HTTP boundary", () => {
     expect(await response.json()).toEqual(members);
   });
 
-  it("preserves the explicit calculation scaffold response", async () => {
+  it("rejects an incomplete calculation scenario", async () => {
     const response = await proxyBackend("/api/calculate", { method: "POST", body: JSON.stringify({ requestId: "test", analysisId: "test-analysis", revision: 0, scenario: {} }) }, `${base}/`);
-    expect(response.status).toBe(503);
-    expect(await response.json()).toMatchObject({ error: { code: "UNAVAILABLE", retryable: true } });
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { code: "INVALID", retryable: false } });
+  });
+
+  it("prices the original confirmed sample through the HTTP proxy", async () => {
+    const response=await proxyBackend("/api/calculate",{method:"POST",body:JSON.stringify({requestId:"test",analysisId:"original",revision:0,scenario:originalScenario()})},`${base}/`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({baseline:{totalPatientCents:150000},best:{totalPatientCents:85500},patientReductionCents:64500,planning:{syntheticData:true}});
   });
 
   it("preserves a validation error rather than turning it into method-not-allowed", async () => {

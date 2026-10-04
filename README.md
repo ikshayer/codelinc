@@ -29,9 +29,9 @@ npm run db:verify
 ```
 
 The `/care-window` page calls the live engine (run `cd backend && npm run serve`;
-Next proxies `/api/engine/*` to it). Backend contract v1.7.0 and the optimizer are in
+Next proxies `/api/engine/*` to it). Backend contract v1.8.0 and the optimizer are in
 place, and the Benefits, API, and AI modules are implemented; the acceptance and
 integration suites pass.
-The frontend uses `BACKEND_BASE_URL` to reach the backend (default `http://127.0.0.1:3001`).
+The original intake → confirmation → comparison flow is preserved, including voice intake. Its calculation API also uses `CAREWINDOW_ENGINE_URL` (default `http://localhost:4000`). `BACKEND_BASE_URL` (default `http://127.0.0.1:3001`) is used for the separate demo data API. Live voice uses `VOICE_BACKEND_URL` (default `http://127.0.0.1:3002`); see [voice setup](backend/docs/voice-assistant.md).
 
 Synthetic data only. This demo is not medical, dental, insurance, or financial advice.

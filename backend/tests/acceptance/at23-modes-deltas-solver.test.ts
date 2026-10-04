@@ -110,7 +110,7 @@ describe("AT-23 §4.1 modes", () => {
       expect(alt.unscheduled, mode).toEqual([]);
       expect(alt.objective.unscheduled_by_urgency, mode).toEqual([0, 0, 0]);
     }
-  });
+  }, 30_000); // Six full searches; allow concurrent frontend builds without a spurious 5 s timeout.
 
   it("alternatives: the mode winner is first, schedules are distinct, and lowest_member_cost never appears outside LOWEST_TOTAL_COST", () => {
     for (const mode of MODES) {

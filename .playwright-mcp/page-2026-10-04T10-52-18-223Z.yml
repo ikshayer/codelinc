@@ -1,0 +1,99 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "CareWindow by Lincoln Financial, home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "Lincoln Financial" [ref=e6]
+        - generic [ref=e8]: CareWindow
+      - navigation "Main" [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Plan my care" [ref=e12] [cursor=pointer]:
+          - /url: /care-window
+        - link "History" [ref=e14] [cursor=pointer]:
+          - /url: /history
+        - link "Profile" [ref=e16] [cursor=pointer]:
+          - /url: /profile
+      - link "New analysis" [ref=e19] [cursor=pointer]:
+        - /url: /analysis/new
+  - main [ref=e20]:
+    - generic [ref=e22]:
+      - generic [ref=e26]:
+        - paragraph [ref=e27]: Your dental plan, made clearer
+        - heading "A clearer picture of your dental costs." [level=1] [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: A
+            - generic [ref=e32]: clearer
+            - generic [ref=e33]: picture
+            - generic [ref=e34]: of
+            - generic [ref=e35]: your
+            - generic [ref=e36]: dental
+            - generic [ref=e37]: costs.
+        - paragraph [ref=e38]: Upload a report or talk it through. Review your details, then see what you'd pay across dates your dentist has approved.
+        - generic [ref=e39]:
+          - link "Start an analysis" [ref=e41] [cursor=pointer]:
+            - /url: /analysis/new
+          - button "Use sample" [ref=e42] [cursor=pointer]
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - figure "Sample comparison preview" [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]: Sample comparison
+              - generic [ref=e50]: Synthetic data
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - paragraph [ref=e53]: All care this year
+                - paragraph [ref=e54]: $1,500
+                - paragraph [ref=e55]: you pay
+              - generic [ref=e56]:
+                - paragraph [ref=e57]: Crown in January
+                - paragraph [ref=e58]: $855
+                - paragraph [ref=e59]: you pay
+            - generic [aria-hidden] [ref=e60]:
+              - generic [ref=e61]: New benefit year
+              - generic [ref=e63]: Crown
+            - paragraph [ref=e66]:
+              - generic [ref=e67]: $645 lower
+              - text: estimated patient cost under these confirmed assumptions. Payment is not guaranteed.
+          - generic [ref=e68]:
+            - paragraph [ref=e70]: Optimize the benefits. Never the care.
+            - paragraph [ref=e72]: Plans reset every benefit year. When your dentist allows a procedure in either year, the timing can change what you pay. CareWindow shows you how, with every number traceable.
+        - region [ref=e73]:
+          - generic [ref=e74]:
+            - heading "Three steps to a clear estimate" [level=2] [ref=e75]
+            - paragraph [ref=e76]: Start with whatever you have. You can switch methods at any time without losing anything.
+          - list [ref=e77]:
+            - listitem [ref=e79]:
+              - text: "1"
+              - paragraph [ref=e80]: Add your details
+              - paragraph [ref=e81]: A name is enough. Your details never enter the cost estimate.
+            - listitem [ref=e83]:
+              - text: "2"
+              - paragraph [ref=e84]: Review the facts
+              - paragraph [ref=e85]: Upload a report, talk it through or type it in, then check every value and its source.
+            - listitem [ref=e87]:
+              - text: "3"
+              - paragraph [ref=e88]: Compare your options
+              - paragraph [ref=e89]: See what you'd pay on each schedule your dentist has approved.
+        - region [ref=e90]:
+          - heading "Built on four promises" [level=2] [ref=e92]
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - term [ref=e95]: AI interprets
+              - definition [ref=e96]: An identified intake assistant gathers facts from your report or conversation. It never acts as your dentist.
+            - generic [ref=e97]:
+              - term [ref=e98]: Code calculates
+              - definition [ref=e99]: Every estimate comes from a traceable calculation record you can open, step by step.
+            - generic [ref=e100]:
+              - term [ref=e101]: Your dentist constrains
+              - definition [ref=e102]: Only dates your dentist approved are compared. If timing is unknown, care stays on its planned date.
+            - generic [ref=e103]:
+              - term [ref=e104]: You decide
+              - definition [ref=e105]: Nothing is compared until you confirm the facts, and payment is never guaranteed.
+        - generic [ref=e106]:
+          - generic [ref=e107]: Synthetic demo data only. CareWindow is not medical, dental or insurance advice.
+          - generic [ref=e108]: A CodeLinc concept for Lincoln Financial.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e114] [cursor=pointer]

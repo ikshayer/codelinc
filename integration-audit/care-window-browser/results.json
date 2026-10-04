@@ -1,0 +1,36 @@
+{
+  "baseURL": "http://localhost:3002",
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "apiRequests": [
+        "/api/engine/health",
+        "/api/engine/scenario",
+        "/api/engine/passport",
+        "/api/engine/visit-navigator",
+        "/api/engine/intake/extract",
+        "/api/engine/intake/confirm",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan"
+      ],
+      "pinnedTuple": {
+        "procedure_id": "proc-d3330-30",
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-t-20261020-0800",
+        "claim_route": "IN_NETWORK_CLAIM"
+      }
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: The page must fit the viewport\n\ntrue !== false\n\n    at journey (file:///D:/Work/codelinc/frontend/scripts/care-window-browser.mjs:154:12)\n    at async file:///D:/Work/codelinc/frontend/scripts/care-window-browser.mjs:242:3"
+}

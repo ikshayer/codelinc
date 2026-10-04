@@ -12,13 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { engine, type ExplainOutcome, type Issue } from "@/lib/adapters/live/engine";
-import type { AdapterError, AdapterResult } from "@/lib/adapters/types";
+import type { AdapterError, AdapterResult, EngineEnvelopeMetadata } from "@/lib/adapters/types";
 import { formatCents } from "@/lib/domain/money";
 
 // Shared pieces for the CareWindow engine page. Everything shown is an engine
 // field; the only transformation here is formatting.
 
-export type CallState<T> = { status: "idle" } | { status: "loading" } | { status: "error"; error: AdapterError } | { status: "ready"; data: T };
+export type CallState<T> = { status: "idle" } | { status: "loading" } | { status: "error"; error: AdapterError } | { status: "ready"; data: T; metadata?: EngineEnvelopeMetadata };
 
 /** One in-flight engine call at a time; a newer call or unmount aborts the older one. */
 export function useEngineCall<T>() {
@@ -32,7 +32,7 @@ export function useEngineCall<T>() {
     setState({ status: "loading" });
     const result = await fn(ac.signal);
     if (ac.signal.aborted) return null;
-    setState(result.ok ? { status: "ready", data: result.value } : { status: "error", error: result.error });
+    setState(result.ok ? { status: "ready", data: result.value, metadata: result.metadata } : { status: "error", error: result.error });
     return result.ok ? result.value : null;
   }, []);
   const reset = useCallback(() => {

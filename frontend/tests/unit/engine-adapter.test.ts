@@ -16,7 +16,7 @@ describe("engine adapter", () => {
   it("unwraps the success envelope to data", async () => {
     const fetchMock = respond(200, { contract_version: "1.2.0", ok: true, data: { scenario_id: "demo" }, meta });
     const result = await engine.scenario();
-    expect(result).toEqual({ ok: true, value: { scenario_id: "demo" } });
+    expect(result).toEqual({ ok: true, value: { scenario_id: "demo" }, metadata: { contract_version: "1.2.0", ...meta } });
     expect(fetchMock).toHaveBeenCalledWith("/api/engine/scenario", expect.objectContaining({ method: "GET" }));
   });
 
@@ -39,5 +39,12 @@ describe("engine adapter", () => {
   it("rejects a 200 body that isn't an ok envelope", () => {
     expect(unwrapEnvelope({ ok: false }).ok).toBe(false);
     expect(unwrapEnvelope({ data: {} }).ok).toBe(false);
+  });
+
+  it("checks engine health through the same-origin proxy and preserves synthetic identity", async () => {
+    const health = { contract_version: "1.8.0", ai_mode: "template", registry_version: "demo", plan_version_ids: ["demo-2026"] };
+    const fetchMock = respond(200, { contract_version: "1.8.0", ok: true, data: health, meta });
+    expect(await engine.health()).toEqual({ ok: true, value: health, metadata: { contract_version: "1.8.0", ...meta } });
+    expect(fetchMock).toHaveBeenCalledWith("/api/engine/health", expect.objectContaining({ method: "GET" }));
   });
 });

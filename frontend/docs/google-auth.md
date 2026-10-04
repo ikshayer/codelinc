@@ -59,4 +59,6 @@ The full Google round trip requires a configured client and a user signing in wi
 
 Implementation checks on October 4, 2026: all 148 frontend tests, typecheck, and lint passed. The running Next.js server returned HTTP 200 for session/providers/CSRF, read a short-lived synthetic authenticated cookie, and cleared it on sign-out. Playwright confirmed that unconfigured Google login is disabled while guest access remains available. Google credentials were absent, so a real Google login was not completed.
 
+Configuration follow-up on October 4: Google credentials were supplied and loaded. Provider discovery and real OAuth initiation passed; Playwright followed the app's Google button to Google's email/phone sign-in page without an invalid-client, redirect-mismatch, blocked-app, or browser-security error. User approval and the return callback still require completing Google sign-in. [Sanitized evidence](../../integration-audit/google-auth-configured.json).
+
 Sources: [Auth.js installation](https://authjs.dev/getting-started/installation), [Google provider](https://authjs.dev/getting-started/providers/google), [session identity](https://authjs.dev/guides/extending-the-session), [Google OAuth client and redirect setup](https://developers.google.com/identity/protocols/oauth2/web-server).

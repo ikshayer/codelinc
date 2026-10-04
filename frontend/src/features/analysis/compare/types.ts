@@ -1,4 +1,5 @@
 import type { CalculationSourceMode, ConfirmedScenario, ProcedureId, ScenarioComparison } from "@/lib/domain/types";
+import type { AnalysisPlanningContext, AnalysisScheduleLock } from "@analysis/types";
 
 /**
  * Props for the record-driven comparison body. Shared by the live Compare
@@ -17,4 +18,6 @@ export interface ComparisonViewProps {
   confirmedAt: string;
   /** Historical snapshots are dated and read-only; they never present old facts as current. */
   historical: boolean;
+  planning?: AnalysisPlanningContext;
+  onPinDate?: (lock: AnalysisScheduleLock) => void;
 }

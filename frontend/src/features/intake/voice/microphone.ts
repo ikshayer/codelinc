@@ -34,7 +34,7 @@ export async function requestMicrophone(): Promise<MicrophoneResult> {
     return { ok: false, failure: { kind: "unsupported", message: "This browser can't use a microphone here. Microphone access needs a secure (https) page." } };
   }
   try {
-    return { ok: true, stream: await navigator.mediaDevices.getUserMedia({ audio: true }) };
+    return { ok: true, stream: await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }) };
   } catch (error) {
     return { ok: false, failure: describeMicError(error) };
   }

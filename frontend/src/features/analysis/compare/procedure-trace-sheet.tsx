@@ -11,6 +11,8 @@ import { getFieldDefinition, isKnownFieldPath, YEAR_LABELS } from "@/lib/domain/
 import { formatBasisPoints, formatCents } from "@/lib/domain/money";
 import type { CalculationRecord, ProcedureCalculation, ProcedureId } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import type { AnalysisScheduleLock } from "@analysis/types";
 import { useConfirmFieldHref } from "./confirm-links";
 
 export interface TraceSelection {
@@ -74,10 +76,12 @@ interface ProcedureTraceSheetProps {
   selection: TraceSelection | null;
   procedureLabels: Record<ProcedureId, string>;
   onClose: () => void;
+  onPinDate?: (lock: AnalysisScheduleLock) => void;
+  pinnedDates?: AnalysisScheduleLock[];
 }
 
 /** Step-by-step calculation for one procedure, rendered from its ProcedureCalculation. */
-export function ProcedureTraceSheet({ selection, procedureLabels, onClose }: ProcedureTraceSheetProps) {
+export function ProcedureTraceSheet({ selection, procedureLabels, onClose, onPinDate, pinnedDates }: ProcedureTraceSheetProps) {
   const isPhone = useIsPhone();
   const calculation = selection?.calculation ?? null;
   const label = calculation ? (procedureLabels[calculation.procedureId] ?? calculation.procedureId) : "";
@@ -94,6 +98,7 @@ export function ProcedureTraceSheet({ selection, procedureLabels, onClose }: Pro
               </SheetDescription>
             </SheetHeader>
             <Stagger gap={0.035} delay={0.12} className="space-y-6 px-4 pb-8">
+              {onPinDate && <div className="space-y-2"><p className="text-sm text-muted-foreground">Keep this returned service date while the server rebuilds the rest of your care. This does not book an appointment.</p>{pinnedDates?.some((l) => l.procedureId === calculation.procedureId && l.serviceDate === calculation.serviceDate) ? <p className="text-sm font-medium text-primary">Pinned by you</p> : <Button onClick={() => { onPinDate({ procedureId: calculation.procedureId, serviceDate: calculation.serviceDate }); onClose(); }}>Pin this service date</Button>}</div>}
               <dl className="divide-y">
                 <TraceRow label="Contracted fee" value={formatCents(calculation.feeCents)} />
                 <TraceRow label="Deductible applies to this care" value={yesNo(calculation.deductibleApplies)} />

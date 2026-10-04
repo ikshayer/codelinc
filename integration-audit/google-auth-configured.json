@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-04",
+  "credentialsLogged": false,
+  "configuration": {
+    "allRequiredVariablesPresent": true,
+    "googleProviderStatus": 200,
+    "callback": "http://localhost:3000/api/auth/callback/google"
+  },
+  "oauthInitiation": {
+    "status": 200,
+    "authorizationHost": "accounts.google.com",
+    "scope": "openid profile email",
+    "pkce": true,
+    "state": true,
+    "oauthCookiesHttpOnly": true
+  },
+  "browser": {
+    "googleButtonEnabled": true,
+    "reachedGoogleSignIn": true,
+    "emailOrPhonePromptPresent": true,
+    "redirectMismatchObserved": false,
+    "invalidClientObserved": false,
+    "blockedAppObserved": false,
+    "browserSecurityErrorObserved": false
+  },
+  "actualGoogleApprovalAndCallbackCompleted": false,
+  "remainingStep": "User completes Google sign-in to verify the actual approval, token exchange, and returned application session."
+}

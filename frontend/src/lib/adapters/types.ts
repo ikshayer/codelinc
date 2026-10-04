@@ -1,4 +1,5 @@
 import type { OverflowItem } from "@/lib/domain/draft";
+import type { AnalysisEngineOptions, AnalysisPlanningContext } from "@analysis/types";
 import type {
   AnalysisSnapshot,
   CalculationSourceMode,
@@ -40,7 +41,14 @@ export interface AdapterError {
   fieldPath?: string;
 }
 
-export type AdapterResult<T> = { ok: true; value: T } | { ok: false; error: AdapterError };
+export interface EngineEnvelopeMetadata {
+  contract_version: string;
+  request_id: string;
+  generated_by: "engine" | "mock";
+  synthetic_data: true;
+}
+
+export type AdapterResult<T> = { ok: true; value: T; metadata?: EngineEnvelopeMetadata } | { ok: false; error: AdapterError };
 
 export const ok = <T>(value: T): AdapterResult<T> => ({ ok: true, value });
 export const fail = <T = never>(error: AdapterError): AdapterResult<T> => ({ ok: false, error });
@@ -51,6 +59,7 @@ export interface RequestScope {
   requestId: string;
   revision: number;
   signal: AbortSignal;
+  engineOptions?: EngineCalculationOptions;
 }
 
 /** Proposals plus their evidence, as returned by PDF, voice or typed intake. */
@@ -153,8 +162,12 @@ export interface InterpretAdapter {
 
 // --- Calculation ------------------------------------------------------------
 
+/** Server-provided engine details for the original intake → confirm → compare flow. */
+export type EngineCalculationOptions = AnalysisEngineOptions;
+export type PlanningContext = AnalysisPlanningContext;
+
 export type CalculationOutcome =
-  | { kind: "calculated"; comparison: ScenarioComparison; sourceMode: CalculationSourceMode; fixtureName: string | null }
+  | { kind: "calculated"; comparison: ScenarioComparison; sourceMode: CalculationSourceMode; fixtureName: string | null; planning?: PlanningContext }
   /** No engine and no fixture for these values. Honest, not an error. */
   | { kind: "unavailable"; message: string };
 

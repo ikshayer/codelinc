@@ -1,7 +1,7 @@
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["node_modules/**", "coverage/**"] },
+  { ignores: ["node_modules/**", "coverage/**", "voice/.venv/**", "voice/.cache/**"] },
   ...tseslint.configs.recommended,
   {
     files: ["**/*.ts"],

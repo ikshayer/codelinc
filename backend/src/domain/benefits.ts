@@ -260,6 +260,9 @@ export const BenefitPassport = z.strictObject({
   as_of: IsoDateTime,
   member_id: Id,
   plan_version_id: Id,
+  /** (1.8) Exact option and network from the resolved server registry. */
+  plan_option_id: Id,
+  network_id: Id,
   plan_name: z.string(),
   carrier_name: z.string(),
   synthetic: z.boolean(),

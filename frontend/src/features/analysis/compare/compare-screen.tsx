@@ -25,6 +25,8 @@ import { DeadlineEditor } from "./deadline-editor";
 import { EQUAL_COST_TEXT, hasDeadlineRejection, NO_CHEAPER_TEXT, TIMING_PRIORITY_TEXT } from "./explanations";
 import { Press } from "./press";
 import { SaveControls } from "./save-controls";
+import { PlanningControls } from "./planning-controls";
+import type { AnalysisEngineOptions, AnalysisScheduleLock } from "@analysis/types";
 
 function announce(comparison: ScenarioComparison): string {
   switch (comparison.status) {
@@ -85,6 +87,8 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
   const analysis = useAnalysis(analysisId);
   const [editApplied, setEditApplied] = useState(false);
   const [blockedIssues, setBlockedIssues] = useState<ValidationIssue[] | null>(null);
+  const [planningOptions, setPlanningOptions] = useState<AnalysisEngineOptions>({});
+  const [planningHistory, setPlanningHistory] = useState<AnalysisEngineOptions[]>([]);
 
   const draft = analysis?.draft;
   const scenario = useMemo(() => {
@@ -105,12 +109,30 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
 
   function retry() {
     setBlockedIssues(null);
-    handleAttempt(controller.compare(analysisId));
+    handleAttempt(controller.compare(analysisId, planningOptions));
+  }
+
+  function changePlanning(options: AnalysisEngineOptions, history?: AnalysisEngineOptions[]) {
+    const previous: AnalysisEngineOptions = current?.planning ? { mode: current.planning.mode, schedule_locks: current.planning.locks, ...(current.planning.budget ? { budget: current.planning.budget } : {}) } : planningOptions;
+    const key = (value: AnalysisEngineOptions) => JSON.stringify({ mode: value.mode ?? "BALANCED", schedule_locks: value.schedule_locks ?? [], budget: value.budget ?? null });
+    setPlanningOptions(options);
+    if (history) setPlanningHistory(history);
+    else if (key(options) !== key(previous)) setPlanningHistory([...planningHistory, previous]);
+    setBlockedIssues(null);
+    handleAttempt(controller.compare(analysisId, options));
+  }
+
+  function pinDate(lock: AnalysisScheduleLock) {
+    const planning = current?.planning;
+    if (!planning) return;
+    changePlanning({ mode: planning.mode, schedule_locks: [...planning.locks.filter((l) => l.procedureId !== lock.procedureId), lock], ...(planning.budget ? { budget: planning.budget } : {}) });
   }
 
   function applyDeadline(procedureId: ProcedureId, deadline: ISODate) {
     setBlockedIssues(null);
     setEditApplied(true);
+    setPlanningOptions({});
+    setPlanningHistory([]);
     // Editing hides the current result immediately; the checkbox is the separate affirmation for this edit.
     controller.editFact(analysisId, timingPaths.deadline(procedureId), deadline);
     controller.setTimingAffirmed(analysisId, true);
@@ -141,7 +163,7 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
         <PageHeader
           title="Compare your options"
           description="Estimated costs for the dates your dentist has already approved. Select a procedure to see how it was calculated."
-          actions={<SaveControls analysisId={analysisId} saved={saved} />}
+          actions={current.planning ? undefined : <SaveControls analysisId={analysisId} saved={saved} />}
         />
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
           <div className="min-w-0 lg:col-span-8">
@@ -154,6 +176,8 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
                 fixtureName={current.fixtureName}
                 confirmedAt={current.confirmedAt}
                 historical={false}
+                planning={current.planning}
+                onPinDate={current.planning ? pinDate : undefined}
               />
             </ConfirmLinkProvider>
           </div>
@@ -163,6 +187,7 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
                 Next steps
               </h2>
               <DeadlineEditor scenario={scenario} procedureLabels={procedureLabels} onApply={applyDeadline} />
+              {current.planning && <PlanningControls key={JSON.stringify(current.planning.budget)} planning={current.planning} procedureLabels={procedureLabels} onChange={changePlanning} onUndo={() => changePlanning(planningHistory[planningHistory.length - 1], planningHistory.slice(0, -1))} canUndo={planningHistory.length > 0} disabled={false} />}
               <Press className="flex">
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link href={confirmHref}>Review or edit details</Link>
@@ -194,6 +219,8 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
   } else if (result.status === "failed") {
     body = (
       <ErrorPanel title="We couldn't calculate this comparison" error={result.error} onRetry={retry}>
+        <Button variant="outline" size="sm" onClick={() => changePlanning({})}>Reset plan constraints</Button>
+        {planningHistory.length > 0 && <Button variant="outline" size="sm" onClick={() => changePlanning(planningHistory[planningHistory.length - 1], planningHistory.slice(0, -1))}>Undo last change</Button>}
         <Button asChild variant="outline" size="sm">
           <Link href={confirmHref}>Review details</Link>
         </Button>

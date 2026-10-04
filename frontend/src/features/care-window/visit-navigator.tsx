@@ -3,6 +3,7 @@
 import type { ExplainRequest } from "@engine/api";
 import type { ClaimRoute } from "@engine/benefits";
 import type { Symptoms, Tradeoff, VisitIntent, VisitLabel, VisitOption } from "@engine/optimizer";
+import type { ProviderOption } from "@engine/provider";
 import { SirenIcon } from "lucide-react";
 import { useId, useState } from "react";
 
@@ -19,7 +20,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { engine, type DemoScenario, type VisitNavigatorRequest, type VisitNavigatorResult } from "@/lib/adapters/live/engine";
 import { formatIsoDate, formatTimestamp } from "@/lib/domain/dates";
 import { formatCents } from "@/lib/domain/money";
-import { EvidenceList, ExplainPanel, IssueList, formatRange, humanize, useEngineCall, withoutShared } from "./parts";
+import { EngineSource, EvidenceList, ExplainPanel, IssueList, formatRange, humanize, useEngineCall } from "./parts";
 
 const INTENTS: Record<VisitIntent, string> = {
   routine: "Routine checkup and cleaning",
@@ -83,7 +84,7 @@ export function VisitNavigatorSection({ scenario }: { scenario: DemoScenario }) 
   }
 
   return (
-    <section aria-labelledby="before-heading">
+    <section aria-labelledby="before-heading" className="scroll-mt-40">
       <SectionHeading id="before-heading" description="Tell us why you're going. We'll compare dentists by safety first, then cost, wait and travel.">
         Before the visit: where and when to go
       </SectionHeading>
@@ -134,6 +135,7 @@ export function VisitNavigatorSection({ scenario }: { scenario: DemoScenario }) 
         <div className="min-w-0 space-y-5" aria-live="polite">
           {state.status === "idle" && <p className="text-sm text-muted-foreground">Your options appear here: at most three, each with what you’d pay and why.</p>}
           {state.status === "error" && <ErrorPanel title="Couldn't compare visit options" error={state.error} onRetry={search} />}
+          {state.status === "loading" && <p role="status" className="flex items-center gap-2 text-sm"><Spinner /> Comparing visits…</p>}
           {state.status === "ready" && request && <NavigatorResult result={state.data} request={request} scenario={scenario} />}
         </div>
       </div>
@@ -141,10 +143,25 @@ export function VisitNavigatorSection({ scenario }: { scenario: DemoScenario }) 
   );
 }
 
-function NavigatorResult({ result, request, scenario }: { result: VisitNavigatorResult; request: VisitNavigatorRequest; scenario: DemoScenario }) {
+export function NavigatorResult({ result, request, scenario }: { result: VisitNavigatorResult; request: VisitNavigatorRequest; scenario: DemoScenario }) {
   const providerName = (id: string) => scenario.providers_previsit.find((p) => p.provider_id === id)?.name ?? id;
   const optionName = (id: string) => result.options.find((o) => o.option_id === id)?.provider_name ?? id;
   const explain: ExplainRequest = { result_kind: "visit_navigator", request, focus_id: null };
+
+  // The safety gate owns presentation even if a future backend also returns options.
+  if (result.safety.urgent) return (
+    <div className="space-y-4">
+      <Alert variant="destructive" role="alert">
+        <SirenIcon aria-hidden />
+        <AlertTitle className="font-medium">Contact a dentist now</AlertTitle>
+        <AlertDescription>
+          <p>{result.safety.message}</p>
+          {result.safety.triggered_by.length > 0 && <p>Because you reported: {result.safety.triggered_by.map(humanize).join(", ")}.</p>}
+        </AlertDescription>
+      </Alert>
+      <IssueList issues={result.issues} />
+    </div>
+  );
 
   return (
     <>
@@ -163,15 +180,15 @@ function NavigatorResult({ result, request, scenario }: { result: VisitNavigator
       <ol className="space-y-4">
         {result.options.map((option) => (
           <li key={option.option_id}>
-            <OptionCard option={option} sharedIssues={result.issues} optionName={optionName} />
+            <OptionCard option={option} sharedIssues={result.issues} optionName={optionName} provider={scenario.providers_previsit.find((p) => p.provider_id === option.provider_id)} evidence={result.evidence.filter((entry) => option.lines.some((line) => line.applied_rule_ids.includes(entry.rule_id)))} />
           </li>
         ))}
       </ol>
       {result.excluded.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          Not shown:{" "}
-          {result.excluded.map((e) => `${providerName(e.provider_id)} (${e.reasons.map(humanize).join(", ").toLowerCase()})`).join("; ")}.
-        </p>
+        <details className="rounded-lg border p-3 text-sm">
+          <summary className="cursor-pointer">Excluded providers ({result.excluded.length})</summary>
+          <ul className="mt-2 space-y-2">{result.excluded.map((e) => <li key={e.provider_id}>{providerName(e.provider_id)}: {e.reasons.map((reason) => `${humanize(reason)} (${reason})`).join(", ")}</li>)}</ul>
+        </details>
       )}
       {result.conditional_scenarios.map((c) => (
         <div key={c.scenario_id} className="rounded-lg border p-4 text-sm">
@@ -194,7 +211,7 @@ function NavigatorResult({ result, request, scenario }: { result: VisitNavigator
   );
 }
 
-export function OptionCard({ option, sharedIssues, optionName }: { option: VisitOption; sharedIssues: VisitNavigatorResult["issues"]; optionName: (id: string) => string }) {
+export function OptionCard({ option, optionName, provider, evidence = [] }: { option: VisitOption; sharedIssues: VisitNavigatorResult["issues"]; optionName: (id: string) => string; provider?: ProviderOption; evidence?: VisitNavigatorResult["evidence"] }) {
   return (
     <article className="space-y-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -233,13 +250,29 @@ export function OptionCard({ option, sharedIssues, optionName }: { option: Visit
         Network status checked {formatTimestamp(option.network_observed_at)}
         {option.network_stale && " — this may be out of date; confirm with the office."}
       </p>
+      {provider && <details className="rounded-md border px-3 py-2 text-xs">
+        <summary className="cursor-pointer font-medium">Provider facts: sources and last checked</summary>
+        <ul className="mt-2 space-y-2">
+          {[["Network", provider.network], ["Travel", provider.travel], ["Appointment availability", provider.slots], ["Self-pay permission", provider.self_pay]].map(([label, value]) => {
+            const fact = value as ProviderOption["network"];
+            return <li key={String(label)}>{String(label)}: <EngineSource source={fact.source} /> · {formatTimestamp(fact.observed_at)} · reference {fact.input_id}</li>;
+          })}
+          {provider.pricing.filter((price) => option.lines.some((line) => line.cdt_code === price.cdt_code)).flatMap((price) =>
+            [["Office charge", price.provider_charge], ["Allowed amount", price.contracted_allowed], ["Cash quote", price.cash_quote]].map(([label, value]) => {
+              const fact = value as typeof price.provider_charge | null;
+              return <li key={`${price.cdt_code}-${String(label)}`}>{price.cdt_code} {String(label)}: {fact ? <><EngineSource source={fact.source} /> · {formatTimestamp(fact.observed_at)} · reference {fact.input_id}</> : "Not supplied"}{label === "Cash quote" && ` · valid through ${price.cash_quote_valid_through ? formatIsoDate(price.cash_quote_valid_through) : "Unknown"}`}</li>;
+            }))}
+        </ul>
+        <p className="mt-2">Demo observations; confirm current prices and appointments with the office. Location {option.location_id} · slot {option.slot.slot_id}, {option.slot.start_time}–{option.slot.end_time}.</p>
+      </details>}
       {option.exceeds_hard_monthly_limit && <StatusChip status="missing" label="Over your monthly budget" />}
       {option.tradeoffs.map((t) => (
         <p key={t.versus_option_id} className="text-sm">
           {tradeoffText(t, optionName(t.versus_option_id))}
         </p>
       ))}
-      <IssueList issues={withoutShared(option.issues, sharedIssues)} />
+      <IssueList issues={option.issues} />
+      <EvidenceList evidence={evidence} />
     </article>
   );
 }

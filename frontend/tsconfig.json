@@ -28,6 +28,9 @@
       ],
       "@engine/*": [
         "../backend/src/domain/*"
+      ],
+      "@analysis/*": [
+        "../backend/src/analysis/*"
       ]
     }
   },

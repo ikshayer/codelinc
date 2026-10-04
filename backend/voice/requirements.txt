@@ -1,0 +1,5 @@
+chatterbox-tts==0.1.7
+fastapi==0.135.1
+uvicorn==0.41.0
+# The published Perth watermarker imports pkg_resources. Keep its runtime available.
+setuptools==80.9.0

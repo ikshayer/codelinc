@@ -3,7 +3,7 @@
 import type { ExplainRequest } from "@engine/api";
 import type { RolloverOutcome, RolloverStatus } from "@engine/benefits";
 import type { Alternative, AlternativeLabel, EvidenceIndexEntry, NextAction, ReasonCode, RecommendationMode, ScheduledEvent } from "@engine/optimizer";
-import type { Urgency } from "@engine/procedure";
+import type { ScheduleLock } from "@engine/optimizer";
 import { CalendarCheckIcon } from "lucide-react";
 import { useId, useState } from "react";
 
@@ -13,7 +13,6 @@ import { StatusChip } from "@/components/shared/status-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -34,7 +33,9 @@ import { EvidenceList, ExplainPanel, IssueList, formatRange, humanize, signedCen
 import { DEFAULT_MODE, DifferenceList, PrioritySelector, SolverLine, withMode } from "./plan-modes";
 import { CLAIM_ROUTE } from "./visit-navigator";
 
-const URGENCY: Record<Urgency, string> = { act_now: "Act now", schedule_soon: "Schedule soon", can_plan_later: "Can plan later" };
+import { ProcedureEditor } from "./procedure-editor";
+import { PreferenceEditor, preferenceMember, type MemberPreferences } from "./preference-editor";
+import { BenefitsAfterEvent, EventCostBreakdown, RouteComparisonCard } from "./event-details";
 
 export const ALT_LABEL: Record<AlternativeLabel, string> = {
   lowest_total_cost: "Balanced: lowest cost on your dentist's target dates",
@@ -65,13 +66,6 @@ const ACTION: Record<NextAction["kind"], string> = {
   SUBMIT_FSA_CLAIM: "Submit an FSA claim",
 };
 
-type DateField = "earliest_safe_date" | "target_date" | "latest_safe_date";
-const DATE_FIELDS: [DateField, string][] = [
-  ["earliest_safe_date", "Earliest"],
-  ["target_date", "Target"],
-  ["latest_safe_date", "No later than"],
-];
-
 export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
   const docId = useId();
   const [documentId, setDocumentId] = useState(scenario.documents[0]?.document_id ?? "");
@@ -79,6 +73,12 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
   const [extraction, extract, resetExtraction] = useEngineCall<ExtractionResult>();
   const [draft, setDraft] = useState<ProcedureRecommendation[]>([]);
   const [included, setIncluded] = useState<Set<string>>(new Set());
+  const [affirmed, setAffirmed] = useState<Set<string>>(new Set());
+  const [preferences, setPreferences] = useState<MemberPreferences>(scenario.member);
+  const [locks, setLocks] = useState<ScheduleLock[]>([]);
+  const [lockHistory, setLockHistory] = useState<ScheduleLock[][]>([]);
+  const [baseline, setBaseline] = useState<{ request: CarePlanRequest; result: CarePlanResult } | null>(null);
+  const [resultVersion, setResultVersion] = useState(0);
   const [confirmation, confirm, resetConfirmation] = useEngineCall<ConfirmData>();
   const [plan, optimize, resetPlan] = useEngineCall<CarePlanResult>();
   const [planRequest, setPlanRequest] = useState<CarePlanRequest | null>(null);
@@ -91,6 +91,9 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
     resetConfirmation();
     resetPlan();
     setPlanRequest(null);
+    setLocks([]);
+    setLockHistory([]);
+    setBaseline(null);
   }
 
   async function read() {
@@ -111,36 +114,69 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
     );
     setDraft(result?.procedures ?? []);
     setIncluded(new Set());
+    setAffirmed(new Set());
   }
 
-  function edit(procedureId: string, field: DateField, value: string) {
-    setDraft((list) => list.map((p) => (p.procedure_id === procedureId ? { ...p, [field]: value || null } : p)));
+  function edit(procedure: ProcedureRecommendation) {
+    setDraft((list) => list.map((p) => p.procedure_id === procedure.procedure_id ? procedure : p));
+    setAffirmed((current) => new Set([...current].filter((id) => id !== procedure.procedure_id)));
     resetAfter();
   }
 
+  async function run(request: CarePlanRequest) {
+    setPlanRequest(request);
+    const result = await optimize((signal) => engine.carePlan(request, signal));
+    if (result) setResultVersion((v) => v + 1);
+    return result;
+  }
+
+  async function changeLocks(next: ScheduleLock[], history = [...lockHistory, locks]) {
+    if (!planRequest) return;
+    setLocks(next);
+    setLockHistory(history);
+    await run({ ...planRequest, schedule_locks: next });
+  }
+
+  async function applyPreferences(next: MemberPreferences) {
+    setPreferences(next);
+    if (!planRequest) return;
+    const request = { ...planRequest, member: preferenceMember(scenario.member, next) };
+    const result = await run(request);
+    if (result && locks.length === 0) setBaseline({ request, result });
+  }
+
+  async function resetRecommended() {
+    if (!baseline) return;
+    setLocks([]);
+    setLockHistory([]);
+    setPreferences(baseline.request.member);
+    setMode(baseline.result.mode);
+    await run(baseline.request);
+  }
+
   async function confirmAndPlan() {
-    const procedures = draft.filter((p) => included.has(p.procedure_id));
+    const procedures = draft.filter((p) => included.has(p.procedure_id) && affirmed.has(p.procedure_id));
     const confirmed = await confirm((signal) => engine.confirm({ as_of: scenario.postvisit_as_of, confirmed_by: "member", procedures }, signal));
     if (!confirmed || confirmed.procedures.length === 0) return;
     const body: CarePlanRequest = {
       as_of: scenario.postvisit_as_of,
-      member: scenario.member,
+      member: preferenceMember(scenario.member, preferences),
       providers: scenario.providers_postvisit,
       procedures: confirmed.procedures,
       planning_horizon_end: scenario.planning_horizon_end,
       max_alternatives: 3,
     };
     const request = mode === DEFAULT_MODE ? body : withMode(body, mode);
-    setPlanRequest(request);
-    await optimize((signal) => engine.carePlan(request, signal));
+    const result = await run(request);
+    if (result && locks.length === 0) setBaseline({ request, result });
   }
 
   async function changeMode(next: RecommendationMode) {
     setMode(next);
     if (!planRequest) return;
     const request = withMode(planRequest, next);
-    setPlanRequest(request);
-    await optimize((signal) => engine.carePlan(request, signal));
+    const result = await run(request);
+    if (result && locks.length === 0) setBaseline({ request, result });
   }
 
   return (
@@ -205,7 +241,7 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
           <ol className="space-y-4">
             {draft.map((p) => (
               <li key={p.procedure_id}>
-                <ProcedureCard
+                <ProcedureEditor
                   procedure={p}
                   all={draft}
                   included={included.has(p.procedure_id)}
@@ -219,139 +255,76 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
                     });
                     resetAfter();
                   }}
-                  onEdit={(field, value) => edit(p.procedure_id, field, value)}
+                  affirmed={affirmed.has(p.procedure_id)}
+                  onAffirm={(on) => { setAffirmed((current) => { const next = new Set(current); if (on) next.add(p.procedure_id); else next.delete(p.procedure_id); return next; }); resetAfter(); }}
+                  onEdit={edit}
+                  asOf={scenario.postvisit_as_of}
+                  disabled={confirmation.status === "loading" || plan.status === "loading"}
                 />
               </li>
             ))}
           </ol>
           {draft.length > 0 && (
-            <Button onClick={confirmAndPlan} disabled={included.size === 0 || confirmation.status === "loading" || plan.status === "loading"}>
+            <Button onClick={confirmAndPlan} disabled={included.size === 0 || [...included].some((id) => !affirmed.has(id)) || confirmation.status === "loading" || plan.status === "loading"}>
               {(confirmation.status === "loading" || plan.status === "loading") && <Spinner />}
               <CalendarCheckIcon aria-hidden />
-              Confirm {included.size} and plan my care
+              Confirm {included.size} procedures and build my plan
             </Button>
           )}
-          {confirmation.status === "error" && <ErrorPanel title="Couldn't confirm these procedures" error={confirmation.error} />}
+          {confirmation.status === "error" && <ErrorPanel title="Couldn't confirm these procedures" error={confirmation.error} onRetry={confirmAndPlan} />}
           {confirmation.status === "ready" && <IssueList issues={confirmation.data.issues} />}
         </div>
       )}
 
+      <PreferenceEditor key={JSON.stringify(preferences)} initial={preferences} asOf={scenario.postvisit_as_of} onApply={applyPreferences} rebuilding={!!planRequest} disabled={plan.status === "loading" || confirmation.status === "loading"} issues={plan.status === "ready" ? plan.data.unresolved.filter((i) => i.field?.startsWith("member.budget") || i.field?.startsWith("member.travel") || i.field?.startsWith("member.availability")) : []} />
       {planRequest && <PrioritySelector value={mode} onChange={changeMode} disabled={plan.status === "loading"} />}
       {plan.status === "loading" && planRequest && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
           <Spinner /> Updating your care plan options…
         </p>
       )}
-      {plan.status === "error" && <ErrorPanel title="Couldn't build a care plan" error={plan.error} />}
-      {plan.status === "ready" && planRequest && <PlanResult key={plan.data.mode} result={plan.data} request={planRequest} scenario={scenario} />}
+      {plan.status === "error" && <ErrorPanel title="Couldn't build a care plan" error={plan.error} onRetry={planRequest ? () => run(planRequest) : undefined} />}
+      {planRequest && <div className="flex flex-wrap gap-2">
+        <Button variant="outline" disabled={plan.status === "loading" || lockHistory.length === 0} onClick={() => changeLocks(lockHistory[lockHistory.length - 1], lockHistory.slice(0, -1))}>Undo last change</Button>
+        <Button variant="outline" disabled={plan.status === "loading" || !baseline || locks.length === 0} onClick={resetRecommended}>Reset to recommended</Button>
+        <Button disabled={plan.status === "loading"} onClick={() => run({ ...planRequest, schedule_locks: locks })}>Re-optimize unlocked items</Button>
+      </div>}
+      {locks.length > 0 && <section aria-label="Pinned appointments" className="space-y-2 rounded-lg border p-4"><h3 className="font-semibold">Your plan · {locks.length} appointment{locks.length === 1 ? "" : "s"} pinned</h3>{locks.map((lock) => <div key={lock.procedure_id} className="flex flex-wrap items-center gap-2 text-sm"><span>{draft.find((p) => p.procedure_id === lock.procedure_id)?.description ?? lock.procedure_id} · {scenario.providers_postvisit.find((p) => p.provider_id === lock.provider_id)?.name ?? lock.provider_id} · {(() => { const slot = scenario.providers_postvisit.find((p) => p.provider_id === lock.provider_id)?.slots.items.find((s) => s.slot_id === lock.slot_id); return slot ? `${formatIsoDate(slot.date)} ${slot.start_time}-${slot.end_time}` : "Appointment details unavailable"; })()} · {CLAIM_ROUTE[lock.claim_route]}</span><Button size="sm" variant="outline" disabled={plan.status === "loading"} onClick={() => changeLocks(locks.filter((l) => l.procedure_id !== lock.procedure_id))}>Unpin appointment</Button></div>)}</section>}
+      {plan.status === "ready" && planRequest && <PlanResult key={resultVersion} result={plan.data} request={planRequest} scenario={scenario} onPin={(event) => changeLocks([...locks.filter((l) => l.procedure_id !== event.procedure_id), { procedure_id: event.procedure_id, provider_id: event.provider_id, slot_id: event.slot_id, claim_route: event.claim_route }])} onUnpin={(event) => changeLocks(locks.filter((l) => l.procedure_id !== event.procedure_id))} baseline={locks.length > 0 ? baseline?.result : undefined} />}
     </section>
   );
 }
 
-function ProcedureCard({
-  procedure: p,
-  all,
-  included,
-  confirmed,
-  onInclude,
-  onEdit,
-}: {
-  procedure: ProcedureRecommendation;
-  all: ProcedureRecommendation[];
-  included: boolean;
-  confirmed: boolean;
-  onInclude: (on: boolean) => void;
-  onEdit: (field: DateField, value: string) => void;
-}) {
-  const fee = p.dentist_fee.value;
-  const inferred = new Set<string>(p.inferred_fields);
-  const mark = (field: string) => (inferred.has(field) ? " (inferred, please check)" : "");
-  return (
-    <article className="space-y-3 rounded-lg border p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="font-semibold">{p.description}</h4>
-        {confirmed ? <StatusChip status="confirmed" /> : <StatusChip status="needsReview" label="Unverified" />}
-      </div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
-        <div>
-          <dt className="text-muted-foreground">Code{mark("cdt_code")}</dt>
-          <dd>{p.cdt_code ?? "Missing"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Tooth{mark("tooth")}</dt>
-          <dd>{p.tooth ?? "None"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Office fee{mark("dentist_fee")}</dt>
-          <dd className="tabular-nums">{fee.kind === "exact" ? formatCents(fee.cents) : fee.kind === "range" ? formatRange(fee) : "Missing"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Timing{mark("urgency")}</dt>
-          <dd>{p.urgency ? URGENCY[p.urgency] : "Missing"}</dd>
-        </div>
-      </dl>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {DATE_FIELDS.map(([field, label]) => (
-          <div key={field} className="space-y-1">
-            <Label htmlFor={`${p.procedure_id}-${field}`} className="text-xs text-muted-foreground">
-              {label}
-              {mark(field)}
-            </Label>
-            <Input id={`${p.procedure_id}-${field}`} type="date" value={p[field] ?? ""} onChange={(e) => onEdit(field, e.target.value)} />
-          </div>
-        ))}
-      </div>
-      {p.dependencies.map((d) => (
-        <p key={d.depends_on} className="text-sm">
-          After {all.find((o) => o.procedure_id === d.depends_on)?.description ?? d.depends_on}: wait at least {d.min_gap_days} days
-          {d.max_gap_days !== null && `, at most ${d.max_gap_days}`}.
-        </p>
-      ))}
-      {p.source.dentist_statements.length > 0 && (
-        <div className="text-sm">
-          <p className="text-muted-foreground">Your dentist said:</p>
-          {p.source.dentist_statements.map((s, i) => (
-            <blockquote key={i} className="border-l-2 pl-3 italic">
-              “{s}”
-            </blockquote>
-          ))}
-        </div>
-      )}
-      <div className="flex items-center gap-3">
-        <Checkbox id={`include-${p.procedure_id}`} checked={included} onCheckedChange={(c) => onInclude(c === true)} />
-        <Label htmlFor={`include-${p.procedure_id}`} className="font-normal">
-          This matches what my dentist told me
-        </Label>
-      </div>
-    </article>
-  );
-}
-
-function PlanResult({ result, request, scenario }: { result: CarePlanResult; request: CarePlanRequest; scenario: DemoScenario }) {
+function PlanResult({ result, request, scenario, onPin, onUnpin, baseline }: { result: CarePlanResult; request: CarePlanRequest; scenario: DemoScenario; onPin: (event: ScheduledEvent) => void; onUnpin: (event: ScheduledEvent) => void; baseline?: CarePlanResult }) {
   const [selected, setSelected] = useState(result.recommended_alternative_id ?? result.alternatives[0]?.alternative_id ?? "");
   const focus = result.alternatives.some((a) => a.alternative_id === selected) ? selected : null;
   const explain: ExplainRequest = { result_kind: "care_plan", request, focus_id: focus };
 
   return (
     <div className="space-y-5" aria-live="polite">
-      <h3 className="text-base font-semibold">Your care plan options</h3>
+      <h3 className="text-base font-semibold">{request.schedule_locks?.length ? "Your plan options" : "Your care plan options"}</h3>
+      {baseline && <details className="rounded-lg border p-4 text-sm"><summary className="cursor-pointer font-medium">Original recommended plan</summary>{baseline.alternatives.filter((a) => a.alternative_id === baseline.recommended_alternative_id).map((a) => <div key={a.alternative_id} className="mt-3 space-y-2"><p>You pay {formatRange(a.totals.member_cost)} · Plan pays {formatRange(a.totals.plan_pay)}</p>{a.events.map((e) => <p key={e.event_id}>{formatIsoDate(e.service_date)} · {request.procedures.find((p) => p.procedure_id === e.procedure_id)?.description ?? e.procedure_id} · {scenario.providers_postvisit.find((p) => p.provider_id === e.provider_id)?.name ?? e.provider_id} · {CLAIM_ROUTE[e.claim_route]}</p>)}</div>)}</details>}
       {result.status !== "OK" && <StatusChip status="needsReview" label={humanize(result.status)} />}
       <IssueList issues={result.unresolved} />
       {result.alternatives.length === 0 ? (
         <p className="text-sm text-muted-foreground">No schedule fits every dentist window. Check the dates above with your dentist.</p>
       ) : (
-        <Tabs value={selected} onValueChange={setSelected}>
-          <TabsList className="h-auto flex-wrap">
+        <Tabs value={selected} onValueChange={setSelected} className="min-w-0">
+          <TabsList className="grid w-full grid-cols-1 gap-2 group-data-horizontal/tabs:h-auto sm:grid-cols-3" style={{ width: "100%", height: "auto" }}>
             {result.alternatives.map((alt) => (
-              <TabsTrigger key={alt.alternative_id} value={alt.alternative_id}>
-                {ALT_LABEL[alt.labels[0]]}
-                {alt.alternative_id === result.recommended_alternative_id && " (recommended)"}
+              <TabsTrigger key={alt.alternative_id} value={alt.alternative_id} className="h-auto min-w-0 max-w-full break-words whitespace-normal text-left" style={{ whiteSpace: "normal" }}>
+                <span className="min-w-0 space-y-1">
+                <span className="block">{alt.labels.map((l) => ALT_LABEL[l]).join(" · ")}
+                {alt.alternative_id === result.recommended_alternative_id && (request.schedule_locks?.length ? " (your plan)" : " (recommended)")}
+                </span>
+                <span className="block text-xs font-normal">You pay {formatRange(alt.totals.member_cost)} · Peak month {formatCents(alt.objective.peak_monthly_cash_cents)} · {alt.objective.completion_date ? `Done ${formatIsoDate(alt.objective.completion_date)}` : "Care unscheduled"}</span>
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>
           {result.alternatives.map((alt) => (
             <TabsContent key={alt.alternative_id} value={alt.alternative_id} className="pt-4">
-              <AlternativeView alt={alt} request={request} scenario={scenario} shared={result.unresolved} evidence={result.evidence} />
+              <AlternativeView alt={alt} request={request} scenario={scenario} shared={result.unresolved} evidence={result.evidence} onPin={onPin} onUnpin={onUnpin} />
             </TabsContent>
           ))}
         </Tabs>
@@ -369,12 +342,16 @@ function AlternativeView({
   scenario,
   shared,
   evidence,
+  onPin,
+  onUnpin,
 }: {
   alt: Alternative;
   request: CarePlanRequest;
   scenario: DemoScenario;
   shared: CarePlanResult["unresolved"];
   evidence: EvidenceIndexEntry[];
+  onPin: (event: ScheduledEvent) => void;
+  onUnpin: (event: ScheduledEvent) => void;
 }) {
   return (
     <div className="space-y-5">
@@ -404,11 +381,12 @@ function AlternativeView({
         </div>
       </dl>
 
+      <details className="rounded-lg border p-4 text-sm"><summary className="cursor-pointer font-medium">Full financial summary</summary><dl className="mt-3 grid gap-3 sm:grid-cols-2"><div><dt>Modeled charge</dt><dd>{formatRange(alt.totals.modeled_charge)}</dd></div><div><dt>Network discount / adjustment</dt><dd>{formatRange(alt.totals.contractual_adjustment)}</dd></div><div><dt>Fees</dt><dd>{formatCents(alt.totals.fees_cents)}</dd></div><div><dt>Funding gap</dt><dd>{formatCents(alt.funding_gap_cents)}</dd></div><div><dt>Highest monthly cash</dt><dd>{formatCents(alt.objective.peak_monthly_cash_cents)}</dd></div></dl></details>
       <ol className="relative space-y-6 border-l pl-6">
         {alt.events.map((event) => (
           <li key={event.event_id} className="relative">
             <span aria-hidden className="absolute top-1.5 -left-[1.95rem] size-3 rounded-full border-2 border-primary bg-background" />
-            <EventView event={event} request={request} scenario={scenario} rollover={alt.rollover} />
+            <EventView event={event} request={request} scenario={scenario} rollover={alt.rollover} evidence={evidence} state={alt.benefit_states.find((s) => s.event_id === event.event_id)?.state_after} issues={[...shared, ...alt.issues].filter((i) => i.procedure_id === event.procedure_id || (i.provider_id === event.provider_id && (i.procedure_id === null || i.procedure_id === event.procedure_id)))} onPin={onPin} onUnpin={onUnpin} />
           </li>
         ))}
       </ol>
@@ -428,11 +406,12 @@ function AlternativeView({
           <p className="font-medium">New money out of pocket by month</p>
           <ul className="mt-1 space-y-1">
             {alt.monthly.map((m) => (
-              <li key={m.month} className="flex flex-wrap items-center gap-2">
+              <li key={m.month} className="space-y-1"><div className="flex flex-wrap items-center gap-2">
                 <span className="w-20 text-muted-foreground">{m.month}</span>
                 <span className="tabular-nums">{formatCents(m.cash_cents)}</span>
                 {m.exceeds_hard && <StatusChip status="conflict" label="Over your hard limit" />}
-                {!m.exceeds_hard && m.exceeds_preferred && <StatusChip status="missing" label="Over your preferred limit" />}
+                {!m.exceeds_hard && m.exceeds_preferred && <StatusChip status="missing" label="Over your preferred limit" />}</div>
+                <ul className="ml-3 space-y-1">{m.by_source.map((source) => <li key={source.source_type} className="text-muted-foreground">{source.source_type}: {formatCents(source.amount_cents)}</li>)}</ul>
               </li>
             ))}
           </ul>
@@ -524,56 +503,22 @@ export function RolloverShiftNote({ shift, outcome }: { shift: NonNullable<Sched
   );
 }
 
-function EventView({ event, request, scenario, rollover }: { event: ScheduledEvent; request: CarePlanRequest; scenario: DemoScenario; rollover: RolloverOutcome[] }) {
+function EventView({ event, request, scenario, rollover, evidence, state, issues, onPin, onUnpin }: { event: ScheduledEvent; request: CarePlanRequest; scenario: DemoScenario; rollover: RolloverOutcome[]; evidence: EvidenceIndexEntry[]; state: Alternative["benefit_states"][number]["state_after"] | undefined; issues: CarePlanResult["unresolved"]; onPin: (event: ScheduledEvent) => void; onUnpin: (event: ScheduledEvent) => void }) {
   const procedure = request.procedures.find((p) => p.procedure_id === event.procedure_id);
-  const provider = scenario.providers_postvisit.find((p) => p.provider_id === event.provider_id)?.name ?? event.provider_id;
-  const sourceLabel = (sourceId: string, type: string) =>
-    type === "CASH" ? "Cash (monthly budget)" : (scenario.member.funding_accounts.find((a) => a.source_id === sourceId)?.label ?? type);
-  const rc = event.route_comparison;
-
-  return (
-    <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">{formatIsoDate(event.service_date)}</p>
-      <h4 className="font-semibold">{procedure?.description ?? event.procedure_id}</h4>
-      <p className="text-sm">
-        {provider} · {CLAIM_ROUTE[event.claim_route]}
-      </p>
-      <p className="text-sm tabular-nums">
-        Plan pays {formatRange(event.plan_pay)} · <span className="font-semibold">You pay {formatRange(event.member_cost)}</span>
-      </p>
-      {event.funding.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          Paid from: {event.funding.map((f) => `${sourceLabel(f.source_id, f.source_type)} ${formatCents(f.amount_cents)}`).join(", ")}
-          {event.shortfall_cents > 0 && `; ${formatCents(event.shortfall_cents)} not covered`}
-        </p>
-      )}
-      {rc?.winner_claim_route && rc.difference_cents !== null && (
-        <p className="text-sm">
-          {CLAIM_ROUTE[rc.winner_claim_route]} saves {formatCents(rc.difference_cents)} across your whole plan.
-        </p>
-      )}
-      {event.rollover_shift && (
-        <RolloverShiftNote shift={event.rollover_shift} outcome={rollover.find((o) => o.closing_plan_version_id === event.rollover_shift?.closing_plan_version_id)} />
-      )}
-      <ul className="flex flex-wrap gap-1.5">
-        {event.reasons.map((r) => (
-          <li key={r}>
-            <Badge variant="outline" className="font-normal">
-              {REASON[r]}
-            </Badge>
-          </li>
-        ))}
-      </ul>
-      {event.next_actions.length > 0 && (
-        <ul className="list-disc space-y-0.5 pl-5 text-sm">
-          {event.next_actions.map((a, i) => (
-            <li key={i}>
-              {ACTION[a.kind]}
-              {a.by_date && ` by ${formatIsoDate(a.by_date)}`}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  const provider = scenario.providers_postvisit.find((p) => p.provider_id === event.provider_id);
+  const slot = provider?.slots.items.find((s) => s.slot_id === event.slot_id);
+  return <div className="space-y-3">
+    <p className="text-sm text-muted-foreground">Service date: {formatIsoDate(event.service_date)}{slot && ` · ${slot.start_time}–${slot.end_time} (${scenario.member.time_zone})`}</p>
+    <div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold">{procedure?.description ?? event.procedure_id}</h4>{event.user_locked && <Badge>Pinned by you</Badge>}<Button size="sm" variant="outline" onClick={() => event.user_locked ? onUnpin(event) : onPin(event)}>{event.user_locked ? "Unpin appointment" : "Pin this appointment"}</Button></div>
+    <p className="text-sm">{provider?.name ?? event.provider_id} · {CLAIM_ROUTE[event.claim_route]} · Location {event.location_id} · Slot {event.slot_id}</p>
+    <p className="text-sm tabular-nums">Plan pays {formatRange(event.plan_pay)} · <span className="font-semibold">You pay {formatRange(event.member_cost)}</span></p>
+    <div className="text-sm"><h5 className="font-medium">Payment schedule</h5>{event.funding.length === 0 && <p className="text-muted-foreground">No funding allocations returned.</p>}<ul className="mt-1 space-y-1">{event.funding.map((f) => <li key={f.allocation_id}>{f.source_type === "CASH" ? "Cash (monthly budget)" : scenario.member.funding_accounts.find((a) => a.source_id === f.source_id)?.label ?? humanize(f.source_type)} · Payment {formatIsoDate(f.payment_date)} · {formatCents(f.amount_cents)} · Fees {formatCents(f.fees_cents)}<span className="block break-all text-xs text-muted-foreground">Funding fact: {f.input_id}</span></li>)}</ul>{event.shortfall_cents > 0 && <p className="font-medium">Funding shortfall: {formatCents(event.shortfall_cents)}</p>}</div>
+    <IssueList issues={issues} />
+    <BenefitsAfterEvent state={state} />
+    <EventCostBreakdown worst={event.line_worst} best={event.line_best} evidence={evidence} />
+    {event.route_comparison && <RouteComparisonCard comparison={event.route_comparison} />}
+    {event.rollover_shift && <RolloverShiftNote shift={event.rollover_shift} outcome={rollover.find((o) => o.closing_plan_version_id === event.rollover_shift?.closing_plan_version_id)} />}
+    <ul className="flex flex-wrap gap-1.5">{event.reasons.map((r) => <li key={r}><Badge variant="outline" className="font-normal">{REASON[r]}</Badge></li>)}</ul>
+    {event.next_actions.length > 0 && <div><p className="text-sm font-medium">Next actions: appointments are not booked</p><ul className="mt-2 space-y-2 text-sm">{event.next_actions.map((a, i) => <li key={i}><label className="flex items-start gap-2"><input type="checkbox" className="mt-1" />{ACTION[a.kind]}{a.by_date && ` by ${formatIsoDate(a.by_date)}`}</label></li>)}</ul></div>}
+  </div>;
 }

@@ -1,6 +1,6 @@
 import type { ConfirmedScenario, ScenarioComparison } from "@/lib/domain/types";
 import { adapterError, requestJson } from "../shared";
-import type { AdapterResult, CalculationAdapter, CalculationOutcome, RequestScope } from "../types";
+import type { AdapterResult, CalculationAdapter, CalculationOutcome, PlanningContext, RequestScope } from "../types";
 
 // Live calculation through the shared engine. Proposed endpoint:
 // POST /api/calculate { requestId, analysisId, revision, scenario } → ScenarioComparison.
@@ -9,10 +9,10 @@ import type { AdapterResult, CalculationAdapter, CalculationOutcome, RequestScop
 export const liveCalculationAdapter: CalculationAdapter = {
   mode: "live",
   async compare(scenario: ConfirmedScenario, scope: RequestScope): Promise<AdapterResult<CalculationOutcome>> {
-    const result = await requestJson<ScenarioComparison>("/api/calculate", {
+    const result = await requestJson<ScenarioComparison & { planning?: PlanningContext }>("/api/calculate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId: scope.requestId, analysisId: scope.analysisId, revision: scope.revision, scenario }),
+      body: JSON.stringify({ requestId: scope.requestId, analysisId: scope.analysisId, revision: scope.revision, scenario, ...(scope.engineOptions ? { engineOptions: scope.engineOptions } : {}) }),
       signal: scope.signal,
     });
     if (!result.ok) {
@@ -24,6 +24,7 @@ export const liveCalculationAdapter: CalculationAdapter = {
     if (result.value.inputRevision !== scope.revision) {
       return { ok: false, error: adapterError("CONFLICT", "The engine answered for an older version of your details. Try again.", true) };
     }
-    return { ok: true, value: { kind: "calculated", comparison: result.value, sourceMode: "live", fixtureName: null } };
+    const { planning, ...comparison } = result.value;
+    return { ok: true, value: { kind: "calculated", comparison, sourceMode: "live", fixtureName: null, ...(planning ? { planning } : {}) } };
   },
 };

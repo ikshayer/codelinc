@@ -178,6 +178,15 @@ export type RecommendationMode = z.infer<typeof RecommendationMode>;
 export const RecommendationPreferences = z.strictObject({ mode: RecommendationMode });
 export type RecommendationPreferences = z.infer<typeof RecommendationPreferences>;
 
+/** (1.8) Exact appointment pin. Dates and prices remain server-derived from this slot. */
+export const ScheduleLock = z.strictObject({
+  procedure_id: Id,
+  provider_id: Id,
+  slot_id: Id,
+  claim_route: ClaimRoute,
+});
+export type ScheduleLock = z.infer<typeof ScheduleLock>;
+
 export const CarePlanRequest = z.strictObject({
   as_of: IsoDateTime,
   member: MemberState,
@@ -188,6 +197,8 @@ export const CarePlanRequest = z.strictObject({
   max_alternatives: z.number().int().min(1).max(3),
   /** (1.7) Optional; absent = `{ mode: "BALANCED" }` (old requests still parse). */
   preferences: RecommendationPreferences.optional(),
+  /** (1.8) One exact tuple per procedure; missing/empty means optimize without pins. */
+  schedule_locks: z.array(ScheduleLock).max(8).optional(),
 });
 export type CarePlanRequest = z.infer<typeof CarePlanRequest>;
 
@@ -282,6 +293,8 @@ export const ScheduledEvent = z.strictObject({
   provider_id: Id,
   location_id: Id,
   claim_route: ClaimRoute,
+  /** (1.8) This exact appointment was required by a submitted schedule lock. */
+  user_locked: z.boolean(),
   /** Adjudication under worst_case and best_case (identical when inputs are exact). */
   line_worst: AdjudicationLine,
   line_best: AdjudicationLine,

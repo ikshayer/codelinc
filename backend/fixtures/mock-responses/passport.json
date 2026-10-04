@@ -1,12 +1,14 @@
 {
-  "contract_version": "1.7.0",
+  "contract_version": "1.8.0",
   "ok": true,
   "data": {
-    "contract_version": "1.7.0",
+    "contract_version": "1.8.0",
     "as_of": "2026-10-05T14:00:00Z",
     "member_id": "member-alex-synthetic",
     "plan_version_id": "nwd-ppo-standard-2026",
     "plan_name": "PPO Standard",
+    "plan_option_id": "ppo-standard",
+    "network_id": "nwd-ppo",
     "carrier_name": "Northwind Mutual Dental (synthetic)",
     "synthetic": true,
     "coverage_period_start": "2026-01-01",

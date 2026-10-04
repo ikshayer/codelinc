@@ -34,6 +34,8 @@ import { movedAssignments } from "./schedule";
 import { ScenarioColumn } from "./scenario-column";
 import type { ComparisonViewProps } from "./types";
 import { cn } from "@/lib/utils";
+import { PlanningDetails } from "./planning-details";
+import { MODE_OPTIONS } from "@/features/care-window/plan-modes";
 
 function Disclosure({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -81,15 +83,19 @@ function SourceNote({ sourceMode, fixtureName, engineVersion }: Pick<ComparisonV
  * Record-driven comparison body shared by the live Compare screen and History
  * snapshots. All money is read from the records and formatted, never computed.
  */
-export function ComparisonView({ comparison, scenario, procedureLabels, sourceMode, fixtureName, confirmedAt, historical }: ComparisonViewProps) {
+export function ComparisonView({ comparison, scenario, procedureLabels, sourceMode, fixtureName, confirmedAt, historical, planning, onPinDate }: ComparisonViewProps) {
   const [selection, setSelection] = useState<TraceSelection | null>(null);
   const { baseline, best, status } = comparison;
   const distinctBest = hasDistinctBest(comparison);
+  const customized = (planning?.locks.length ?? 0) > 0;
+  const priorityLabel = MODE_OPTIONS.find((m) => m.mode === planning?.mode)?.label;
   const shownRecords = distinctBest ? [baseline, best] : [baseline];
-  const otherRecords = status === "baselineBest" ? comparison.feasibleRecords.filter((record) => record.id !== baseline.id) : [];
+  const otherRecords = planning
+    ? planning.alternatives.map((a) => comparison.feasibleRecords.find((r) => r.id === a.recordId)).filter((r): r is CalculationRecord => !!r && r.id !== best.id && r.id !== baseline.id)
+    : status === "baselineBest" ? comparison.feasibleRecords.filter((record) => record.id !== baseline.id) : [];
 
-  const rows: ScheduleRow[] = [{ key: "baseline", label: "Baseline", record: baseline }];
-  if (distinctBest) rows.push({ key: "best", label: "Best dentist-permitted alternative", record: best });
+  const rows: ScheduleRow[] = [{ key: "baseline", label: customized && !distinctBest ? "Your plan" : "Baseline", record: baseline }];
+  if (distinctBest) rows.push({ key: "best", label: customized ? "Your plan" : "Best dentist-permitted alternative", record: best });
   const scheduleLabelFor = (record: CalculationRecord) => rows.find((row) => row.record === record)?.label ?? "Later schedule";
 
   const selectProcedure = (record: CalculationRecord, calculation: ProcedureCalculation) =>
@@ -113,13 +119,14 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
       )}
 
       <section aria-label="Comparison summary" className="space-y-6">
+        {planning && <p className="text-sm text-muted-foreground">Synthetic planning model · Your confirmed fees and plan rules · Priority: {priorityLabel}</p>}
         <motion.div layout className="grid items-start gap-5 md:grid-cols-12 md:gap-6">
           <AnimatePresence>
             <ScenarioColumn
               key="baseline"
               className={distinctBest ? "md:col-span-5" : "md:col-span-7"}
               headingId="column-baseline"
-              title="Baseline"
+              title={customized && !distinctBest ? "Your plan" : "Baseline"}
               description="Care on its planned dates"
               record={baseline}
               tone={distinctBest ? "quiet" : "primary"}
@@ -130,8 +137,8 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
                 key="best"
                 className="md:col-span-7"
                 headingId="column-best"
-                title="Best dentist-permitted alternative"
-                description="The lowest estimated cost among schedules your dentist permits"
+                title={customized ? "Your plan" : "Best dentist-permitted alternative"}
+                description={planning ? `Recommended for ${priorityLabel?.toLowerCase() ?? "your selected priority"} within your dentist's approved dates` : "The lowest estimated cost among schedules your dentist permits"}
                 record={best}
                 tone="primary"
                 delay={0.3}
@@ -181,6 +188,7 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
           </SectionHeading>
         </Reveal>
         <BenefitWindow scenario={scenario} rows={rows} procedureLabels={procedureLabels} onSelectProcedure={selectProcedure} />
+        {planning && <div className="mt-5 space-y-3"><PlanningDetails planning={planning} record={best} procedureLabels={procedureLabels} />{planning.issues.length > 0 && <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">{planning.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}<details className="rounded-lg border p-3 text-sm"><summary className="cursor-pointer font-medium">What this model includes</summary><ul className="mt-2 list-disc space-y-1 pl-5">{planning.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></details></div>}
       </section>
 
       <section aria-labelledby="why-heading">
@@ -214,9 +222,10 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
           </h2>
           <Disclosure label="Other permitted schedules we modeled">
             <div className="space-y-8">
-              <p className="text-sm text-muted-foreground">These schedules are permitted by your dentist but do not lower your estimated patient cost, so none is recommended.</p>
+              <p className="text-sm text-muted-foreground">{planning ? "Other schedules returned for your confirmed dates and selected priority." : "These schedules are permitted by your dentist but do not lower your estimated patient cost, so none is recommended."}</p>
               {otherRecords.map((record, index) => (
                 <div key={record.id} className="space-y-3">
+                  {planning && <p className="text-sm font-medium">{planning.alternatives.find((a) => a.recordId === record.id)?.labels.join(" · ")}</p>}
                   <ul className="list-disc space-y-1 pl-5 text-sm">
                     {movedAssignments(baseline, record).map((assignment) => (
                       <li key={assignment.procedureId}>
@@ -231,6 +240,7 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
                     procedureLabels={procedureLabels}
                     onSelectProcedure={(selected, calculation) => setSelection({ record: selected, calculation, scheduleLabel: `Later schedule ${index + 1}` })}
                   />
+                  {planning && <PlanningDetails planning={planning} record={record} procedureLabels={procedureLabels} />}
                 </div>
               ))}
             </div>
@@ -249,7 +259,7 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
         ))}
       </section>
 
-      <ProcedureTraceSheet selection={selection} procedureLabels={procedureLabels} onClose={() => setSelection(null)} />
+      <ProcedureTraceSheet selection={selection} procedureLabels={procedureLabels} onClose={() => setSelection(null)} onPinDate={historical ? undefined : onPinDate} pinnedDates={planning?.locks} />
     </div>
   );
 }

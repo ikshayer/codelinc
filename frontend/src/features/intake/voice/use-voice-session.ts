@@ -228,6 +228,10 @@ export function useVoiceSession(analysisId: string, storedTurns: Parameters<type
     async (raw: string) => {
       const text = raw.trim();
       if (!text) return;
+      if (!held.current.session && controllerRef.current.adapters.mode === "live") {
+        await start({ withMicrophone: false });
+        if (!held.current.session) return;
+      }
       const session = held.current.session;
       if (session) {
         // The session echoes the typed text as a final person turn.
@@ -257,7 +261,7 @@ export function useVoiceSession(analysisId: string, storedTurns: Parameters<type
         dispatch({ type: "typedNotice", message: "Nothing in that message could be added as a detail. Add it in Facts gathered." });
       }
     },
-    [analysisId, showProposals],
+    [analysisId, showProposals, start],
   );
 
   // Leaving the screen never leaves a microphone or session behind.

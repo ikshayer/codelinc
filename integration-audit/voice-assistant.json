@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-04",
+  "frontend": { "typecheck": "passed", "changedFilesLint": "passed", "unitTests": 180, "unitTestsPassed": true },
+  "backend": { "typecheck": "passed", "changedFilesLint": "passed", "dataTests": 3, "unitTests": 34, "unitTestsPassed": true, "frozenContracts": "71 files unchanged" },
+  "realBrowser": { "missingGeminiKeyErrorViaActualProxy": "passed", "typedSessionWithMockProvider": "passed", "transcriptAndProposed1500FactWithMockProvider": "passed", "browserWavPlaybackWithMockProvider": "passed", "stopSpeakingAndEndWithMockProvider": "passed", "proposalRemainsUnconfirmed": "passed" },
+  "realChatterbox": { "package": "0.1.7", "model": "chatterbox-turbo", "torch": "2.8.0+cu128", "modelDownloaded": true, "inferenceVerifiedOn": "cpu", "httpStatus": 200, "wavBytes": 109484, "sampleRate": 24000, "channels": 1, "durationSeconds": 2.28, "synthesisMs": 8543 },
+  "gpuFollowup": { "date": "2026-10-04", "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU", "cudaAvailable": true, "cudaBuild": "12.8", "capability": [12, 0], "matrixOperation": "passed", "chatterboxState": "ready", "realSynthesis": "passed", "warmSynthesisMs": 1655, "audioDurationSeconds": 2.16, "realTimeFactor": 0.77, "wavBytes": 103724, "sampleRate": 24000, "channels": 1 },
+  "liveFollowup": {
+    "date": "2026-10-04",
+    "model": "gemini-3.5-flash-lite",
+    "thinkingLevel": "MINIMAL",
+    "geminiKeyConfigured": true,
+    "typedConversationThroughWebappProxy": { "turnsPassed": 2, "speechStatus": [200, 200], "fullTurnThenFirstSentenceDownloadMs": [3689, 2719] },
+    "browserVoiceFlow": { "input": "synthetic WebAudio microphone stream; physical microphone untouched", "sessionStatus": 201, "audioTurnStatus": 200, "gpuSpeechStatus": 200, "endStatus": 204, "transcriptionPassed": true, "proposedMaximum1500Passed": true, "playbackPassed": true, "stopSpeakingPassed": true, "startThroughPlaybackMsIncludingSyntheticUtterance": 7751 },
+    "compatibilityFixes": ["Selected a model accessible to new projects", "Removed provider schema string/array bounds while retaining strict server validation"],
+    "servicesLeftRunning": ["frontend:3000", "data-api:3001", "voice-api:3002", "gpu-chatterbox:8001"]
+  },
+  "pending": ["Physical microphone and speaker behavior should be tested by the user", "End-of-speech to playback latency has not been separately measured"]
+}

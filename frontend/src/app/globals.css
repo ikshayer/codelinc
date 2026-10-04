@@ -129,7 +129,7 @@
   }
   html {
     @apply font-sans;
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 10rem;
   }
   :focus-visible {
     outline: 2px solid var(--ring);

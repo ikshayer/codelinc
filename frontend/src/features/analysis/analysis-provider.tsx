@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 import { createSeedSession } from "@/fixtures/seed-session";
 import { sampleTreatmentProposals } from "@/fixtures/sample-treatment";
 import { getAdapters } from "@/lib/adapters";
 import { memberExtraction, memberProfile, type MemberData } from "@/lib/adapters/live/member-data";
 import { newId } from "@/lib/adapters/shared";
-import type { AdapterResult, Adapters, IntakeExtraction } from "@/lib/adapters/types";
+import type { AdapterResult, Adapters, EngineCalculationOptions, IntakeExtraction } from "@/lib/adapters/types";
 import { evidenceKindsOf } from "@/lib/domain/draft";
 import { buildConfirmedScenario, draftValuesFromScenario } from "@/lib/domain/scenario";
 import type { AnalysisSnapshot, FactCandidate, FieldValue, PatientDetails, PatientProfile, ProcedureId, ValidationIssue } from "@/lib/domain/types";
@@ -69,7 +70,7 @@ export interface AnalysisController {
   setReportFile(analysisId: string, file: ReportFileMeta | null): void;
   setFinancialConfirmed(analysisId: string, value: boolean): void;
   setTimingAffirmed(analysisId: string, value: boolean): void;
-  compare(analysisId: string): CompareAttempt;
+  compare(analysisId: string, engineOptions?: EngineCalculationOptions): CompareAttempt;
   saveToHistory(analysisId: string): Promise<AdapterResult<AnalysisSnapshot>>;
   /** A saved snapshot was deleted: analyses that pointed at it are no longer saved. */
   clearSavedSnapshot(snapshotId: string): void;
@@ -93,6 +94,8 @@ function nowIso(): string {
 }
 
 export function AnalysisProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const engineDemo = pathname.startsWith("/care-window");
   const adapters = useMemo(() => getAdapters(), []);
   const [initialState] = useState<StoreState>(() => {
     const seed = createSeedSession(adapters.mode);
@@ -175,7 +178,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   );
 
   const compare = useCallback(
-    (analysisId: string): CompareAttempt => {
+    (analysisId: string, engineOptions?: EngineCalculationOptions): CompareAttempt => {
       const record = stateRef.current.analyses[analysisId];
       if (!record) throw new Error(`compare: unknown analysis ${analysisId}`);
       const built = buildConfirmedScenario(record.draft);
@@ -189,7 +192,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "startCalculation", analysisId, requestId: ticket.requestId, revision: ticket.revision, epoch: ticket.epoch });
       const scenario = { ...built.scenario, revision: ticket.revision };
       void adapters.calculation
-        .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal })
+        .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal, ...(engineOptions ? { engineOptions } : {}) })
         .catch((error: unknown) => {
           console.error("Calculation adapter failed", error);
           return { ok: false as const, error: { code: "UNKNOWN" as const, message: "The calculation failed unexpectedly. Your confirmed details are kept — try again.", retryable: true } };
@@ -265,13 +268,14 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
 
   // Session state for the auth slice. Account changes reset client caches.
   useEffect(() => {
+    if (engineDemo) return;
     const controller = new AbortController();
     void adapters.auth.getSession(controller.signal).then((result) => {
       if (controller.signal.aborted) return;
       dispatch({ type: "setAuth", auth: result.ok ? result.value : { status: "guest" } });
     });
     return () => controller.abort();
-  }, [adapters, dispatch]);
+  }, [adapters, dispatch, engineDemo]);
 
   // Stop media and abort everything when the app unmounts.
   useEffect(() => {

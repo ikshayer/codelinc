@@ -31,6 +31,8 @@ All files are in `tests/acceptance/**` (Planner-owned, frozen). Run one file wit
 | — | Golden scenario: exact cents, schedule, funding, deadline-change demo | `golden-scenario.test.ts` | Benefits + Optimizer |
 | — | Golden numbers re-derived independently (no `src/` imports) | `scripts/golden-check.mjs` (`npm run golden:check`) | Always green |
 
+**Added in 1.8.0:** AT-24 (`schedule_locks` strict tuples, exact preservation including route, server pin state, reset parity, invalid and infeasible pins, dependencies/slot conflicts, mode changes, bounded-search pin preservation, API strictness). Golden values unchanged.
+
 **Added in 1.7.0:** AT-23 (recommendation modes, alternative differences, solver metadata, same-day order warning, `preferences` API validation; golden `postvisit.modes`).
 
 **Added in 1.6.0:** AT-22 (Value/Standard/Enhanced options: load and validate, registry-unique ids, exact resolution per option, premium evidence, golden plan-option runs in `fixtures/golden/expected.json` → `plan_options`, waiting period, implant exclusion, orthodontic block, Enhanced carryover, `POST /api/plan-options`, passport stability). AT-21 gains the R2-M1/R2-L1 regressions. AT-00/AT-18 expect four plan versions; AT-20 uses the unseeded option `ppo-premier`; AT-20's five-optimization determinism test has an explicit 30 s timeout.

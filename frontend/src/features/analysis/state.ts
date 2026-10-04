@@ -1,4 +1,4 @@
-import type { AdapterError, AuthState, CalculationOutcome, IntakeExtraction } from "@/lib/adapters/types";
+import type { AdapterError, AuthState, CalculationOutcome, PlanningContext, IntakeExtraction } from "@/lib/adapters/types";
 import {
   addProcedure,
   applyProposals,
@@ -45,6 +45,7 @@ export type ResultState =
       sourceMode: CalculationSourceMode;
       fixtureName: string | null;
       confirmedAt: string;
+      planning?: PlanningContext;
     }
   | { status: "unavailable"; revision: number; message: string }
   | { status: "failed"; revision: number; error: AdapterError };
@@ -364,6 +365,7 @@ export function reducer(state: StoreState, action: Action): StoreState {
             comparison: outcome.value.comparison,
             sourceMode: outcome.value.sourceMode,
             fixtureName: outcome.value.fixtureName,
+            ...(outcome.value.planning ? { planning: outcome.value.planning } : {}),
             confirmedAt: action.now,
           };
         }

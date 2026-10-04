@@ -264,6 +264,8 @@ function passport(registry: PlanRegistry, member: MemberState, asOf: string): Be
     member_id: member.member_id,
     plan_version_id: plan.plan_version_id,
     plan_name: plan.plan_name,
+    plan_option_id: plan.key.plan_option_id,
+    network_id: plan.key.network_id,
     carrier_name: plan.carrier_name,
     synthetic: plan.synthetic,
     coverage_period_start: plan.coverage_period.start,

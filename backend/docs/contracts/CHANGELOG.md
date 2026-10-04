@@ -1,5 +1,15 @@
 # Contract changelog
 
+## 1.8.0 — 2026-10-04 — FROZEN (exact appointment pins and passport identity)
+
+Frontend alignment change request authorized by the task's exact-pin acceptance criteria. The attachment asserted existing locks, but this checkout lacked them; this additive extension supplies the required backend behavior. No existing golden values change.
+
+- Add strict `ScheduleLock`, optional `CarePlanRequest.schedule_locks`, and `ScheduledEvent.user_locked`.
+- Filter exact pin tuples before bounded search, forbid unscheduling pins, preserve clinical/dependency/slot constraints, and explicitly reject invalid or impossible pins.
+- Add registry-derived `BenefitPassport.plan_option_id` and `.network_id`; export `HealthData` type.
+- Regenerate schema-valid mocks and frozen manifest. AT-24 covers preservation, mode changes, reset, validation, incompatible pins, all-event pins, bounded-search preservation, and API strictness.
+- Existing alternative differences remain relative to the current run's recommendation. Cross-request before/after differences, arbitrary field locks, custom schedules, payment plans, persistence, and production identity remain separate work.
+
 ## 1.7.0 — 2026-10-04 — FROZEN (recommendation modes, deltas, solver metadata)
 
 CR 1.7.0 (MVP loop iteration 3; decision D-030). **No existing golden number changed**: with the default `BALANCED` mode the alternatives are identical to 1.6. Clauses marked **(1.7)**.
