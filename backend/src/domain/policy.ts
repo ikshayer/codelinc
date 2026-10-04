@@ -19,8 +19,9 @@ export const SEARCH_LIMITS = {
   max_slots_per_provider: 60,
   max_alternatives: 3,
   /**
-   * Checked BEFORE searching (CONTRACT §5.1): if Π over procedures of (candidates + 1)
-   * exceeds this, return INVALID_INPUT instead of running. The golden case is 6 × 6 × 26 = 936.
+   * (1.7) Search bound (CONTRACT §5.5): if Π over procedures of (candidates + 1) exceeds this,
+   * each procedure's candidate list is cut to the largest common k that fits and the result is
+   * BOUNDED_BEST_FOUND (never OPTIMAL). The golden case is 6 × 6 × 26 = 936.
    */
   max_schedules_evaluated: 50_000,
 } as const;

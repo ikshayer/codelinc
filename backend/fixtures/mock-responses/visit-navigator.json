@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.6.0",
+  "contract_version": "1.7.0",
   "ok": true,
   "data": {
-    "contract_version": "1.6.0",
+    "contract_version": "1.7.0",
     "engine_id": "optimizer-enum-1",
     "status": "OK",
     "as_of": "2026-10-05T14:00:00Z",

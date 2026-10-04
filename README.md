@@ -34,7 +34,7 @@ npm test
 ```
 
 The `/care-window` page calls the live engine (run `cd backend && npm run serve`;
-Next proxies `/api/engine/*` to it). Backend contract v1.6.0 and the optimizer are in
+Next proxies `/api/engine/*` to it). Backend contract v1.7.0 and the optimizer are in
 place, and the Benefits, API, and AI modules are implemented; the acceptance and
 integration suites pass.
 

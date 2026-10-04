@@ -6,7 +6,7 @@
  * process in docs/workflow.md. A bump must update docs/contracts/CHANGELOG.md
  * and re-run `npm run freeze`.
  */
-export const CONTRACT_VERSION = "1.6.0" as const;
+export const CONTRACT_VERSION = "1.7.0" as const;
 export type ContractVersion = typeof CONTRACT_VERSION;
 
 /** Freeze status of this contract version. */

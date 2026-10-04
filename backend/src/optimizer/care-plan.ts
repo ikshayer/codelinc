@@ -11,6 +11,7 @@ import {
   yearMonthOf,
   type AdjudicationLine,
   type Alternative,
+  type AlternativeDifference,
   type AlternativeLabel,
   type AppointmentSlot,
   type CarePlanRequest,
@@ -28,10 +29,12 @@ import {
   type ProcedureRecommendation,
   type ProviderOption,
   type ReasonCode,
+  type RecommendationMode,
   type RolloverShift,
   type RouteComparison,
   type ScheduledEvent,
   type SimulationResult,
+  type SolverMeta,
 } from "@/domain";
 import type { BenefitEngine, CarePlanOptimizer } from "@/domain/ports";
 import {
@@ -49,6 +52,16 @@ const alternativeLabelOrder: AlternativeLabel[] = [
   "earliest_safe_completion",
   "smoothest_monthly_payments",
 ];
+/** Label order inside one alternative: the LOWEST_TOTAL_COST winner's own label first. */
+const alternativeLabelDisplayOrder: AlternativeLabel[] = ["lowest_member_cost", ...alternativeLabelOrder];
+/** (1.7) §4.1: the ranking key (= label) each mode recommends. */
+const modeLabel: Record<RecommendationMode, AlternativeLabel> = {
+  BALANCED: "lowest_total_cost",
+  LOWEST_TOTAL_COST: "lowest_member_cost",
+  EARLIEST_SAFE_COMPLETION: "earliest_safe_completion",
+  SMOOTHEST_PAYMENTS: "smoothest_monthly_payments",
+};
+const DETERMINISTIC_TIE_BREAKER = "service dates, then provider ids, then claim routes, then slot ids, urgency-then-procedure-id order";
 const reasonOrder: ReasonCode[] = [
   "WITHIN_SAFE_WINDOW",
   "MEETS_DENTIST_TARGET",
@@ -105,6 +118,7 @@ function emptyResult(
   unresolved: Issue[],
   trace: DecisionTraceEntry[],
   stats: CarePlanResult["search_stats"] = { candidates_built: 0, schedules_evaluated: 0, schedules_feasible: 0, pass: 1 },
+  boundsApplied: string[] = [],
 ): CarePlanResult {
   return {
     contract_version: CONTRACT_VERSION,
@@ -113,11 +127,25 @@ function emptyResult(
     as_of: request.as_of,
     as_of_date: asOfDate,
     recommended_alternative_id: null,
+    mode: request.preferences?.mode ?? "BALANCED",
     alternatives: [],
     evidence: [],
     unresolved: uniqueIssues(unresolved),
     decision_trace: trace,
     search_stats: stats,
+    solver_meta: solverMeta("NO_FEASIBLE_SOLUTION", stats, boundsApplied),
+  };
+}
+
+function solverMeta(status: SolverMeta["status"], stats: CarePlanResult["search_stats"], boundsApplied: string[]): SolverMeta {
+  return {
+    status,
+    candidates_built: stats.candidates_built,
+    schedules_evaluated: stats.schedules_evaluated,
+    schedules_rejected: stats.schedules_evaluated - stats.schedules_feasible,
+    elapsed_ms: null,
+    deterministic_tie_breaker: DETERMINISTIC_TIE_BREAKER,
+    bounds_applied: boundsApplied,
   };
 }
 
@@ -653,6 +681,16 @@ function rankingKey(schedule: EvaluatedSchedule, label: AlternativeLabel): (numb
     objective.expiring_funds_unused_cents,
     ...schedule.tieKey,
   ];
+  if (label === "lowest_member_cost") {
+    return [
+      ...objective.unscheduled_by_urgency,
+      objective.funding_shortfall_cents,
+      objective.total_member_cost_cents,
+      ...objective.lateness_days_by_urgency,
+      objective.peak_monthly_cash_cents,
+      ...commonEnd,
+    ];
+  }
   if (label === "earliest_safe_completion") {
     return [
       ...flatObjectivePrefix(objective),
@@ -744,6 +782,58 @@ function eventReasons(
   return [...new Set(reasons)].sort((a, b) => reasonOrder.indexOf(a) - reasonOrder.indexOf(b));
 }
 
+function formatDollars(cents: number): string {
+  const dollars = cents / 100;
+  const whole = Number.isInteger(dollars);
+  return `$${dollars.toLocaleString("en-US", { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * (1.7) §6.5: same-day claims are processed in (service_date, event_id) order, which can change who
+ * absorbs the deductible or the annual maximum. For each date with 2+ claim events, re-simulate that
+ * date's claim events in reverse order and warn when the worst-case member total differs.
+ */
+function sameDayOrderIssues(
+  benefits: BenefitEngine,
+  registry: PlanRegistry,
+  request: CarePlanRequest,
+  events: ClaimEvent[],
+  memberTotalCents: number,
+  prefix: string,
+): Issue[] {
+  const claimIndexesByDate = new Map<string, number[]>();
+  events.forEach((event, index) => {
+    if (event.claim_route === "SELF_PAY_NO_CLAIM") return;
+    claimIndexesByDate.set(event.service_date, [...(claimIndexesByDate.get(event.service_date) ?? []), index]);
+  });
+  const issues: Issue[] = [];
+  for (const [, indexes] of [...claimIndexesByDate].sort(([a], [b]) => compareStrings(a, b))) {
+    if (indexes.length < 2) continue;
+    const reordered = [...events];
+    indexes.forEach((eventIndex, position) => {
+      reordered[eventIndex] = events[indexes[indexes.length - 1 - position]!]!;
+    });
+    const simulation = benefits.simulate(registry, {
+      as_of: request.as_of,
+      scenario: "worst_case",
+      member: request.member,
+      providers: request.providers,
+      events: reordered.map((event, index) => ({ ...event, event_id: `${prefix}-o${String(index + 1).padStart(2, "0")}` })),
+    });
+    const otherTotal = simulation.totals?.member_responsibility_cents;
+    if (otherTotal === undefined || otherTotal === memberTotalCents) continue;
+    issues.push(
+      issue(
+        "SAME_DAY_ORDER_AFFECTS_COST",
+        "warning",
+        `The order the plan processes same-day claims changes your cost: ${formatDollars(memberTotalCents)} in this order, ${formatDollars(otherTotal)} in the other.`,
+        { procedure_id: events[indexes[0]!]!.procedure_id },
+      ),
+    );
+  }
+  return issues;
+}
+
 function finalAlternative(
   benefits: BenefitEngine,
   registry: PlanRegistry,
@@ -828,12 +918,13 @@ function finalAlternative(
   });
   const worstTotals = worst.totals!;
   const bestTotals = best.totals!;
+  const sameDayIssues = sameDayOrderIssues(benefits, registry, request, events, worstTotals.member_responsibility_cents, alternativeId);
   const ruleIds = [
     ...new Set([...worst.applied_rule_ids, ...best.applied_rule_ids, ...worst.rollover.flatMap((outcome) => outcome.applied_rule_ids)]),
   ].sort(compareStrings);
   return {
     alternative_id: alternativeId,
-    labels: [...labels].sort((a, b) => alternativeLabelOrder.indexOf(a) - alternativeLabelOrder.indexOf(b)),
+    labels: [...labels].sort((a, b) => alternativeLabelDisplayOrder.indexOf(a) - alternativeLabelDisplayOrder.indexOf(b)),
     schedule_key: schedule.scheduleKey,
     events: scheduledEvents,
     unscheduled: schedule.unscheduled,
@@ -849,9 +940,134 @@ function finalAlternative(
     benefit_states: scheduledEvents.map((event) => ({ event_id: event.event_id, state_after: event.line_worst.state_after! })),
     objective: recalculated.objective,
     applied_rule_ids: ruleIds,
-    issues: uniqueIssues([...simulationIssues(worst), ...simulationIssues(best), ...funding.issues]),
+    issues: uniqueIssues([...simulationIssues(worst), ...simulationIssues(best), ...funding.issues, ...sameDayIssues]),
     rollover: worst.rollover,
+    difference_from_recommended: null,
   };
+}
+
+function monthlyCashByMonth(alternative: Alternative): Map<string, number> {
+  return new Map(alternative.monthly.map((month) => [month.month, month.cash_cents]));
+}
+
+function serviceDatesByProcedure(alternative: Alternative): Map<string, string | null> {
+  const dates = new Map<string, string | null>();
+  for (const entry of alternative.unscheduled) dates.set(entry.procedure_id, null);
+  for (const event of alternative.events) dates.set(event.procedure_id, event.service_date);
+  return dates;
+}
+
+/** Final annual-maximum state of each plan version the schedule touches (benefit_states is chronological). */
+function lastAnnualMaxByPlanVersion(alternative: Alternative): Map<string, number> {
+  const planVersionByEvent = new Map(alternative.events.map((event) => [event.event_id, event.line_worst.plan_version_id]));
+  const remaining = new Map<string, number>();
+  for (const { event_id, state_after } of alternative.benefit_states) {
+    const planVersionId = planVersionByEvent.get(event_id);
+    if (planVersionId) remaining.set(planVersionId, state_after.annual_max_remaining_cents);
+  }
+  return remaining;
+}
+
+/** Σ final_bank over the rollover outcomes; null when any outcome's final_bank is unknown. */
+function rolloverFinalBank(alternative: Alternative): { low_cents: number; high_cents: number } | null {
+  let low = 0;
+  let high = 0;
+  for (const outcome of alternative.rollover) {
+    if (outcome.final_bank === null) return null;
+    low += outcome.final_bank.low_cents;
+    high += outcome.final_bank.high_cents;
+  }
+  return { low_cents: low, high_cents: high };
+}
+
+function issueCodes(alternative: Alternative): Set<Issue["code"]> {
+  return new Set(alternative.issues.map((value) => value.code));
+}
+
+function setDifference<T extends string>(from: Set<T>, minus: Set<T>): T[] {
+  return [...from].filter((value) => !minus.has(value)).sort(compareStrings);
+}
+
+/** (1.7) §6.3: this − recommended, worst case, from two finished alternatives (no benefit-engine calls). */
+function differenceFromRecommended(recommended: Alternative, alternative: Alternative): AlternativeDifference {
+  const recommendedMonths = monthlyCashByMonth(recommended);
+  const months = monthlyCashByMonth(alternative);
+  const recommendedDates = serviceDatesByProcedure(recommended);
+  const dates = serviceDatesByProcedure(alternative);
+  const recommendedBank = rolloverFinalBank(recommended);
+  const bank = rolloverFinalBank(alternative);
+  const recommendedMaximum = lastAnnualMaxByPlanVersion(recommended);
+  const maximum = lastAnnualMaxByPlanVersion(alternative);
+  const recommendedCodes = issueCodes(recommended);
+  const codes = issueCodes(alternative);
+  const recommendedCompletion = recommended.objective.completion_date;
+  const completion = alternative.objective.completion_date;
+  return {
+    member_cost_delta_cents: alternative.totals.member_cost.high_cents - recommended.totals.member_cost.high_cents,
+    plan_pay_delta_cents: alternative.totals.plan_pay.high_cents - recommended.totals.plan_pay.high_cents,
+    peak_monthly_cash_delta_cents: alternative.objective.peak_monthly_cash_cents - recommended.objective.peak_monthly_cash_cents,
+    monthly: [...new Set([...recommendedMonths.keys(), ...months.keys()])].sort(compareStrings).map((month) => ({
+      month,
+      cash_delta_cents: (months.get(month) ?? 0) - (recommendedMonths.get(month) ?? 0),
+    })),
+    completion_shift_days: recommendedCompletion !== null && completion !== null ? diffDays(recommendedCompletion, completion) : null,
+    service_date_changes: [...new Set([...recommendedDates.keys(), ...dates.keys()])].sort(compareStrings).flatMap((procedureId) => {
+      const recommendedDate = recommendedDates.get(procedureId) ?? null;
+      const thisDate = dates.get(procedureId) ?? null;
+      if (recommendedDate === thisDate) return [];
+      return [
+        {
+          procedure_id: procedureId,
+          recommended_date: recommendedDate,
+          this_date: thisDate,
+          shift_days: recommendedDate !== null && thisDate !== null ? diffDays(recommendedDate, thisDate) : null,
+        },
+      ];
+    }),
+    rollover_final_bank_delta:
+      bank !== null && recommendedBank !== null
+        ? { low_cents: bank.low_cents - recommendedBank.low_cents, high_cents: bank.high_cents - recommendedBank.high_cents }
+        : null,
+    annual_max_remaining_delta: [...maximum.keys()]
+      .filter((planVersionId) => recommendedMaximum.has(planVersionId))
+      .sort(compareStrings)
+      .map((planVersionId) => ({
+        plan_version_id: planVersionId,
+        delta_cents: maximum.get(planVersionId)! - recommendedMaximum.get(planVersionId)!,
+      })),
+    warnings_added: setDifference(codes, recommendedCodes),
+    warnings_removed: setDifference(recommendedCodes, codes),
+  };
+}
+
+/**
+ * The mode winner first, then every label winner in order; schedules shared by several winners merge
+ * their labels. `lowest_member_cost` is only ever the LOWEST_TOTAL_COST mode's label.
+ */
+function selectAlternatives(
+  pool: EvaluatedSchedule[],
+  mode: RecommendationMode,
+): { schedule: EvaluatedSchedule; labels: AlternativeLabel[] }[] {
+  const selected: { schedule: EvaluatedSchedule; labels: AlternativeLabel[] }[] = [];
+  for (const label of [modeLabel[mode], ...alternativeLabelOrder]) {
+    const best = [...pool].sort((a, b) => compareKeys(rankingKey(a, label), rankingKey(b, label)))[0]!;
+    const existing = selected.find((entry) => sameStringVector(entry.schedule.tieKey, best.tieKey));
+    if (!existing) selected.push({ schedule: best, labels: [label] });
+    else if (!existing.labels.includes(label)) existing.labels.push(label);
+  }
+  return selected;
+}
+
+/**
+ * Largest k such that Π(min(len, k) + 1) over the procedures stays within the schedule limit, or null
+ * when no cap is needed (bounded search).
+ */
+function candidateCapFor(lengths: number[]): number | null {
+  const product = (cap: number) => lengths.reduce((total, length) => total * (Math.min(length, cap) + 1), 1);
+  if (product(Infinity) <= SEARCH_LIMITS.max_schedules_evaluated) return null;
+  let cap = Math.max(...lengths);
+  while (cap > 0 && product(cap) > SEARCH_LIMITS.max_schedules_evaluated) cap -= 1;
+  return cap;
 }
 
 export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimizer {
@@ -877,21 +1093,16 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         message: "Treatment candidates were built from safe dates, availability, specialty, and travel limits.",
         data: Object.fromEntries([...candidates].sort(([a], [b]) => compareStrings(a, b)).map(([id, values]) => [id, values.length])),
       });
-      let combinationCount = 1;
-      for (const procedure of [...request.procedures].sort((a, b) => compareStrings(a.procedure_id, b.procedure_id))) {
-        combinationCount *= (candidates.get(procedure.procedure_id)?.length ?? 0) + 1;
-        if (combinationCount > SEARCH_LIMITS.max_schedules_evaluated) break;
-      }
-      if (combinationCount > SEARCH_LIMITS.max_schedules_evaluated) {
-        return emptyResult(
-          request,
-          asOfDate,
-          "INVALID_INPUT",
-          [issue("SCHEMA_INVALID", "blocking", "Too many schedule combinations; narrow providers or dates.", { field: "providers" })],
-          trace,
-          { candidates_built: candidateCount, schedules_evaluated: 0, schedules_feasible: 0, pass: 1 },
-        );
-      }
+      const mode = request.preferences?.mode ?? "BALANCED";
+      const candidateCap = candidateCapFor(request.procedures.map((procedure) => candidates.get(procedure.procedure_id)?.length ?? 0));
+      const boundsApplied =
+        candidateCap === null
+          ? []
+          : [`max_schedules_evaluated=${SEARCH_LIMITS.max_schedules_evaluated}: candidates per procedure capped at ${candidateCap}`];
+      const searchCandidates =
+        candidateCap === null
+          ? candidates
+          : new Map([...candidates].map(([procedureId, values]) => [procedureId, values.slice(0, candidateCap)] as [string, Candidate[]]));
 
       const candidateDates = [...new Set([...candidates.values()].flatMap((values) => values.map((value) => value.slot.date)))].sort(compareStrings);
       const planIssues: Issue[] = [];
@@ -1028,7 +1239,7 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
           return;
         }
         const procedure = ordered[index]!;
-        const options: (Candidate | null)[] = [...(candidates.get(procedure.procedure_id) ?? []), null];
+        const options: (Candidate | null)[] = [...(searchCandidates.get(procedure.procedure_id) ?? []), null];
         for (const candidate of options) {
           const slotKey = candidate ? `${candidate.provider.provider_id}@${candidate.slot.slot_id}` : null;
           if (slotKey && usedSlots.has(slotKey)) continue;
@@ -1060,7 +1271,7 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
 
       const statsBase = { candidates_built: candidateCount, schedules_evaluated: schedulesEvaluated, schedules_feasible: evaluated.length };
       if (uAll !== null && (uOk === null || compareNumberVectors(uOk, uAll) > 0)) {
-        return emptyResult(request, asOfDate, "NEEDS_CONFIRMATION", rejectedIssues, trace, { ...statsBase, pass: 1 });
+        return emptyResult(request, asOfDate, "NEEDS_CONFIRMATION", rejectedIssues, trace, { ...statsBase, pass: 1 }, boundsApplied);
       }
       if (!evaluated.length) {
         const noSlots = request.procedures
@@ -1070,7 +1281,7 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
               procedure_id: procedure.procedure_id,
             }),
           );
-        return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", noSlots, trace, { ...statsBase, pass: 1 });
+        return emptyResult(request, asOfDate, "NO_FEASIBLE_SCHEDULE", noSlots, trace, { ...statsBase, pass: 1 }, boundsApplied);
       }
 
       const minimumUnscheduled = uOk!;
@@ -1087,23 +1298,22 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         data: { pass, schedules_evaluated: schedulesEvaluated, schedules_feasible: evaluated.length, pool_size: pool.length },
       });
 
-      const selected: { schedule: EvaluatedSchedule; labels: AlternativeLabel[] }[] = [];
-      for (const label of alternativeLabelOrder) {
-        const best = [...pool].sort((a, b) => compareKeys(rankingKey(a, label), rankingKey(b, label)))[0]!;
-        const existing = selected.find((entry) => sameStringVector(entry.schedule.tieKey, best.tieKey));
-        if (existing) existing.labels.push(label);
-        else selected.push({ schedule: best, labels: [label] });
-      }
-      const limited = selected.slice(0, request.max_alternatives);
-      const alternatives = limited.map((entry, index) =>
+      const limited = selectAlternatives(pool, mode).slice(0, request.max_alternatives);
+      const finished = limited.map((entry, index) =>
         finalAlternative(benefits, registry, request, candidates, entry.schedule, `alt-${index + 1}`, entry.labels),
+      );
+      const recommended = finished[0];
+      const alternatives = finished.map((alternative, index) =>
+        index === 0 || recommended === undefined
+          ? alternative
+          : { ...alternative, difference_from_recommended: differenceFromRecommended(recommended, alternative) },
       );
       for (const alternative of alternatives) {
         trace.push({
           seq: trace.length,
           kind: "ALTERNATIVE_SELECTED",
           message: "A distinct ranked care plan alternative was selected.",
-          data: { alternative_id: alternative.alternative_id, labels: alternative.labels, objective: alternative.objective },
+          data: { mode, alternative_id: alternative.alternative_id, labels: alternative.labels, objective: alternative.objective },
         });
       }
 
@@ -1146,11 +1356,17 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         as_of: request.as_of,
         as_of_date: asOfDate,
         recommended_alternative_id: alternatives[0]?.alternative_id ?? null,
+        mode,
         alternatives,
         evidence: benefits.evidenceFor(registry, ruleIds).sort((a, b) => compareStrings(a.rule_id, b.rule_id)),
         unresolved: uniqueIssues(unresolved),
         decision_trace: trace,
         search_stats: { ...statsBase, pass },
+        solver_meta: solverMeta(
+          candidateCap !== null ? "BOUNDED_BEST_FOUND" : status === "NO_FEASIBLE_SCHEDULE" ? "NO_FEASIBLE_SOLUTION" : "OPTIMAL",
+          { ...statsBase, pass },
+          boundsApplied,
+        ),
       };
     },
   };

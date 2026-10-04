@@ -348,6 +348,8 @@ function careplan(member, providers, procs, asOf, horizon) {
     earliest_safe_completion: [o("unsched"), o("late"), o("shortfall"), o("completion"), o("cost"), o("peak"), o("travel"), o("visitDays"), o("wait"), o("unused"), o("tie")],
     smoothest_monthly_payments: [o("unsched"), o("late"), o("shortfall"), o("peak"), o("cost"), o("travel"), o("visitDays"), o("wait"), o("unused"), o("tie")],
   };
+  // (1.7) CONTRACT §5.5 LOWEST_TOTAL_COST: unscheduled, shortfall, cost, THEN lateness, peak, common (label lowest_member_cost).
+  const MEMBER_COST_KEY = [o("unsched"), o("shortfall"), o("cost"), o("late"), o("peak"), o("travel"), o("visitDays"), o("wait"), o("unused"), o("tie")];
   // CONTRACT 1.0.0: pool = shortfall-0 schedules, else all. MODE=v11: one pool; shortfall ranks after unscheduled+lateness.
   let pool, pass;
   if (!V10) {
@@ -368,7 +370,24 @@ function careplan(member, providers, procs, asOf, horizon) {
     const ex = alts.find((a) => a.s === best);
     if (ex) ex.labels.push(label); else alts.push({ s: best, labels: [label] });
   }
-  return { count: schedules.length, selfPayRejected, blockedCount, blockedWhy, fullCount: schedules.filter((s) => s.obj.unsched.every((x) => x === 0)).length, pass, alts, cands, order };
+  // (1.7) §5.5 modes: the mode's winner first, then the three label winners; one entry per distinct schedule, labels merged
+  // (display order lowest_member_cost, lowest_total_cost, earliest_safe_completion, smoothest_monthly_payments).
+  const ALL_KEYS = { lowest_member_cost: MEMBER_COST_KEY, ...KEYS };
+  const MODE_LABEL = { BALANCED: "lowest_total_cost", LOWEST_TOTAL_COST: "lowest_member_cost", EARLIEST_SAFE_COMPLETION: "earliest_safe_completion", SMOOTHEST_PAYMENTS: "smoothest_monthly_payments" };
+  const scheduleKey = (s) => [...order].sort((a, b) => (a.procedure_id < b.procedure_id ? -1 : 1))
+    .map((p) => { const l = s.ev.find((x) => x.pid === p.procedure_id); return l ? `${p.procedure_id}@${l.date}@${l.provider_id}@${l.route}` : `${p.procedure_id}@unscheduled`; }).join("|");
+  const modes = {};
+  for (const [mode, first] of Object.entries(MODE_LABEL)) {
+    const picked = [];
+    for (const label of [first, "lowest_total_cost", "earliest_safe_completion", "smoothest_monthly_payments"]) {
+      const best = [...pool].sort(cmp(ALL_KEYS[label]))[0];
+      const ex = picked.find((a) => a.s === best);
+      if (!ex) picked.push({ s: best, labels: [label] }); else if (!ex.labels.includes(label)) ex.labels.push(label);
+    }
+    const labelOrder = Object.keys(ALL_KEYS);
+    modes[mode] = picked.map((a) => ({ schedule_key: scheduleKey(a.s), member_cost_cents: a.s.obj.cost, labels: a.labels.sort((x, y) => labelOrder.indexOf(x) - labelOrder.indexOf(y)) }));
+  }
+  return { count: schedules.length, selfPayRejected, blockedCount, blockedWhy, fullCount: schedules.filter((s) => s.obj.unsched.every((x) => x === 0)).length, pass, alts, cands, order, modes };
 }
 
 function show(r) {
@@ -629,6 +648,20 @@ const rolloverShift = (r, alt, pid) => {
     assert.deepEqual(got, want, `plan option run ${run.case}`);
   }
 }
+{ console.log("\n== MODES (1.7)");
+  const M = Object.fromEntries(Object.entries(G.postvisit.modes).filter(([k]) => !k.startsWith("_")));
+  assert.deepEqual(Object.keys(M).sort(), Object.keys(R.base.modes).sort(), "modes: every mode present");
+  for (const [mode, g] of Object.entries(M)) {
+    const rec = R.base.modes[mode][0];
+    console.log(`  ${mode}: recommends ${rec.schedule_key} cost=${rec.member_cost_cents} labels=${rec.labels.join(",")}`);
+    assert.deepEqual({ recommended_schedule_key: rec.schedule_key, member_cost_cents: rec.member_cost_cents, labels: rec.labels }, g, `modes ${mode}`);
+  }
+  // BALANCED reproduces the base alternatives exactly (same order and labels)
+  assert.deepEqual(R.base.modes.BALANCED.map((a) => a.labels), B.alternatives.map((a) => a.labels), "BALANCED alternatives = base");
+  const costs = Object.values(M).map((g) => g.member_cost_cents);
+  assert.equal(M.LOWEST_TOTAL_COST.member_cost_cents, Math.min(...costs), "LOWEST_TOTAL_COST recommends the cheapest");
+  assert.notEqual(M.EARLIEST_SAFE_COMPLETION.recommended_schedule_key, M.BALANCED.recommended_schedule_key, "modes rerank (§14.3 #1)");
+}
 // AT-01: missing annual maximum → NEEDS_CONFIRMATION, no alternatives
 assert.equal(R.missing_max.alts.length, 0, "missing annual_maximum.2026 → alternatives []");
-console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced, route comparisons, rollover and plan options included (contract ${V10 ? "1.0.0" : CURRENT} rules)`);
+console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced, route comparisons, rollover, plan options and modes included (contract ${V10 ? "1.0.0" : CURRENT} rules)`);

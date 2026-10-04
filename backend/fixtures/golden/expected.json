@@ -115,6 +115,21 @@
       ]
     },
     "rollover_shift_null_for": ["proc-rc-30", "proc-crown-30", "proc-fill-14"],
+    "modes": {
+      "_comment": "(1.7) CONTRACT 5.5 recommendation modes on the base scenario: the recommended (alt-1) schedule, its worst-case member cost and its labels per mode. LOWEST_TOTAL_COST = unscheduled, shortfall, cost, lateness, peak (label lowest_member_cost); here it coincides with BALANCED because the cheapest schedule is already on the dentist target dates.",
+      "BALANCED": {
+      "recommended_schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2027-01-05@prov-rivera@IN_NETWORK_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM", "member_cost_cents": 137200, "labels": ["lowest_total_cost", "smoothest_monthly_payments"]
+      },
+      "LOWEST_TOTAL_COST": {
+      "recommended_schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2027-01-05@prov-rivera@IN_NETWORK_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM", "member_cost_cents": 137200, "labels": ["lowest_member_cost", "lowest_total_cost", "smoothest_monthly_payments"]
+      },
+      "EARLIEST_SAFE_COMPLETION": {
+      "recommended_schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2026-10-22@prov-rivera@SELF_PAY_NO_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM", "member_cost_cents": 142600, "labels": ["earliest_safe_completion"]
+      },
+      "SMOOTHEST_PAYMENTS": {
+      "recommended_schedule_key": "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2027-01-05@prov-rivera@IN_NETWORK_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM", "member_cost_cents": 137200, "labels": ["lowest_total_cost", "smoothest_monthly_payments"]
+      }
+    },
     "route_comparisons": {
       "_comment": "(1.2) CONTRACT §5.9. Whole-schedule worst-case member total with the event as its tier's claim vs SELF_PAY_NO_CLAIM, everything else unchanged. Unknown totals are null; missing lists issue codes only.",
       "null_for": ["proc-rc-30", "proc-crown-30"],

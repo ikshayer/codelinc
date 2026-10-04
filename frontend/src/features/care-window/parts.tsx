@@ -47,6 +47,9 @@ export function formatRange(range: { low_cents: number; high_cents: number } | n
   return range.low_cents === range.high_cents ? formatCents(range.high_cents) : `${formatCents(range.low_cents)} to ${formatCents(range.high_cents)}`;
 }
 
+/** Engine cents with an explicit sign (+ or −), for deltas. */
+export const signedCents = (cents: number) => `${cents < 0 ? "−" : "+"}${formatCents(Math.abs(cents))}`;
+
 /** "RULE_UNKNOWN" → "Rule unknown". Fallback for codes without a hand-written label. */
 export function humanize(code: string): string {
   const text = code.toLowerCase().replace(/_/g, " ");

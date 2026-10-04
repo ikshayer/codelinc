@@ -2,7 +2,7 @@
 
 import type { ExplainRequest } from "@engine/api";
 import type { RolloverOutcome, RolloverStatus } from "@engine/benefits";
-import type { Alternative, AlternativeLabel, EvidenceIndexEntry, NextAction, ReasonCode, ScheduledEvent } from "@engine/optimizer";
+import type { Alternative, AlternativeLabel, EvidenceIndexEntry, NextAction, ReasonCode, RecommendationMode, ScheduledEvent } from "@engine/optimizer";
 import type { Urgency } from "@engine/procedure";
 import { CalendarCheckIcon } from "lucide-react";
 import { useId, useState } from "react";
@@ -30,14 +30,16 @@ import {
 } from "@/lib/adapters/live/engine";
 import { formatIsoDate } from "@/lib/domain/dates";
 import { formatCents } from "@/lib/domain/money";
-import { EvidenceList, ExplainPanel, IssueList, formatRange, humanize, useEngineCall, withoutShared } from "./parts";
+import { EvidenceList, ExplainPanel, IssueList, formatRange, humanize, signedCents, useEngineCall, withoutShared } from "./parts";
+import { DEFAULT_MODE, DifferenceList, PrioritySelector, SolverLine, withMode } from "./plan-modes";
 import { CLAIM_ROUTE } from "./visit-navigator";
 
 const URGENCY: Record<Urgency, string> = { act_now: "Act now", schedule_soon: "Schedule soon", can_plan_later: "Can plan later" };
 
-const ALT_LABEL: Record<AlternativeLabel, string> = {
-  lowest_total_cost: "Lowest total cost",
-  earliest_safe_completion: "Finishes soonest",
+export const ALT_LABEL: Record<AlternativeLabel, string> = {
+  lowest_total_cost: "Balanced: lowest cost on your dentist's target dates",
+  lowest_member_cost: "Lowest total cost",
+  earliest_safe_completion: "Earliest safe completion",
   smoothest_monthly_payments: "Smoothest monthly payments",
 };
 
@@ -80,6 +82,7 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
   const [confirmation, confirm, resetConfirmation] = useEngineCall<ConfirmData>();
   const [plan, optimize, resetPlan] = useEngineCall<CarePlanResult>();
   const [planRequest, setPlanRequest] = useState<CarePlanRequest | null>(null);
+  const [mode, setMode] = useState<RecommendationMode>(DEFAULT_MODE);
 
   const doc = scenario.documents.find((d) => d.document_id === documentId);
   const needsConsent = doc?.kind === "transcript";
@@ -127,8 +130,17 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
       planning_horizon_end: scenario.planning_horizon_end,
       max_alternatives: 3,
     };
-    setPlanRequest(body);
-    await optimize((signal) => engine.carePlan(body, signal));
+    const request = mode === DEFAULT_MODE ? body : withMode(body, mode);
+    setPlanRequest(request);
+    await optimize((signal) => engine.carePlan(request, signal));
+  }
+
+  async function changeMode(next: RecommendationMode) {
+    setMode(next);
+    if (!planRequest) return;
+    const request = withMode(planRequest, next);
+    setPlanRequest(request);
+    await optimize((signal) => engine.carePlan(request, signal));
   }
 
   return (
@@ -224,8 +236,14 @@ export function CarePlanSection({ scenario }: { scenario: DemoScenario }) {
         </div>
       )}
 
+      {planRequest && <PrioritySelector value={mode} onChange={changeMode} disabled={plan.status === "loading"} />}
+      {plan.status === "loading" && planRequest && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+          <Spinner /> Updating your care plan options…
+        </p>
+      )}
       {plan.status === "error" && <ErrorPanel title="Couldn't build a care plan" error={plan.error} />}
-      {plan.status === "ready" && planRequest && <PlanResult result={plan.data} request={planRequest} scenario={scenario} />}
+      {plan.status === "ready" && planRequest && <PlanResult key={plan.data.mode} result={plan.data} request={planRequest} scenario={scenario} />}
     </section>
   );
 }
@@ -338,6 +356,7 @@ function PlanResult({ result, request, scenario }: { result: CarePlanResult; req
           ))}
         </Tabs>
       )}
+      <SolverLine meta={result.solver_meta} />
       <EvidenceList evidence={result.evidence} />
       <ExplainPanel label="Why this plan?" request={explain} />
     </div>
@@ -419,6 +438,12 @@ function AlternativeView({
           </ul>
         </div>
       )}
+      {alt.difference_from_recommended && (
+        <DifferenceList
+          difference={alt.difference_from_recommended}
+          procedureName={(id) => request.procedures.find((p) => p.procedure_id === id)?.description ?? id}
+        />
+      )}
       <RolloverPanel outcomes={alt.rollover} evidence={evidence} />
       <IssueList issues={withoutShared(alt.issues, shared)} />
     </div>
@@ -436,7 +461,6 @@ const ROLLOVER_STATUS: Record<RolloverStatus, { label: string; chip: ChipStatus 
 
 export const rolloverStatusLabel = (status: RolloverStatus) => ROLLOVER_STATUS[status].label;
 const belowWord = (o: RolloverOutcome) => (o.threshold_comparison === "LT" ? "below" : "at or below");
-const signedCents = (cents: number) => `${cents < 0 ? "−" : "+"}${formatCents(Math.abs(cents))}`;
 
 export function RolloverPanel({ outcomes, evidence }: { outcomes: RolloverOutcome[]; evidence: EvidenceIndexEntry[] }) {
   if (outcomes.length === 0) return null;

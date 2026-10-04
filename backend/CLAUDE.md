@@ -2,7 +2,7 @@
 
 A calm, evidence-backed assistant that helps a member choose where and when to get dental care, use coverage, and fund the rest. Two modes on one deterministic foundation: **Visit Navigator** (before the visit) and **Care Plan Optimizer** (after the visit). Synthetic data only.
 
-**Scope source of truth:** `docs/spec/Dental_Optimizer_Algorithm_and_Claude_Agent_Spec.md`. **Behavior:** `docs/contracts/CONTRACT-v1.md` (contract **v1.6.0, FROZEN**). `CAREWINDOW_ARCHITECTURE.md` is the earlier design, kept for reference only (decision D-001).
+**Scope source of truth:** `docs/spec/Dental_Optimizer_Algorithm_and_Claude_Agent_Spec.md`. **Behavior:** `docs/contracts/CONTRACT-v1.md` (contract **v1.7.0, FROZEN**). `CAREWINDOW_ARCHITECTURE.md` is the earlier design, kept for reference only (decision D-001).
 
 ## Roles
 

@@ -1,5 +1,17 @@
 # Contract changelog
 
+## 1.7.0 — 2026-10-04 — FROZEN (recommendation modes, deltas, solver metadata)
+
+CR 1.7.0 (MVP loop iteration 3; decision D-030). **No existing golden number changed**: with the default `BALANCED` mode the alternatives are identical to 1.6. Clauses marked **(1.7)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | `optimizer.ts` `CarePlanRequest`, CONTRACT §5.5 | Optional `preferences: { mode }` (`RecommendationMode`); `CarePlanResult.mode`. | §6.2 modes that rerank; older requests still parse. |
+| 2 | `AlternativeLabel` | New `lowest_member_cost` (winner of the LOWEST_TOTAL_COST key; only when that mode is selected). | `lowest_total_cost` is the BALANCED (§6.1) winner; cost-first needs its own key. |
+| 3 | `Alternative.difference_from_recommended` (`AlternativeDifference`) | Concrete this − recommended differences. | §6.3, UI-011 (no scores). |
+| 4 | `CarePlanResult.solver_meta` (`SolverMeta`); §5.1 limit | Bounded search returns `BOUNDED_BEST_FOUND` instead of `INVALID_INPUT`; `elapsed_ms` always null. | §6.4, §14.3 #10; determinism. |
+| 5 | `issues.ts` | `SAME_DAY_ORDER_AFFECTS_COST` warning. | §6.5. |
+
 ## 1.6.0 — 2026-10-04 — FROZEN (plan options, premiums, rollover review fixes)
 
 CR 1.6.0 (MVP loop iteration 2b, `docs/mvp-loop/current-plan.md`; decision D-029). **No existing golden number changed**; the only edit to a pre-existing golden path is the mechanical key migration in #6 (same numbers). New plan-option values are additions. Clauses changed in CONTRACT-v1.md are marked **(1.6)**.

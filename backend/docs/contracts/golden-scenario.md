@@ -122,3 +122,16 @@ Rollover shift (display only), first 2027 candidate at the same office and route
 Listing on 2026-10-15 (order by option id): Enhanced $31.60/month, $50 deductible, $2,500 maximum, Basic 90%, orthodontic lifetime $1,500; Standard $18.25, $50, $1,500, 80%; Value $9.80, $100, $1,000, 70%.
 
 The 1.6 R2-M1 change reshapes `settled_plan_paid_cents: X` to `settled_plan_paid: {X, X}` in the four existing rollover entries; no number changed.
+
+## Modes (1.7)
+
+`CarePlanRequest.preferences.mode` (default `BALANCED`) picks which ranking key's winner is recommended (`alt-1`). The pool and the safety rules are unchanged in every mode; the label order inside one alternative is `lowest_member_cost`, `lowest_total_cost`, `earliest_safe_completion`, `smoothest_monthly_payments`. Expected values live in `expected.json` -> `postvisit.modes` and are re-derived independently by `scripts/golden-check.mjs`.
+
+| Mode | Key (after unscheduled care, and shortfall) | alt-1 on the base scenario | Member cost | alt-1 labels |
+|---|---|---|---|---|
+| BALANCED | lateness vs dentist targets, then total cost, then peak | crown 2026-11-05, filling 2027-01-05 (claim), root canal 2026-10-20 | $1,372 | `lowest_total_cost`, `smoothest_monthly_payments` |
+| LOWEST_TOTAL_COST | total cost first, then lateness, then peak | same schedule (the cheapest one is already on target dates) | $1,372 | `lowest_member_cost`, `lowest_total_cost`, `smoothest_monthly_payments` |
+| EARLIEST_SAFE_COMPLETION | completion date, then cost | crown 2026-11-05, filling 2026-10-22 (self-pay), root canal 2026-10-20 | $1,426 | `earliest_safe_completion` |
+| SMOOTHEST_PAYMENTS | peak monthly cash, then cost | same as BALANCED | $1,372 | `lowest_total_cost`, `smoothest_monthly_payments` |
+
+The balanced alternatives are exactly the 1.6 golden alternatives (same order, labels and ids). Every non-recommended alternative carries `difference_from_recommended` (this minus alt-1, worst case); on the base scenario alt-2 is +$54.00 member cost, -$84.00 plan pay, +$130.00 peak monthly cash, finishes 61 days earlier, and moves only the filling (2027-01-05 to 2026-10-22, 75 days earlier). `solver_meta` for the base scenario: `OPTIMAL`, 35 candidates, 628 schedules evaluated, 102 rejected, `elapsed_ms: null`.

@@ -5,6 +5,7 @@ import {
   MemberState,
   ProcedureRecommendation,
   ProviderOption,
+  SEARCH_LIMITS,
   VisitNavigatorRequest,
   VisitNavigatorResult,
   diffDays,
@@ -302,8 +303,12 @@ describe("optimizer MVP with fully fabricated benefit results", () => {
     expect(result.unresolved).toContainEqual(expect.objectContaining({ code: "ALTERNATIVE_NOT_APPROVED" }));
   });
 
-  it("checks the schedule-combination cap before making any benefit simulation", () => {
+  it("bounds the search (BOUNDED_BEST_FOUND) instead of rejecting when the schedule-combination cap is exceeded", () => {
     const request = postRequest();
+    // Fill up to the 8-procedure limit so the cap binds early (k = 2) and the bounded search stays fast.
+    while (request.procedures.length < SEARCH_LIMITS.max_procedures) {
+      request.procedures.push({ ...structuredClone(request.procedures[0]!), procedure_id: `proc-extra-${request.procedures.length + 1}` });
+    }
     for (const procedure of request.procedures) {
       procedure.dependencies = [];
       procedure.earliest_safe_date = "2026-10-16";
@@ -312,14 +317,16 @@ describe("optimizer MVP with fully fabricated benefit results", () => {
     }
     const rivera = request.providers.find((provider) => provider.provider_id === "prov-rivera")!;
     const template = rivera.slots.items.find((slot) => slot.slot_id === "prov-rivera-t-20261020-0800")!;
-    rivera.slots.items = Array.from({ length: 40 }, (_, index) => ({ ...template, slot_id: `fabricated-slot-${index + 1}` }));
+    rivera.slots.items = Array.from({ length: 12 }, (_, index) => ({ ...template, slot_id: `fabricated-slot-${index + 1}` }));
     request.providers = [rivera];
     const simulateSpy = vi.fn(fakeBenefits.simulate);
     const result = createCarePlanOptimizer({ ...fakeBenefits, simulate: simulateSpy }).optimize(registry, request);
-    expect(result.status).toBe("INVALID_INPUT");
-    expect(result.unresolved).toContainEqual(expect.objectContaining({ code: "SCHEMA_INVALID" }));
-    expect(result.search_stats.schedules_evaluated).toBe(0);
-    expect(simulateSpy).not.toHaveBeenCalled();
+    expect(result.status).not.toBe("INVALID_INPUT");
+    expect(result.solver_meta.status).toBe("BOUNDED_BEST_FOUND");
+    expect(result.solver_meta.bounds_applied).toHaveLength(1);
+    expect(result.search_stats.schedules_evaluated).toBeGreaterThan(0);
+    expect(result.search_stats.schedules_evaluated).toBeLessThanOrEqual(SEARCH_LIMITS.max_schedules_evaluated);
+    expect(simulateSpy).toHaveBeenCalled();
   });
 
   it("returns NEEDS_CONFIRMATION when missing benefit data—not the calendar—forces care to be omitted", () => {

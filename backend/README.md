@@ -11,7 +11,7 @@ benefits engine, optimizer, plan registry, fixtures, or raw payer data.
 
 ## Current status
 
-- Contract v1.6.0 is frozen and synthetic-only.
+- Contract v1.7.0 is frozen and synthetic-only.
 - Benefits, optimizer, API, and AI modules are implemented; the acceptance and
   integration suites pass.
 - The production insurance-ID design is proposed v2 work and does not alter v1.

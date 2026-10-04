@@ -325,6 +325,7 @@ const altA: Alternative = {
   applied_rule_ids: [],
   issues: [],
   rollover: [rollover2026(82400)],
+  difference_from_recommended: null,
 };
 altA.applied_rule_ids = [...new Set([...altA.events.flatMap((e) => e.line_worst.applied_rule_ids), "rollover.2026"])].sort();
 const altB: Alternative = {
@@ -348,6 +349,23 @@ const altB: Alternative = {
     { event_id: "alt-2-e3", state_after: sCrown },
   ],
   objective: { ...altA.objective, total_member_cost_cents: 142600, peak_monthly_cash_cents: 22600, wait_days_total: 33, completion_date: "2026-11-05" },
+  // (1.7) §6.3 this − recommended (worst case): the 2027 plan version appears only in alt-1, so it is omitted.
+  difference_from_recommended: {
+    member_cost_delta_cents: 5400,
+    plan_pay_delta_cents: -8400,
+    peak_monthly_cash_delta_cents: 13000,
+    monthly: [
+      { month: "2026-10", cash_delta_cents: 0 },
+      { month: "2026-11", cash_delta_cents: 15000 },
+      { month: "2027-01", cash_delta_cents: -9600 },
+    ],
+    completion_shift_days: -61,
+    service_date_changes: [{ procedure_id: "proc-fill-14", recommended_date: "2027-01-05", this_date: "2026-10-22", shift_days: -75 }],
+    rollover_final_bank_delta: { low_cents: 0, high_cents: 0 },
+    annual_max_remaining_delta: [{ plan_version_id: "nwd-ppo-standard-2026", delta_cents: 0 }],
+    warnings_added: [],
+    warnings_removed: [],
+  },
 };
 altB.applied_rule_ids = [...new Set([...altB.events.flatMap((e) => e.line_worst.applied_rule_ids), "rollover.2026"])].sort();
 const careResult: CarePlanResult = {
@@ -357,6 +375,7 @@ const careResult: CarePlanResult = {
   as_of: "2026-10-15T21:00:00Z",
   as_of_date: "2026-10-15",
   recommended_alternative_id: "alt-1",
+  mode: "BALANCED",
   alternatives: [altA, altB],
   evidence: evidence([...new Set([...altA.applied_rule_ids, ...altB.applied_rule_ids])].sort()),
   unresolved: [
@@ -365,6 +384,15 @@ const careResult: CarePlanResult = {
   ],
   decision_trace: [{ seq: 0, kind: "INPUT_VALIDATED", message: "mock", data: {} }],
   search_stats: { candidates_built: 0, schedules_evaluated: 0, schedules_feasible: 0, pass: 1 },
+  solver_meta: {
+    status: "OPTIMAL",
+    candidates_built: 0,
+    schedules_evaluated: 0,
+    schedules_rejected: 0,
+    elapsed_ms: null,
+    deterministic_tie_breaker: "service dates, then provider ids, then claim routes, then slot ids, urgency-then-procedure-id order",
+    bounds_applied: [],
+  },
 };
 
 // ---------------------------------------------------------------- others

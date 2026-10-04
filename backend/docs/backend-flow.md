@@ -2,7 +2,7 @@
 
 How the backend turns member data, plan documents and dentist instructions into
 evidence-backed timing and cost recommendations, and how the frontend consumes
-the result. Reflects contract **v1.6.0**.
+the result. Reflects contract **v1.7.0**.
 
 ## 1. The big picture
 
