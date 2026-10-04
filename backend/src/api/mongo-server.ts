@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import "../../scripts/load-env.js";
 import { closeDatabase, getDatabase } from "../db/client.js";
 import { readMongoDemo } from "./mongo-demo.js";
+import { calculateRequest, readJsonBody } from "./calculate.js";
 
 const port = Number(process.env.BACKEND_PORT ?? "3001");
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("BACKEND_PORT must be a valid TCP port");
@@ -9,6 +10,11 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("BACKEN
 const server = createServer(async (request, response) => {
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
+  if (request.method === "POST" && new URL(request.url ?? "/", "http://localhost").pathname === "/api/calculate") {
+    try { const result = calculateRequest(await readJsonBody(request)); response.writeHead(result.status); response.end(JSON.stringify(result.body)); }
+    catch { response.writeHead(422); response.end(JSON.stringify({ error: { code: "INVALID", message: "Invalid JSON request.", retryable: false } })); }
+    return;
+  }
   if (request.method !== "GET") {
     response.writeHead(405, { Allow: "GET" });
     response.end(JSON.stringify({ error: "Method not allowed." }));

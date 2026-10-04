@@ -71,6 +71,15 @@ export async function readMongoDemo(db: Db, path: string): Promise<ApiReply> {
     };
   }
 
+  if (path === "/api/demo/members") {
+    if (!await readyDataset(db, EXPANDED_DEMO_DATASET_ID)) return unavailable();
+    const members = await db.collection(COLLECTIONS.memberSnapshots).find(
+      { dataset_id: EXPANDED_DEMO_DATASET_ID },
+      { projection: { _id: 0, member_id: 1, display_name: 1, plan_version_id: 1 } },
+    ).sort({ member_id: 1 }).toArray();
+    return { status: 200, body: { members: publicDocuments(members), synthetic_demo: true } };
+  }
+
   const memberMatch = /^\/api\/demo\/members\/(DEMO-ALEX-001|SYN-MEMBER-\d{4})$/.exec(path);
   if (memberMatch) {
     const memberId = memberMatch[1]!;
@@ -95,6 +104,7 @@ export async function readMongoDemo(db: Db, path: string): Promise<ApiReply> {
         plan: publicDocument(plan),
         procedure_card: publicDocument(card),
         claims: publicDocuments(claims),
+        procedure_catalog: (await readyDataset(db, EXPANDED_DEMO_DATASET_ID))?.procedure_catalog ?? [],
       },
     };
   }

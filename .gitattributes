@@ -3,3 +3,4 @@
 backend/** text eol=lf
 backend/data/sources/** -text
 backend/data/reference/** -text -whitespace
+backend/docs/spec/** -text -whitespace
