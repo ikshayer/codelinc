@@ -308,7 +308,6 @@ export interface IntakeProposal {
 }
 
 export interface PatientDetails {
-  memberId?: string;
   displayName: string;
   fullName?: string;
   /** ISO date; optional for the benefits demo and never sent to calculation. */

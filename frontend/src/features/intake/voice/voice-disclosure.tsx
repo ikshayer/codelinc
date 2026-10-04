@@ -15,7 +15,7 @@ export function VoiceDisclosure({ mode }: { mode: ServiceMode }) {
       ) : (
         <>
           <p>
-            Your spoken or typed answers, existing form facts, and the selected member&apos;s stored plan, benefits, claims and treatment context are sent to Google Gemini to gather details. Replies are spoken by Chatterbox on this computer. Review every
+            Your spoken or typed answers are sent to Google Gemini to gather details. Replies are spoken by Chatterbox on this computer. Review every
             proposed fact before comparing.
           </p>
           <p>

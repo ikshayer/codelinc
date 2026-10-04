@@ -16,10 +16,7 @@ for (const id of ["p1", "p2", "p3", "p4"]) {
   for (const key of ["deadline", "after", "minGapDays", "y1.earliest", "y1.latest", "y2.earliest", "y2.latest"]) fields[`timing.${id}.${key}`] = "string";
 }
 export const intakeFields = Object.freeze(fields);
-export const sessionInput = z.object({ analysisId: z.string().min(1).max(150), revision: z.number().int().nonnegative(), consent: z.literal(true),
-  memberId: z.string().regex(/^(DEMO-ALEX-001|SYN-MEMBER-\d{4})$/).optional(),
-  facts: z.record(z.string().max(120), z.object({ value: z.union([z.string().max(500), z.boolean(), z.null()]), status: z.enum(["proposed", "conflict", "confirmed"]) }).strict()).refine((facts) => Object.keys(facts).length <= 150).optional(),
-}).strict();
+export const sessionInput = z.object({ analysisId: z.string().min(1).max(150), revision: z.number().int().nonnegative(), consent: z.literal(true) }).strict();
 export const turnInput = z.union([
   z.object({ text: z.string().trim().min(1).max(4000) }).strict(),
   z.object({ audio: z.string().min(60).max(2_800_000), mimeType: z.literal("audio/wav") }).strict(),

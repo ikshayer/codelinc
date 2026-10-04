@@ -1,16 +1,14 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { extraction, modelReply, replyPrefix, sessionInput, turnInput } from "./contracts.js";
 import { VoiceFailure, type ConversationTurn, type Generate } from "./gemini.js";
-import type { VoiceContext } from "./context.js";
 
 type Session = { token: string; expires: number; history: ConversationTurn[]; segments: Map<string, string[]>; busy: boolean; controller: AbortController | null; lifetime: AbortController; speechBusy: boolean; turns: number };
 export type Synthesize = (text: string, signal: AbortSignal) => Promise<Uint8Array>;
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
-export function createVoiceService(options: { generate: Generate; synthesize: Synthesize; configured: boolean; now?: () => number; ttl?: number; loadContext?: (input: { memberId?: string; facts?: Record<string, { value: string | boolean | null; status: string }> }) => Promise<VoiceContext> }) {
+export function createVoiceService(options: { generate: Generate; synthesize: Synthesize; configured: boolean; now?: () => number; ttl?: number }) {
   const sessions = new Map<string, Session>();
-  const contexts = new Map<string, VoiceContext>();
   const now = options.now ?? Date.now;
-  const close = (id: string) => { sessions.get(id)?.controller?.abort(); sessions.get(id)?.lifetime.abort(); sessions.delete(id); contexts.delete(id); };
+  const close = (id: string) => { sessions.get(id)?.controller?.abort(); sessions.get(id)?.lifetime.abort(); sessions.delete(id); };
   const reap = () => { for (const [id, s] of sessions) if (s.expires <= now()) close(id); };
   const authorize = (request: Request, id: string) => {
     reap(); const session = sessions.get(id);
@@ -26,16 +24,11 @@ export function createVoiceService(options: { generate: Generate; synthesize: Sy
         const path = new URL(request.url).pathname;
         if (path === "/health" && request.method === "GET") return json({ service: "voice", geminiConfigured: options.configured, activeSessions: sessions.size });
         if (path === "/api/voice/sessions" && request.method === "POST") {
-          const input = sessionInput.parse(await request.json());
+          sessionInput.parse(await request.json());
           if (!options.configured) throw new VoiceFailure(503, "UNAVAILABLE", "Add GEMINI_API_KEY to backend/.env.local and restart the voice service.");
           reap();
           if (sessions.size >= 20) throw new VoiceFailure(429, "RATE_LIMITED", "The voice service is busy. Try again shortly.", true);
-          if (input.memberId && !options.loadContext) throw new VoiceFailure(503, "UNAVAILABLE", "Member context is not configured.");
-          let context: VoiceContext | undefined;
-          try { context = options.loadContext ? await options.loadContext(input) : undefined; }
-          catch (error) { if (error instanceof VoiceFailure) throw error; throw new VoiceFailure(503, "UNAVAILABLE", "Could not load voice context. Retry shortly.", true); }
           const sessionId = randomUUID(), token = randomBytes(32).toString("hex"), expires = now() + (options.ttl ?? 15 * 60_000);
-          if (context) contexts.set(sessionId, context);
           sessions.set(sessionId, { token, expires, history: [], segments: new Map(), busy: false, controller: null, lifetime: new AbortController(), speechBusy: false, turns: 0 });
           return json({ sessionId, token, expiresAt: new Date(expires).toISOString(), capabilities: { interruption: true, transcription: true, simulated: false } }, 201);
         }
@@ -84,7 +77,7 @@ export function createVoiceService(options: { generate: Generate; synthesize: Sy
               let raw = "", spokenLength = 0;
               try {
                 if ("text" in input) emit({ type: "person", turnId, text: input.text });
-                for await (const chunk of options.generate(input, session.history, signal, contexts.get(id))) {
+                for await (const chunk of options.generate(input, session.history, signal)) {
                   if (signal.aborted) break;
                   raw += chunk;
                   if (raw.length > 40_000) throw new VoiceFailure(502, "UNREADABLE", "The assistant's reply was too long. Try again.", true);

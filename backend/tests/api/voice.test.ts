@@ -12,27 +12,6 @@ async function session(service: ReturnType<typeof createVoiceService>) {
 }
 
 describe("voice service", () => {
-  it("loads member and draft context once and passes it only to that session", async () => {
-    const context = { facts: { "care.p1.label": { value: "Crown", status: "proposed" } }, missingFields: ["care.p1.fee"], records: { benefits: { annual_maximum_remaining_cents: 100000 } } };
-    const loadContext = vi.fn(async () => context);
-    const generate = vi.fn(async function* () { yield JSON.stringify(payload); });
-    const service = createVoiceService({ configured: true, generate, synthesize: vi.fn(), loadContext });
-    const body = { analysisId: "a1", revision: 2, consent: true, memberId: "SYN-MEMBER-0001", facts: context.facts };
-    const response = await service.handle(request("/api/voice/sessions", body));
-    expect(response.status).toBe(201);
-    const s = await response.json();
-    expect(loadContext).toHaveBeenCalledWith(body);
-    const turn = await service.handle(request(`/api/voice/sessions/${s.sessionId}/turns`, { text: "hi" }, s.token));
-    await turn.text();
-    expect(generate).toHaveBeenCalledWith({ text: "hi" }, expect.any(Array), expect.any(AbortSignal), context);
-    service.dispose();
-  });
-
-  it("does not start a contextless session when the selected member cannot load", async () => {
-    const service = createVoiceService({ configured: true, generate: vi.fn(), synthesize: vi.fn(), loadContext: async () => { throw new Error("database unavailable"); } });
-    expect((await service.handle(request("/api/voice/sessions", { analysisId: "a1", revision: 0, consent: true, memberId: "SYN-MEMBER-0001" }))).status).toBe(503);
-    service.dispose();
-  });
   it("requires consent, configuration and a session capability", async () => {
     const generate = vi.fn(async function* () { yield JSON.stringify(payload); });
     const service = createVoiceService({ configured: true, generate, synthesize: vi.fn() });

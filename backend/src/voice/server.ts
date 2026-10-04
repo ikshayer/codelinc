@@ -4,11 +4,9 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { createGeminiGenerate } from "./gemini.js";
-import { loadVoiceContext } from "./context.js";
 import { createChatterboxSynthesize, createVoiceService } from "./service.js";
 
 const service = createVoiceService({ configured: !!process.env.GEMINI_API_KEY,
-  loadContext: loadVoiceContext,
   generate: createGeminiGenerate({ key: process.env.GEMINI_API_KEY ?? "", model: process.env.GEMINI_MODEL }),
   synthesize: createChatterboxSynthesize(process.env.CHATTERBOX_URL ?? "http://127.0.0.1:8001"),
 });

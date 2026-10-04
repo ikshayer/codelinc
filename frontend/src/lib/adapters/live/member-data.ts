@@ -13,7 +13,7 @@ export interface MemberData {
 }
 
 export function memberProfile(data: MemberData): PatientProfile {
-  return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.member.display_name, fullName: data.member.display_name, dateOfBirth: data.member.date_of_birth };
+  return { id: data.member.member_id, displayName: data.member.display_name, fullName: data.member.display_name, dateOfBirth: data.member.date_of_birth };
 }
 
 /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
