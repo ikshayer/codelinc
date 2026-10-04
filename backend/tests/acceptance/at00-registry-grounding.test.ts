@@ -21,12 +21,19 @@ const sortDeep = (v: unknown): unknown => {
 };
 
 describe("AT-00 plan registry grounding", () => {
-  it("loads a schema-valid registry with exactly the four synthetic DPPO versions", () => {
+  it("loads a schema-valid registry with exactly the six synthetic DPPO versions", () => {
     const reg = registry();
     expect(() => PlanRegistry.parse(reg)).not.toThrow();
     const ids = reg.plans.map((p) => p.plan_version_id).sort();
-    // (1.6) PLAN-004: PPO Value and PPO Enhanced 2026 join the member's PPO Standard 2026/2027.
-    expect(ids).toEqual(["nwd-ppo-enhanced-2026", "nwd-ppo-standard-2026", "nwd-ppo-standard-2027", "nwd-ppo-value-2026"]);
+    // Every plan option has a 2026 and 2027 version so rollover successors resolve exactly.
+    expect(ids).toEqual([
+      "nwd-ppo-enhanced-2026",
+      "nwd-ppo-enhanced-2027",
+      "nwd-ppo-standard-2026",
+      "nwd-ppo-standard-2027",
+      "nwd-ppo-value-2026",
+      "nwd-ppo-value-2027",
+    ]);
     const own = fx.member().plan_key;
     for (const plan of reg.plans) {
       expect(plan.plan_type).toBe("DPPO");

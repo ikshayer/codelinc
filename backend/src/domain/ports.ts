@@ -66,8 +66,8 @@ export interface BenefitEngine {
   passport(registry: PlanRegistry, member: MemberState, asOf: IsoDateTime): BenefitPassport;
   /** (1.6) The member's group's plan options effective on the as-of date (CONTRACT §3.10). Never throws. */
   planOptions(registry: PlanRegistry, member: MemberState, asOf: IsoDateTime): PlanOptionsResult;
-  /** Evidence for already-selected rule ids (never searches across plans). */
-  evidenceFor(registry: PlanRegistry, ruleIds: readonly string[]): EvidenceIndexEntry[];
+  /** Evidence for already-selected rule ids, restricted to exact plan versions when supplied. */
+  evidenceFor(registry: PlanRegistry, ruleIds: readonly string[], planVersionIds?: readonly string[]): EvidenceIndexEntry[];
 }
 
 export interface BenefitsModule {

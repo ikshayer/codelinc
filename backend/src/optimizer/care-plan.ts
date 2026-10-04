@@ -152,6 +152,26 @@ function solverMeta(status: SolverMeta["status"], stats: CarePlanResult["search_
 function domainProblems(request: CarePlanRequest): Issue[] {
   const problems: Issue[] = [];
   const ids = new Set(request.procedures.map((procedure) => procedure.procedure_id));
+  const locked = new Set<string>();
+  const lockedAppointments = new Set<string>();
+  for (const lock of request.schedule_locks ?? []) {
+    if (!ids.has(lock.procedure_id)) {
+      problems.push(issue("SCHEMA_INVALID", "blocking", "A schedule lock names an unknown procedure.", { procedure_id: lock.procedure_id, field: "schedule_locks" }));
+    }
+    if (locked.has(lock.procedure_id)) {
+      problems.push(issue("SCHEMA_INVALID", "blocking", "A procedure can have only one schedule lock.", { procedure_id: lock.procedure_id, field: "schedule_locks" }));
+    }
+    locked.add(lock.procedure_id);
+    const appointmentKey = `${lock.provider_id}\u0000${lock.slot_id}`;
+    if (lockedAppointments.has(appointmentKey)) {
+      problems.push(issue("SCHEMA_INVALID", "blocking", "A provider appointment can be locked to only one procedure.", { procedure_id: lock.procedure_id, provider_id: lock.provider_id, field: "schedule_locks" }));
+    }
+    lockedAppointments.add(appointmentKey);
+    const provider = request.providers.find((value) => value.provider_id === lock.provider_id);
+    if (!provider || !provider.slots.items.some((slot) => slot.slot_id === lock.slot_id)) {
+      problems.push(issue("SCHEMA_INVALID", "blocking", "A schedule lock names an unknown provider appointment.", { procedure_id: lock.procedure_id, provider_id: lock.provider_id, field: "schedule_locks" }));
+    }
+  }
   const adjacency = new Map<string, string[]>();
   for (const procedure of request.procedures) {
     adjacency.set(procedure.procedure_id, procedure.dependencies.map((dependency) => dependency.depends_on));
@@ -263,7 +283,18 @@ function buildCandidates(request: CarePlanRequest): Map<string, Candidate[]> {
         compareStrings(a.slot.slot_id, b.slot.slot_id) ||
         compareStrings(a.route, b.route),
     );
-    map.set(procedure.procedure_id, candidates);
+    const lock = (request.schedule_locks ?? []).find((value) => value.procedure_id === procedure.procedure_id);
+    map.set(
+      procedure.procedure_id,
+      lock
+        ? candidates.filter(
+            (candidate) =>
+              candidate.provider.provider_id === lock.provider_id &&
+              candidate.slot.slot_id === lock.slot_id &&
+              candidate.route === lock.claim_route,
+          )
+        : candidates,
+    );
   }
   return map;
 }
@@ -904,6 +935,13 @@ function finalAlternative(
       provider_id: candidate.provider.provider_id,
       location_id: candidate.provider.location_id,
       claim_route: candidate.route,
+      user_locked: (request.schedule_locks ?? []).some(
+        (lock) =>
+          lock.procedure_id === candidate.procedure.procedure_id &&
+          lock.provider_id === candidate.provider.provider_id &&
+          lock.slot_id === candidate.slot.slot_id &&
+          lock.claim_route === candidate.route,
+      ),
       line_worst: lineWorst,
       line_best: lineBest,
       member_cost: amountRange(lineWorst.member_responsibility_cents!, lineBest.member_responsibility_cents!),
@@ -1082,7 +1120,7 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         seq: trace.length,
         kind: "INPUT_VALIDATED",
         message: "Care plan request passed domain validation.",
-        data: { procedure_count: request.procedures.length, provider_count: request.providers.length },
+        data: { procedure_count: request.procedures.length, provider_count: request.providers.length, schedule_lock_count: request.schedule_locks?.length ?? 0 },
       });
 
       const candidates = buildCandidates(request);
@@ -1239,7 +1277,11 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
           return;
         }
         const procedure = ordered[index]!;
-        const options: (Candidate | null)[] = [...(searchCandidates.get(procedure.procedure_id) ?? []), null];
+        const isLocked = (request.schedule_locks ?? []).some((lock) => lock.procedure_id === procedure.procedure_id);
+        const options: (Candidate | null)[] = [
+          ...(searchCandidates.get(procedure.procedure_id) ?? []),
+          ...(isLocked ? [] : [null]),
+        ];
         for (const candidate of options) {
           const slotKey = candidate ? `${candidate.provider.provider_id}@${candidate.slot.slot_id}` : null;
           if (slotKey && usedSlots.has(slotKey)) continue;
@@ -1349,6 +1391,14 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         unresolved.push(issue("BUDGET_SHORTFALL", "warning", "The safest schedule has an exact funding gap."));
       }
       const ruleIds = [...new Set(alternatives.flatMap((alternative) => alternative.applied_rule_ids))].sort(compareStrings);
+      const planVersionIds = [
+        ...new Set(
+          alternatives.flatMap((alternative) => [
+            ...alternative.events.flatMap((event) => [event.line_worst.plan_version_id, event.line_best.plan_version_id]),
+            ...alternative.rollover.flatMap((outcome) => [outcome.closing_plan_version_id, outcome.next_plan_version_id]),
+          ]).filter((id): id is string => id !== null),
+        ),
+      ].sort(compareStrings);
       return {
         contract_version: CONTRACT_VERSION,
         engine_id: ENGINE_IDS.optimizer,
@@ -1358,7 +1408,7 @@ export function makeCarePlanOptimizer(benefits: BenefitEngine): CarePlanOptimize
         recommended_alternative_id: alternatives[0]?.alternative_id ?? null,
         mode,
         alternatives,
-        evidence: benefits.evidenceFor(registry, ruleIds).sort((a, b) => compareStrings(a.rule_id, b.rule_id)),
+        evidence: benefits.evidenceFor(registry, ruleIds, planVersionIds).sort((a, b) => compareStrings(`${a.rule_id}:${a.plan_version_id}`, `${b.rule_id}:${b.plan_version_id}`)),
         unresolved: uniqueIssues(unresolved),
         decision_trace: trace,
         search_stats: { ...statsBase, pass },

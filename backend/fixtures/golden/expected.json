@@ -282,7 +282,7 @@
           { "event_id": "po-e2", "status": "OK", "deductible_applied_cents": 0, "plan_pay_cents": 66000, "member_responsibility_cents": 44000 }
         ],
         "plan_pay_cents": 77700, "member_cost_cents": 50300, "annual_max_remaining_after_cents": 172300,
-        "rollover": { "status": "NEEDS_CONFIRMATION", "next_plan_version_id": null, "qualifying_plan_paid": { "low_cents": 77700, "high_cents": 77700 }, "final_bank": null, "issue_codes": ["ROLLOVER_NEXT_PLAN_UNKNOWN"] } }
+        "rollover": { "status": "NOT_EARNED", "next_plan_version_id": "nwd-ppo-enhanced-2027", "qualifying_plan_paid": { "low_cents": 77700, "high_cents": 77700 }, "final_bank": { "low_cents": 0, "high_cents": 0 }, "issue_codes": [] } }
     ]
   }
 }

@@ -213,6 +213,26 @@ const PLAN_QUOTES: Record<string, Record<string, Cite[]>> = {
     rollover: ENHANCED_CARRYOVER.map((q): Cite => ["Maximum Carryover", q]),
     premium: premiumCites("| PPO Enhanced | $31.60 | $63.20 | $67.90 | $101.10 |"),
   },
+  "nwd-ppo-value-2027": {
+    deductible: deductibleCites("75"),
+    annual_maximum: maximumCites("1,200"),
+    "plan_share.in_network.basic": shareCites("| Basic | 70% | 50% |", IN_BASIS),
+    "plan_share.in_network.major": shareCites("| Major | 40% | 30% |", IN_BASIS),
+    "plan_share.out_of_network.basic": shareCites("| Basic | 70% | 50% |", OON_BASIS),
+    "plan_share.out_of_network.major": shareCites("| Major | 40% | 30% |", OON_BASIS),
+    rollover: [["Maximum Carryover", "No maximum carryover feature applies for the 2027 benefit period."]],
+  },
+  "nwd-ppo-enhanced-2027": {
+    deductible: deductibleCites("25"),
+    annual_maximum: maximumCites("2,000"),
+    "plan_share.in_network.preventive": shareCites("| Diagnostic & Preventive | 100% | 90% |", IN_BASIS),
+    "plan_share.in_network.basic": shareCites("| Basic | 90% | 70% |", IN_BASIS),
+    "plan_share.in_network.major": shareCites("| Major | 60% | 50% |", IN_BASIS),
+    "plan_share.out_of_network.preventive": shareCites("| Diagnostic & Preventive | 100% | 90% |", OON_BASIS),
+    "plan_share.out_of_network.basic": shareCites("| Basic | 90% | 70% |", OON_BASIS),
+    "plan_share.out_of_network.major": shareCites("| Major | 60% | 50% |", OON_BASIS),
+    rollover: [["Maximum Carryover", "No maximum carryover feature applies for the 2027 benefit period."]],
+  },
 };
 
 const sources = manifest.sources.map((s) => ({

@@ -55,7 +55,14 @@ describe("AT-18 synthetic end-to-end demo, offline", () => {
   it("1. health and scenario load from synthetic fixtures", async () => {
     const health = data(await api.health({ method: "GET", body: undefined, headers: {} }), HealthData);
     expect(health.ai_mode).toBe("synthetic");
-    expect(health.plan_version_ids.sort()).toEqual(["nwd-ppo-enhanced-2026", "nwd-ppo-standard-2026", "nwd-ppo-standard-2027", "nwd-ppo-value-2026"]);
+    expect(health.plan_version_ids.sort()).toEqual([
+      "nwd-ppo-enhanced-2026",
+      "nwd-ppo-enhanced-2027",
+      "nwd-ppo-standard-2026",
+      "nwd-ppo-standard-2027",
+      "nwd-ppo-value-2026",
+      "nwd-ppo-value-2027",
+    ]);
     const sc = data(await api.scenario({ method: "GET", body: undefined, headers: {} }), DemoScenario);
     expect(sc.member).toEqual(fx.member());
     expect(sc.providers_postvisit).toEqual(fx.providersPost());

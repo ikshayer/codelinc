@@ -279,6 +279,7 @@ const ev = (eventId: string, l: AdjudicationLine, slot: string, funding: ReturnT
   line_worst: l, line_best: l, member_cost: range(l.member_responsibility_cents!), plan_pay: range(l.plan_pay_cents!), funding, shortfall_cents: 0, reasons, next_actions: [appt(slot), ...extra],
   route_comparison: cmp,
   rollover_shift: null,
+  user_locked: false,
 });
 // (1.5) CONTRACT §3.9 golden 2026 year-close (worst case): $600 settled + simulated + $76 pending ≥ $500 → NOT_EARNED.
 // Steps omitted in the mock (the engine emits the ten rollover.<pv>.* steps).
