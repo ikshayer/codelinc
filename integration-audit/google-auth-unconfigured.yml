@@ -1,0 +1,43 @@
+- generic [active] [ref=f6e1]:
+  - link "Skip to content" [ref=f6e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f6e3]:
+    - generic [ref=f6e4]:
+      - link "CareWindow by Lincoln Financial, home" [ref=f6e5] [cursor=pointer]:
+        - /url: /
+        - img "Lincoln Financial" [ref=f6e6]
+        - generic [ref=f6e8]: CareWindow
+      - navigation "Main" [ref=f6e9]:
+        - link "Home" [ref=f6e10] [cursor=pointer]:
+          - /url: /dashboard
+        - link "History" [ref=f6e12] [cursor=pointer]:
+          - /url: /history
+        - link "Profile" [ref=f6e14] [cursor=pointer]:
+          - /url: /profile
+      - link "New analysis" [ref=f6e17] [cursor=pointer]:
+        - /url: /analysis/new
+  - main [ref=f6e18]:
+    - generic [ref=f6e22]:
+      - generic [ref=f6e25]:
+        - paragraph [ref=f6e27]: CareWindow
+        - paragraph [ref=f6e28]: See what you'd pay for planned dental care on every date your dentist approves.
+      - generic [ref=f6e29]:
+        - generic [ref=f6e30]:
+          - heading "Sign in" [level=1] [ref=f6e31]
+          - paragraph [ref=f6e32]: Signing in is optional. Connect your Google account, or keep going as a guest.
+        - region "Google account" [ref=f6e47]:
+          - generic [ref=f6e48]:
+            - heading "Google account" [level=2] [ref=f6e49]
+            - paragraph [ref=f6e50]: Connect your Google account to CareWindow.
+          - generic [ref=f6e51]:
+            - button "Continue with Google" [disabled]
+            - generic [ref=f6e52]: Google sign-in isn't set up for this app.
+        - region "Guest" [ref=f6e54]:
+          - generic [ref=f6e55]:
+            - heading "Guest" [level=2] [ref=f6e56]
+            - paragraph [ref=f6e57]: Continue without signing in. Guest analyses last only for this session.
+          - link "Continue as guest" [ref=f6e59] [cursor=pointer]:
+            - /url: /dashboard
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f6e42] [cursor=pointer]
+  - alert [ref=f6e60]

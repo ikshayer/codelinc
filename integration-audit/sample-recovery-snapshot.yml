@@ -1,0 +1,347 @@
+- generic [active] [ref=f2e1]:
+  - link "Skip to content" [ref=f2e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link "CareWindow by Lincoln Financial, home" [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - img "Lincoln Financial" [ref=f2e6]
+        - generic [ref=f2e8]: CareWindow
+      - navigation "Main" [ref=f2e9]:
+        - link "Home" [ref=f2e10] [cursor=pointer]:
+          - /url: /dashboard
+        - link "History" [ref=f2e12] [cursor=pointer]:
+          - /url: /history
+        - link "Profile" [ref=f2e14] [cursor=pointer]:
+          - /url: /profile
+      - link "New analysis" [ref=f2e17] [cursor=pointer]:
+        - /url: /analysis/new
+  - main [ref=f2e18]:
+    - generic [ref=f2e536]:
+      - generic [ref=f2e538]:
+        - paragraph [ref=f2e539]:
+          - text: Analysis for Integration Test/Sample treatment
+          - generic [ref=f2e540]: ", needs review"
+        - navigation "Analysis progress" [ref=f2e541]:
+          - list [ref=f2e542]:
+            - listitem [ref=f2e543]:
+              - link "Describe (done)" [ref=f2e544] [cursor=pointer]:
+                - /url: /analysis/an_4d8f70e948e14456/intake
+                - text: Describe
+                - generic [ref=f2e548]: (done)
+            - listitem [ref=f2e549]:
+              - generic [ref=f2e551]: Confirm
+            - listitem [ref=f2e555]:
+              - generic [ref=f2e557]:
+                - generic [ref=f2e559]: Compare
+                - generic [ref=f2e560]: (available after you confirm)
+      - generic [ref=f2e562]:
+        - generic [ref=f2e564]:
+          - heading "Review your details" [level=1] [ref=f2e565]
+          - paragraph [ref=f2e566]: Review your plan, prescribed care and dentist-approved timing. Then confirm the details to compare.
+        - generic [ref=f2e567]:
+          - generic [ref=f2e568]:
+            - navigation "Review sections" [ref=f2e569]:
+              - link "Plan" [ref=f2e570] [cursor=pointer]:
+                - /url: "#group-plan-title"
+              - link "Care" [ref=f2e571] [cursor=pointer]:
+                - /url: "#group-care-title"
+              - link "Timing" [ref=f2e572] [cursor=pointer]:
+                - /url: "#group-timing-title"
+              - link "Confirm" [ref=f2e573] [cursor=pointer]:
+                - /url: "#confirm-title"
+            - generic [ref=f2e574]:
+              - group [ref=f2e576]:
+                - heading "Your plan" [level=2] [ref=f2e578] [cursor=pointer]
+                - generic [ref=f2e581]: The plan's yearly limit and amount already used affect what it may pay. Leave anything you don't know blank — we won't assume zero.
+                - generic [ref=f2e582]:
+                  - generic [ref=f2e583]:
+                    - heading "This benefit year" [level=3] [ref=f2e584]
+                    - generic [ref=f2e585]:
+                      - generic [ref=f2e586]:
+                        - generic [ref=f2e587]:
+                          - generic [ref=f2e588]: Current year starts
+                          - generic [ref=f2e589]:
+                            - button "View source for Current year starts" [ref=f2e590] [cursor=pointer]:
+                              - generic [ref=f2e591]: Sample
+                            - generic [ref=f2e594]: Needs review
+                        - textbox "Current year starts" [ref=f2e596]: 2026-01-01
+                      - generic [ref=f2e597]:
+                        - generic [ref=f2e598]:
+                          - generic [ref=f2e599]: Current year ends
+                          - generic [ref=f2e600]:
+                            - button "View source for Current year ends" [ref=f2e601] [cursor=pointer]:
+                              - generic [ref=f2e602]: Sample
+                            - generic [ref=f2e605]: Needs review
+                        - textbox "Current year ends" [ref=f2e607]: 2026-12-31
+                      - generic [ref=f2e608]:
+                        - generic [ref=f2e609]:
+                          - generic [ref=f2e610]: Most the plan pays in the current year
+                          - generic [ref=f2e611]:
+                            - button "View source for Most the plan pays in the current year" [ref=f2e612] [cursor=pointer]:
+                              - generic [ref=f2e613]: Sample
+                            - generic [ref=f2e616]: Needs review
+                        - paragraph [ref=f2e617]: The plan's yearly limit and amount already used affect what it may pay.
+                        - generic [ref=f2e619]:
+                          - generic [aria-hidden]: $
+                          - textbox "Most the plan pays in the current year" [ref=f2e620]:
+                            - /placeholder: Unknown
+                            - text: 1,500
+                      - generic [ref=f2e621]:
+                        - generic [ref=f2e622]:
+                          - generic [ref=f2e623]: Plan payments already counted in the current year
+                          - generic [ref=f2e624]:
+                            - button "View source for Plan payments already counted in the current year" [ref=f2e625] [cursor=pointer]:
+                              - generic [ref=f2e626]: Sample
+                            - generic [ref=f2e629]: Needs review
+                        - paragraph [ref=f2e630]: Only payments that count toward the yearly limit. Leave blank if you don't know — we won't assume zero.
+                        - generic [ref=f2e632]:
+                          - generic [aria-hidden]: $
+                          - textbox "Plan payments already counted in the current year" [ref=f2e633]:
+                            - /placeholder: Unknown
+                            - text: 1,100
+                      - generic [ref=f2e634]:
+                        - generic [ref=f2e635]:
+                          - generic [ref=f2e636]: Deductible for the current year
+                          - generic [ref=f2e637]:
+                            - button "View source for Deductible for the current year" [ref=f2e638] [cursor=pointer]:
+                              - generic [ref=f2e639]: Sample
+                            - generic [ref=f2e642]: Needs review
+                        - generic [ref=f2e644]:
+                          - generic [aria-hidden]: $
+                          - textbox "Deductible for the current year" [ref=f2e645]:
+                            - /placeholder: Unknown
+                            - text: "50"
+                      - generic [ref=f2e646]:
+                        - generic [ref=f2e647]:
+                          - generic [ref=f2e648]: Deductible already met in the current year
+                          - generic [ref=f2e649]:
+                            - button "View source for Deductible already met in the current year" [ref=f2e650] [cursor=pointer]:
+                              - generic [ref=f2e651]: Sample
+                            - generic [ref=f2e654]: Needs review
+                        - generic [ref=f2e656]:
+                          - generic [aria-hidden]: $
+                          - textbox "Deductible already met in the current year" [ref=f2e657]:
+                            - /placeholder: Unknown
+                            - text: "50"
+                  - generic [ref=f2e658]:
+                    - heading "Next benefit year" [level=3] [ref=f2e659]
+                    - generic [ref=f2e660]:
+                      - generic [ref=f2e661]:
+                        - generic [ref=f2e662]:
+                          - generic [ref=f2e663]: Next year starts
+                          - generic [ref=f2e664]:
+                            - button "View source for Next year starts" [ref=f2e665] [cursor=pointer]:
+                              - generic [ref=f2e666]: Sample
+                            - generic [ref=f2e669]: Needs review
+                        - textbox "Next year starts" [ref=f2e671]: 2027-01-01
+                      - generic [ref=f2e672]:
+                        - generic [ref=f2e673]:
+                          - generic [ref=f2e674]: Next year ends
+                          - generic [ref=f2e675]:
+                            - button "View source for Next year ends" [ref=f2e676] [cursor=pointer]:
+                              - generic [ref=f2e677]: Sample
+                            - generic [ref=f2e680]: Needs review
+                        - textbox "Next year ends" [ref=f2e682]: 2027-12-31
+                      - generic [ref=f2e683]:
+                        - generic [ref=f2e684]:
+                          - generic [ref=f2e685]: Most the plan pays in the next year
+                          - generic [ref=f2e686]:
+                            - button "View source for Most the plan pays in the next year" [ref=f2e687] [cursor=pointer]:
+                              - generic [ref=f2e688]: Sample
+                            - generic [ref=f2e691]: Needs review
+                        - paragraph [ref=f2e692]: The plan's yearly limit and amount already used affect what it may pay.
+                        - generic [ref=f2e694]:
+                          - generic [aria-hidden]: $
+                          - textbox "Most the plan pays in the next year" [ref=f2e695]:
+                            - /placeholder: Unknown
+                            - text: 1,500
+                      - generic [ref=f2e696]:
+                        - generic [ref=f2e697]:
+                          - generic [ref=f2e698]: Plan payments already counted in the next year
+                          - generic [ref=f2e699]:
+                            - button "View source for Plan payments already counted in the next year" [ref=f2e700] [cursor=pointer]:
+                              - generic [ref=f2e701]: Sample
+                            - generic [ref=f2e704]: Needs review
+                        - paragraph [ref=f2e705]: Only payments that count toward the yearly limit. Leave blank if you don't know — we won't assume zero.
+                        - generic [ref=f2e707]:
+                          - generic [aria-hidden]: $
+                          - textbox "Plan payments already counted in the next year" [ref=f2e708]:
+                            - /placeholder: Unknown
+                            - text: "0"
+                      - generic [ref=f2e709]:
+                        - generic [ref=f2e710]:
+                          - generic [ref=f2e711]: Deductible for the next year
+                          - generic [ref=f2e712]:
+                            - button "View source for Deductible for the next year" [ref=f2e713] [cursor=pointer]:
+                              - generic [ref=f2e714]: Sample
+                            - generic [ref=f2e717]: Needs review
+                        - generic [ref=f2e719]:
+                          - generic [aria-hidden]: $
+                          - textbox "Deductible for the next year" [ref=f2e720]:
+                            - /placeholder: Unknown
+                            - text: "50"
+                      - generic [ref=f2e721]:
+                        - generic [ref=f2e722]:
+                          - generic [ref=f2e723]: Deductible already met in the next year
+                          - generic [ref=f2e724]:
+                            - button "View source for Deductible already met in the next year" [ref=f2e725] [cursor=pointer]:
+                              - generic [ref=f2e726]: Sample
+                            - generic [ref=f2e729]: Needs review
+                        - generic [ref=f2e731]:
+                          - generic [aria-hidden]: $
+                          - textbox "Deductible already met in the next year" [ref=f2e732]:
+                            - /placeholder: Unknown
+                            - text: "0"
+                  - generic [ref=f2e733]:
+                    - heading "Coverage by category" [level=3] [ref=f2e734]
+                    - generic [ref=f2e735]:
+                      - generic [ref=f2e736]:
+                        - generic [ref=f2e737]:
+                          - generic [ref=f2e738]: Next year uses the same coverage percentages
+                          - generic [ref=f2e739]:
+                            - button "View source for Next year uses the same coverage percentages" [ref=f2e740] [cursor=pointer]:
+                              - generic [ref=f2e741]: Sample
+                            - generic [ref=f2e744]: Needs review
+                        - paragraph [ref=f2e745]: An explicit assumption. Comparing next-year dates depends on it.
+                        - radiogroup "Next year uses the same coverage percentages" [ref=f2e747]:
+                          - radio "Yes" [checked] [ref=f2e748] [cursor=pointer]
+                          - radio "No" [ref=f2e749] [cursor=pointer]
+                      - generic [ref=f2e750]:
+                        - generic [ref=f2e751]:
+                          - generic [ref=f2e752]: "Preventive: plan pays"
+                          - generic [ref=f2e753]:
+                            - 'button "View source for Preventive: plan pays" [ref=f2e754] [cursor=pointer]':
+                              - generic [ref=f2e755]: Sample
+                            - generic [ref=f2e758]: Needs review
+                        - generic [ref=f2e760]:
+                          - 'textbox "Preventive: plan pays" [ref=f2e761]':
+                            - /placeholder: Unknown
+                            - text: "100"
+                          - generic [aria-hidden]: "%"
+                      - generic [ref=f2e762]:
+                        - generic [ref=f2e763]:
+                          - generic [ref=f2e764]: "Preventive: deductible applies"
+                          - generic [ref=f2e765]:
+                            - 'button "View source for Preventive: deductible applies" [ref=f2e766] [cursor=pointer]':
+                              - generic [ref=f2e767]: Sample
+                            - generic [ref=f2e770]: Needs review
+                        - 'radiogroup "Preventive: deductible applies" [ref=f2e772]':
+                          - radio "Yes" [ref=f2e773] [cursor=pointer]
+                          - radio "No" [checked] [ref=f2e774] [cursor=pointer]
+                      - generic [ref=f2e775]:
+                        - generic [ref=f2e776]:
+                          - generic [ref=f2e777]: "Preventive: counts toward yearly limit"
+                          - generic [ref=f2e778]:
+                            - 'button "View source for Preventive: counts toward yearly limit" [ref=f2e779] [cursor=pointer]':
+                              - generic [ref=f2e780]: Sample
+                            - generic [ref=f2e783]: Needs review
+                        - 'radiogroup "Preventive: counts toward yearly limit" [ref=f2e785]':
+                          - radio "Yes" [ref=f2e786] [cursor=pointer]
+                          - radio "No" [checked] [ref=f2e787] [cursor=pointer]
+                      - generic [ref=f2e788]:
+                        - generic [ref=f2e789]:
+                          - generic [ref=f2e790]: "Basic: plan pays"
+                          - generic [ref=f2e791]:
+                            - 'button "View source for Basic: plan pays" [ref=f2e792] [cursor=pointer]':
+                              - generic [ref=f2e793]: Sample
+                            - generic [ref=f2e796]: Needs review
+                        - generic [ref=f2e798]:
+                          - 'textbox "Basic: plan pays" [ref=f2e799]':
+                            - /placeholder: Unknown
+                            - text: "80"
+                          - generic [aria-hidden]: "%"
+                      - generic [ref=f2e800]:
+                        - generic [ref=f2e801]:
+                          - generic [ref=f2e802]: "Basic: deductible applies"
+                          - generic [ref=f2e803]:
+                            - 'button "View source for Basic: deductible applies" [ref=f2e804] [cursor=pointer]':
+                              - generic [ref=f2e805]: Sample
+                            - generic [ref=f2e808]: Needs review
+                        - 'radiogroup "Basic: deductible applies" [ref=f2e810]':
+                          - radio "Yes" [checked] [ref=f2e811] [cursor=pointer]
+                          - radio "No" [ref=f2e812] [cursor=pointer]
+                      - generic [ref=f2e813]:
+                        - generic [ref=f2e814]:
+                          - generic [ref=f2e815]: "Basic: counts toward yearly limit"
+                          - generic [ref=f2e816]:
+                            - 'button "View source for Basic: counts toward yearly limit" [ref=f2e817] [cursor=pointer]':
+                              - generic [ref=f2e818]: Sample
+                            - generic [ref=f2e821]: Needs review
+                        - 'radiogroup "Basic: counts toward yearly limit" [ref=f2e823]':
+                          - radio "Yes" [checked] [ref=f2e824] [cursor=pointer]
+                          - radio "No" [ref=f2e825] [cursor=pointer]
+                      - generic [ref=f2e826]:
+                        - generic [ref=f2e827]:
+                          - generic [ref=f2e828]: "Major: plan pays"
+                          - generic [ref=f2e829]:
+                            - 'button "View source for Major: plan pays" [ref=f2e830] [cursor=pointer]':
+                              - generic [ref=f2e831]: Sample
+                            - generic [ref=f2e834]: Needs review
+                        - generic [ref=f2e836]:
+                          - 'textbox "Major: plan pays" [ref=f2e837]':
+                            - /placeholder: Unknown
+                            - text: "50"
+                          - generic [aria-hidden]: "%"
+                      - generic [ref=f2e838]:
+                        - generic [ref=f2e839]:
+                          - generic [ref=f2e840]: "Major: deductible applies"
+                          - generic [ref=f2e841]:
+                            - 'button "View source for Major: deductible applies" [ref=f2e842] [cursor=pointer]':
+                              - generic [ref=f2e843]: Sample
+                            - generic [ref=f2e846]: Needs review
+                        - 'radiogroup "Major: deductible applies" [ref=f2e848]':
+                          - radio "Yes" [checked] [ref=f2e849] [cursor=pointer]
+                          - radio "No" [ref=f2e850] [cursor=pointer]
+                      - generic [ref=f2e851]:
+                        - generic [ref=f2e852]:
+                          - generic [ref=f2e853]: "Major: counts toward yearly limit"
+                          - generic [ref=f2e854]:
+                            - 'button "View source for Major: counts toward yearly limit" [ref=f2e855] [cursor=pointer]':
+                              - generic [ref=f2e856]: Sample
+                            - generic [ref=f2e859]: Needs review
+                        - 'radiogroup "Major: counts toward yearly limit" [ref=f2e861]':
+                          - radio "Yes" [checked] [ref=f2e862] [cursor=pointer]
+                          - radio "No" [ref=f2e863] [cursor=pointer]
+                  - paragraph [ref=f2e864]: "Categories: Preventive, Basic, Major"
+              - group [ref=f2e866]:
+                - heading "Your prescribed care" [level=2] [ref=f2e868] [cursor=pointer]
+                - option "Choose a category"
+                - option "Preventive" [selected]
+                - option "Basic"
+                - option "Major"
+                - option "Choose a category"
+                - option "Preventive"
+                - option "Basic" [selected]
+                - option "Major"
+                - option "Choose a category"
+                - option "Preventive"
+                - option "Basic" [selected]
+                - option "Major"
+                - option "Choose a category"
+                - option "Preventive"
+                - option "Basic"
+                - option "Major" [selected]
+              - group [ref=f2e872]:
+                - heading "Timing your dentist approved" [level=2] [ref=f2e874] [cursor=pointer]
+          - region [ref=f2e877]:
+            - heading "Everything look right?" [level=2] [ref=f2e878]
+            - paragraph [ref=f2e879]: Estimates use exactly the values above. Payment is not guaranteed.
+            - generic [ref=f2e880]:
+              - generic [ref=f2e881]:
+                - checkbox "My plan and prescribed care details are correct." [ref=f2e882] [cursor=pointer]
+                - generic [ref=f2e883]:
+                  - text: My plan and prescribed care details are correct.
+                  - paragraph [ref=f2e884]: This confirms the plan and care sections together. Editing any value clears it.
+              - generic [ref=f2e885]:
+                - checkbox "The timing options came from my dentist, or are the synthetic sample." [ref=f2e886] [cursor=pointer]
+                - generic [ref=f2e887]:
+                  - text: The timing options came from my dentist, or are the synthetic sample.
+                  - paragraph [ref=f2e888]: CareWindow never decides when care is safe. Confirming the plan doesn't confirm timing.
+            - generic [ref=f2e889]:
+              - button "Compare my options" [ref=f2e891] [cursor=pointer]
+              - link "Back to describe" [ref=f2e892] [cursor=pointer]:
+                - /url: /analysis/an_4d8f70e948e14456/intake
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e24] [cursor=pointer]
+  - alert [ref=f2e102]: Review your details

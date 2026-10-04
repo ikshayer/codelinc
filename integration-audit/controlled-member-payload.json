@@ -1,0 +1,96 @@
+{
+  "member": {
+    "member_id": "audit-member",
+    "display_name": "Synthetic audit",
+    "observed_at": "2026-10-03T09:00:00-04:00",
+    "benefit_state": {
+      "benefit_year": 2026,
+      "plan_paid_ytd_cents": 48250,
+      "annual_maximum_remaining_cents": 101750,
+      "deductible_remaining_cents": {
+        "in_network": 2500
+      },
+      "pending_claims": [
+        {
+          "claim_id": "audit-pending",
+          "projected_plan_payment_cents": 25000
+        }
+      ],
+      "rollover_bank_cents": 20000
+    }
+  },
+  "plan": {
+    "plan_version_id": "audit-plan",
+    "display_name": "Audit Core",
+    "effective_from": "2026-01-01",
+    "effective_to": "2027-12-31",
+    "deductible": {
+      "in_network": {
+        "individual_cents": 5000
+      }
+    },
+    "annual_maximum": {
+      "individual_cents": 150000,
+      "preventive_counts_toward_maximum": true
+    },
+    "coverage": {
+      "preventive": {
+        "in_network_plan_share_bps": 10000,
+        "deductible_applies": false
+      },
+      "basic": {
+        "in_network_plan_share_bps": 8000,
+        "deductible_applies": true
+      },
+      "major": {
+        "in_network_plan_share_bps": 5000,
+        "deductible_applies": true
+      }
+    }
+  },
+  "procedure_card": {
+    "procedure_card_id": "audit-card",
+    "procedures": [
+      {
+        "procedure_id": "proc-1",
+        "cdt": "D2392",
+        "label": "Audit filling 1",
+        "dentist_estimated_fee_cents": 25499,
+        "target_by_date": "2026-11-01",
+        "earliest_safe_date": "2026-10-05",
+        "latest_safe_date": "2027-01-10",
+        "confirmation_status": "UNVERIFIED_AI_EXTRACTION_DEMO",
+        "dependencies": []
+      },
+      {
+        "procedure_id": "proc-2",
+        "cdt": "D2392",
+        "label": "Audit filling 2",
+        "dentist_estimated_fee_cents": 25499,
+        "target_by_date": "2026-11-02",
+        "earliest_safe_date": "2026-10-05",
+        "latest_safe_date": "2027-01-10",
+        "confirmation_status": "UNVERIFIED_AI_EXTRACTION_DEMO",
+        "dependencies": []
+      },
+      {
+        "procedure_id": "proc-3",
+        "cdt": "D2392",
+        "label": "Audit filling 3",
+        "dentist_estimated_fee_cents": 25499,
+        "target_by_date": "2026-11-03",
+        "earliest_safe_date": "2026-10-05",
+        "latest_safe_date": "2027-01-10",
+        "confirmation_status": "UNVERIFIED_AI_EXTRACTION_DEMO",
+        "dependencies": []
+      }
+    ]
+  },
+  "procedure_catalog": [
+    {
+      "cdt": "D2392",
+      "service_class": "basic"
+    }
+  ],
+  "claims": []
+}

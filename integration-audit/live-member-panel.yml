@@ -1,0 +1,46 @@
+- generic [ref=f4e1]:
+  - link "Skip to content" [ref=f4e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f4e3]:
+    - generic [ref=f4e4]:
+      - link "CareWindow by Lincoln Financial, home" [ref=f4e5] [cursor=pointer]:
+        - /url: /
+        - img "Lincoln Financial" [ref=f4e6]
+        - generic [ref=f4e8]: CareWindow
+      - navigation "Main" [ref=f4e9]:
+        - link "Home" [active] [ref=f4e10] [cursor=pointer]:
+          - /url: /dashboard
+        - link "History" [ref=f4e12] [cursor=pointer]:
+          - /url: /history
+        - link "Profile" [ref=f4e14] [cursor=pointer]:
+          - /url: /profile
+      - link "New analysis" [ref=f4e17] [cursor=pointer]:
+        - /url: /analysis/new
+  - main [ref=f4e18]:
+    - generic [ref=f4e110]:
+      - generic [ref=f4e111]:
+        - generic [ref=f4e112]:
+          - generic [ref=f4e113]: Member records
+          - paragraph [ref=f4e114]: Choose a member to review their stored benefits, claims and treatment plan. These database records are synthetic.
+        - generic [ref=f4e115]:
+          - generic [ref=f4e116]
+          - generic [ref=f4e186]
+          - generic [ref=f4e194]
+          - generic [ref=f4e201]
+          - paragraph [ref=f4e206]: Imported facts require review. Confirm contracted fees and coverage before comparing. The calculation service is still incomplete.
+          - button "Review this member's treatment plan" [ref=f4e207] [cursor=pointer]
+      - generic [ref=f4e121]:
+        - heading "Your workspace" [level=1] [ref=f4e122]
+        - paragraph [ref=f4e123]: Pick up a draft, start a new analysis or review what you've saved.
+      - generic [ref=f4e124]:
+        - region [ref=f4e127]:
+          - generic [ref=f4e128]
+          - radiogroup "Start a new analysis" [ref=f4e131]
+          - generic [ref=f4e160]
+          - paragraph [ref=f4e161]: Choose a way to start, then continue.
+        - region "Recent analyses" [ref=f4e164]:
+          - generic [ref=f4e165]
+          - alert [ref=f4e169]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f4e180] [cursor=pointer]
+  - alert [ref=f4e184]: Your workspace

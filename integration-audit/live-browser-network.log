@@ -1,0 +1,27 @@
+31. [GET] http://127.0.0.1:3000/api/auth/session => [FAILED] net::ERR_ABORTED
+32. [GET] http://127.0.0.1:3000/api/auth/session => [404] Not Found
+43. [GET] http://127.0.0.1:3000/api/demo/members => [FAILED] net::ERR_ABORTED
+44. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [FAILED] net::ERR_ABORTED
+45. [GET] http://127.0.0.1:3000/api/demo/members => [200] OK
+46. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [404] Not Found
+47. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0001 => [200] OK
+57. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0001 => [200] OK
+59. [GET] http://127.0.0.1:3000/api/demo/members => [FAILED] net::ERR_ABORTED
+60. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [FAILED] net::ERR_ABORTED
+61. [GET] http://127.0.0.1:3000/api/demo/members => [200] OK
+62. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [404] Not Found
+63. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0001 => [200] OK
+65. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0002 => [200] OK
+67. [GET] http://127.0.0.1:3000/api/demo/members => [FAILED] net::ERR_ABORTED
+68. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [FAILED] net::ERR_ABORTED
+69. [GET] http://127.0.0.1:3000/api/demo/members => [200] OK
+70. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [404] Not Found
+71. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0002 => [200] OK
+73. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0003 => [200] OK
+75. [GET] http://127.0.0.1:3000/api/demo/members => [FAILED] net::ERR_ABORTED
+76. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [FAILED] net::ERR_ABORTED
+77. [GET] http://127.0.0.1:3000/api/demo/members => [200] OK
+78. [GET] http://127.0.0.1:3000/api/analyses?limit=5 => [404] Not Found
+79. [GET] http://127.0.0.1:3000/api/demo/members/SYN-MEMBER-0003 => [200] OK
+
+Note: 47 static requests not shown, run with "static" option to see them.

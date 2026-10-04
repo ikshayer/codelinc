@@ -9,7 +9,7 @@ declare global {
 function connectionUri(): string {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error("MONGODB_URI is required. Copy .env.example to .env and configure it.");
+    throw new Error("MONGODB_URI is required. Copy backend/.env.example to backend/.env.local and configure it.");
   }
   return uri;
 }

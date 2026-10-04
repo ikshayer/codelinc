@@ -6,7 +6,7 @@ domain contracts, deterministic benefits and optimization engines,
 framework-independent API/AI modules, synthetic/reference data, fixtures,
 tests, verification scripts, and backend documentation.
 
-The Next.js frontend remains at the repository root under `src/app`. It should
+The Next.js frontend lives in `../frontend/src/app`. It should
 communicate with this backend through HTTP; client code must not import the
 benefits engine, optimizer, plan registry, fixtures, or raw payer data.
 
@@ -35,7 +35,10 @@ npm test
 Run `npm run verify` for every backend gate. The acceptance suite will remain
 red until the unfinished benefits, API, and AI modules are implemented.
 
-Copy `.env.example` to `.env` and set the MongoDB URI. `npm run db:verify` checks the
+Copy `.env.example` to `.env.local` and set `MONGODB_URI` and `MONGODB_DB`.
+The loader preserves process variables, then loads backend `.env.local` and
+`.env`, followed by frontend and repository-root files as legacy fallbacks.
+Restart the API after changing settings. `npm run db:verify` checks the
 already-imported MongoDB dataset; raw seed files are not checked into the repository.
 The API exposes `GET /api/demo`, `/api/demo/health`, `/api/demo/providers`, and
 `/api/demo/members/:id`. These routes query MongoDB. The optimizer's Northwind
