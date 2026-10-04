@@ -2,8 +2,9 @@ import type { ConfirmedScenario, ScenarioComparison } from "@/lib/domain/types";
 import { adapterError, requestJson } from "../shared";
 import type { AdapterResult, CalculationAdapter, CalculationOutcome, PlanningContext, RequestScope } from "../types";
 
-// Live calculation through the shared engine. Proposed endpoint:
-// POST /api/calculate { requestId, analysisId, revision, scenario } → ScenarioComparison.
+// Live calculation through the backend's original-intake compatibility endpoint:
+// POST /api/calculate { requestId, analysisId, revision, scenario, engineOptions? }
+// → ScenarioComparison with server-produced planning details.
 // A missing endpoint is reported as unavailable; nothing falls back to fixtures.
 
 export const liveCalculationAdapter: CalculationAdapter = {

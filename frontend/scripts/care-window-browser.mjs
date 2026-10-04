@@ -18,6 +18,7 @@ function watch(page, expected = new Set()) {
   const failures = [];
   const requests = [];
   const cancellations = [];
+  const completedVoiceDeletes = new Set();
   page.on("pageerror", error => failures.push(`Page error: ${error.message}`));
   page.on("console", message => {
     if (message.type() !== "error") return;
@@ -29,6 +30,10 @@ function watch(page, expected = new Set()) {
   page.on("request", request => requests.push(new URL(request.url()).pathname));
   page.on("requestfailed", request => {
     const url = new URL(request.url());
+    if (request.method() === "DELETE" && completedVoiceDeletes.has(request) && request.failure()?.errorText === "net::ERR_ABORTED") {
+      cancellations.push({ url: request.url(), reason: "Chromium cancelled a bodyless voice teardown after the server confirmed HTTP 204" });
+      return;
+    }
     if (url.searchParams.has("_rsc") && /^\/analysis\/[^/]+\/(confirm|intake|compare)$/.test(url.pathname) && request.failure()?.errorText === "net::ERR_ABORTED") {
       cancellations.push({ url: request.url(), reason: "Next.js cancelled a speculative route payload" });
       return;
@@ -36,6 +41,7 @@ function watch(page, expected = new Set()) {
     failures.push(`Failed request: ${request.url()} (${request.failure()?.errorText})`);
   });
   page.on("response", response => {
+    if (response.request().method() === "DELETE" && response.status() === 204 && /^\/api\/voice\/sessions\/[^/]+$/.test(new URL(response.url()).pathname)) completedVoiceDeletes.add(response.request());
     if (response.status() >= 400 && !expected.has(new URL(response.url()).pathname)) {
       failures.push(`HTTP ${response.status()}: ${response.url()}`);
     }
@@ -57,6 +63,19 @@ async function tabTo(page, locator) {
 async function activate(page, locator, key = "Enter") {
   await tabTo(page, locator);
   await page.keyboard.press(key);
+}
+
+async function capturePage(page, filename) {
+  // Visit each viewport so existing scroll-triggered reveals are visible in
+  // the exported full-page screenshot, then capture from the top.
+  const dimensions = await page.evaluate(() => ({ height: document.documentElement.scrollHeight, step: innerHeight * 0.8 }));
+  for (let top = 0; top < dimensions.height; top += dimensions.step) {
+    await page.evaluate(position => window.scrollTo(0, position), top);
+    await page.waitForTimeout(80);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: resolve(outputDirectory, filename), fullPage: true });
 }
 
 async function engineAction(page, locator, endpoint, key = "Enter") {
@@ -157,7 +176,7 @@ async function journey(viewport) {
     assert.notDeepEqual(preferences.request.member.availability, built.request.member.availability);
     assert.deepEqual(preferences.request.member.plan_key, built.request.member.plan_key, "Preferences must preserve canonical plan identity");
 
-    await page.screenshot({ path: resolve(outputDirectory, `${viewport.width}-journey.png`), fullPage: true });
+    await capturePage(page, `${viewport.width}-journey.png`);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     const overflowElements = overflow ? await page.evaluate(() => [...document.querySelectorAll("body *")].filter(element => element.getBoundingClientRect().right > innerWidth + 1).slice(-15).map(element => ({ tag: element.tagName, text: element.textContent.slice(0, 140), className: typeof element.className === "string" ? element.className : "" }))) : [];
     assert.equal(overflow, false, `The page must fit the viewport: ${JSON.stringify(overflowElements)}`);
@@ -286,7 +305,7 @@ async function voiceJourney() {
     await activate(page, page.getByRole("button", { name: "Type instead", exact: true }));
     const answer = page.getByLabel("Type your answer", { exact: true });
     await tabTo(page, answer);
-    await page.keyboard.type("Use these fictional demo details: my dentist recommends a root canal D3330 on tooth 30 for $1000. The planned service date is November 2, 2026. My dentist says it is safe from October 20 through November 10, 2026. My dental plan annual maximum is $1500 and the deductible is $50.");
+    await page.keyboard.type("Use these fictional demo details: my dentist recommends a root canal D3330 on tooth 30. The contracted fee for this root canal is 1000 dollars. The planned service date is November 2, 2026. My dentist says it is safe from October 20 through November 10, 2026. My dental plan annual maximum is 1500 dollars and the deductible is 50 dollars.");
     await tabTo(page, page.getByRole("button", { name: "Send", exact: true }));
     const turnPromise = page.waitForResponse(response => /\/api\/voice\/sessions\/[^/]+\/turns$/.test(new URL(response.url()).pathname), { timeout: 90000 });
     await page.keyboard.press("Enter");
@@ -311,14 +330,17 @@ async function voiceJourney() {
     await page.getByRole("region", { name: "Voice conversation", exact: true }).getByRole("status").filter({ hasText: /^Listening\./ }).waitFor({ timeout: 120000 });
     const closed = page.waitForResponse(response => /\/api\/voice\/sessions\/[^/]+$/.test(new URL(response.url()).pathname) && response.request().method() === "DELETE");
     await activate(page, page.getByRole("button", { name: "End conversation", exact: true }));
-    assert.equal((await closed).status(), 204);
+    const closedResponse = await closed;
+    assert.equal(closedResponse.status(), 204);
     await visibleText(page, "What was gathered");
     await activate(page, page.getByRole("link", { name: "Review details", exact: true }));
     await page.waitForURL(/\/analysis\/[^/]+\/confirm$/);
     await openDisclosure(page, /^Your prescribed care$/);
     assert.match(await page.locator("#input-care-p1-label").inputValue(), /D3330/);
-    assert.equal(await page.locator("#input-care-p1-fee").inputValue(), "1000");
-    await page.screenshot({ path: resolve(outputDirectory, "voice-confirmation.png"), fullPage: true });
+    const feeProposal = complete.extraction.proposals.find(proposal => proposal.fieldPath === "care.p1.fee");
+    assert.ok(feeProposal, "Live Gemini should extract the explicitly stated contracted fee");
+    assert.equal(await page.locator("#input-care-p1-fee").inputValue(), feeProposal.value);
+    await capturePage(page, "voice-confirmation.png");
     assert.deepEqual(observed.failures, [], "Original voice journey must have no unexpected browser or HTTP failures");
     results.push({ voice: "Original landing → name → Talk it through → live typed Gemini facts → Chatterbox WAV → confirmation", passed: true, proposedFacts: complete.extraction.proposals.length, speechResponses: speech.length, expectedRouteCancellations: observed.cancellations });
     console.log("Original live voice journey passed");
@@ -361,18 +383,19 @@ async function originalJourney(viewport) {
     await openDisclosure(page, /^See how this was calculated$/);
     await visibleText(page, "Payment date");
     await visibleText(page, "Annual maximum remaining");
-    await activate(page, page.locator('button[aria-haspopup="dialog"]').filter({ visible: true }).first());
+    const recommendedCrown = () => page.getByRole("list", { name: "Best dentist-permitted alternative, next year", exact: true }).getByRole("button", { name: /^Crown/ });
+    await activate(page, recommendedCrown());
     const pinned = await calculateAction(page, page.getByRole("button", { name: "Pin this service date", exact: true }));
     assert.equal(pinned.request.engineOptions.schedule_locks.length, 1);
     const lock = pinned.request.engineOptions.schedule_locks[0];
-    assert.ok(pinned.result.planning.records.every(record => record.events.some(event => event.procedureId === lock.procedureId && event.serviceDate === lock.serviceDate && event.userLocked)), "Every original-flow record must preserve the pinned service date");
+    assert.ok(pinned.result.planning.alternatives.every(alternative => pinned.result.planning.records.find(record => record.recordId === alternative.recordId).events.some(event => event.procedureId === lock.procedureId && event.serviceDate === lock.serviceDate && event.userLocked)), "Every original-flow alternative must preserve the pinned service date; the original baseline remains available for comparison");
     await visibleText(page, "Your plan");
     const rerun = await calculateAction(page, page.getByRole("button", { name: "Re-optimize unpinned care", exact: true }));
     assert.deepEqual(rerun.request.engineOptions.schedule_locks, [lock]);
     const undo = await calculateAction(page, page.getByRole("button", { name: "Undo last change", exact: true }));
     assert.equal(undo.result.planning.locks.length, 0);
     assert.deepEqual(undo.result.best, baseline.result.best);
-    await activate(page, page.locator('button[aria-haspopup="dialog"]').filter({ visible: true }).first());
+    await activate(page, recommendedCrown());
     await calculateAction(page, page.getByRole("button", { name: "Pin this service date", exact: true }));
     const reset = await calculateAction(page, page.getByRole("button", { name: "Reset to recommended", exact: true }));
     assert.equal(reset.result.planning.locks.length, 0);
@@ -389,7 +412,7 @@ async function originalJourney(viewport) {
     assert.deepEqual(preferred.result.planning.budget, preferred.request.engineOptions.budget);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, "Original comparison must fit desktop and mobile viewports");
-    await page.screenshot({ path: resolve(outputDirectory, `${viewport.width}-original-compare.png`), fullPage: true });
+    await capturePage(page, `${viewport.width}-original-compare.png`);
     assert.deepEqual(observed.failures, []);
     results.push({ original: "Landing sample → confirmation → real calculation → financial/benefit calculations → pin → rerun → undo/reset → payment preferences", viewport, passed: true, pinnedDate: lock, expectedRouteCancellations: observed.cancellations });
     console.log(`${viewport.width}px original comparison journey passed`);

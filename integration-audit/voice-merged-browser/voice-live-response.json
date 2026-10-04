@@ -1,0 +1,46 @@
+{
+  "fictional_input": true,
+  "proposedFacts": [
+    {
+      "fieldPath": "care.p1.label",
+      "value": "root canal D3330 on tooth 30",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e1"
+    },
+    {
+      "fieldPath": "care.p1.fee",
+      "value": "1000",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e2"
+    },
+    {
+      "fieldPath": "care.p1.anchorDate",
+      "value": "2026-11-02",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e3"
+    },
+    {
+      "fieldPath": "timing.p1.y1.earliest",
+      "value": "2026-10-20",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e4"
+    },
+    {
+      "fieldPath": "timing.p1.y1.latest",
+      "value": "2026-11-10",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e5"
+    },
+    {
+      "fieldPath": "plan.y1.annualMaximum",
+      "value": "1500",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e6"
+    },
+    {
+      "fieldPath": "plan.y1.deductible",
+      "value": "50",
+      "evidenceId": "480e8aca-3fe9-4976-9412-fc67b2fbcb0e:person:e7"
+    }
+  ],
+  "speech": [
+    {
+      "status": 200,
+      "contentType": "audio/wav"
+    }
+  ]
+}

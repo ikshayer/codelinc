@@ -1,4 +1,4 @@
-import { CarePlanBody, type CarePlanResult } from "../src/domain/index";
+import { CarePlanBody, CONTRACT_VERSION, type CarePlanResult } from "../src/domain/index";
 import { loadDemoScenario } from "../src/api/index";
 import { createRuntimeHandlers } from "../src/api/runtime";
 import { loadRegistry } from "../src/benefits/index";
@@ -31,7 +31,7 @@ try {
   if (storedRegistry.registry_version !== registry.registry_version || storedScenario.scenario_id !== scenario.scenario_id) throw new Error("Database round trip changed canonical IDs.");
   if (registryCount !== 1 || scenarioCount !== 1) throw new Error("Database seed is not idempotent.");
 
-  const requestId = `db-verify-${storedRegistry.registry_version.replace(/[^A-Za-z0-9-]/g, "-")}`;
+  const requestId = `db-verify-${CONTRACT_VERSION}-${storedRegistry.registry_version}`.replace(/[^A-Za-z0-9-]/g, "-");
   const api = await createRuntimeHandlers(repository);
   const carePlanRequest = CarePlanBody.parse({
     as_of: storedScenario.postvisit_as_of,
@@ -46,7 +46,7 @@ try {
     headers: { "x-request-id": requestId },
     body: carePlanRequest,
   });
-  if (result.status !== 200) throw new Error("API-to-database care-plan round trip returned a non-success response.");
+  if (result.status !== 200) throw new Error(`API-to-database care-plan round trip failed: ${result.status} ${JSON.stringify(result.body)}`);
   const resultData = (result.body as { data: CarePlanResult }).data;
   const replay = await api.care_plan({ method: "POST", headers: { "x-request-id": requestId }, body: carePlanRequest });
   if (replay.status !== 200 || JSON.stringify((replay.body as { data: CarePlanResult }).data) !== JSON.stringify(resultData)) {

@@ -93,7 +93,7 @@ export function createLiveSession(info: VoiceSessionInfo, token: string): VoiceS
     },
     setMuted(value) { muted = value; capture?.setActive(!muted && !busy); if (muted) state("muted"); else idle(); },
     stopSpeaking() { suppressSpeech = true; stopSpeech(); }, sendText(text) { if (text.trim()) void sendTurn({ text: text.trim() }); },
-    async end() { if (ended) return; ended = true; clearTimeout(expiry); turnController?.abort(); stopSpeech(); capture?.close(); listeners.clear(); await requestJson<void>(url, { method: "DELETE", headers, timeoutMs: 5000 }); },
+    async end() { if (ended) return; ended = true; clearTimeout(expiry); turnController?.abort(); stopSpeech(); capture?.close(); listeners.clear(); await requestJson<void>(url, { method: "DELETE", headers, keepalive: true, timeoutMs: 5000 }); },
   };
   return handle;
 }

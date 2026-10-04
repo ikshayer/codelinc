@@ -152,13 +152,16 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
             <span className="tabular">{formatCents(comparison.patientReductionCents)}</span> lower estimated patient cost under these confirmed assumptions.
           </DifferenceBanner>
         )}
-        {status === "baselineBest" && (
+        {planning && status !== "cheaperPermittedAlternative" && (
+          <DifferenceBanner>Selected for {priorityLabel?.toLowerCase() ?? "your priority"} under your confirmed dates and plan assumptions.</DifferenceBanner>
+        )}
+        {!planning && status === "baselineBest" && (
           <DifferenceBanner>
             {NO_CHEAPER_TEXT}
             {hasDeadlineRejection(comparison) && <span className="mt-2 block font-sans text-base font-normal">{TIMING_PRIORITY_TEXT}</span>}
           </DifferenceBanner>
         )}
-        {status === "equalCost" && <DifferenceBanner>{EQUAL_COST_TEXT}</DifferenceBanner>}
+        {!planning && status === "equalCost" && <DifferenceBanner>{EQUAL_COST_TEXT}</DifferenceBanner>}
 
         <div className="flex flex-wrap gap-2">
           <Badge variant="warning" className="h-7 px-3 text-sm">
@@ -197,7 +200,7 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
         </h2>
         <Disclosure label="Why did this change?">
           <ul className="list-disc space-y-2 pl-5 text-base">
-            {explanations.map((explanation) => (
+            {explanations.filter((explanation) => !planning || !["noCheaperAlternative", "equalCost", "noOtherDates"].includes(explanation.id)).map((explanation) => (
               <li key={explanation.id}>{explanation.text}</li>
             ))}
           </ul>

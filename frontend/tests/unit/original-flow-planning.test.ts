@@ -6,6 +6,7 @@ import { fixtureComparison } from "@/fixtures/calculation-fixtures";
 import { liveCalculationAdapter } from "@/lib/adapters/live/calculation";
 import { currentResult, newAnalysisRecord, reducer, type StoreState } from "@/features/analysis/state";
 import { PlanningDetails } from "@/features/analysis/compare/planning-details";
+import { ComparisonView } from "@/features/analysis/compare/comparison-view";
 import { buildOk, typedSampleDraft } from "./helpers";
 
 const comparison = fixtureComparison("canonical", 0);
@@ -26,7 +27,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("original flow planning bridge", () => {
   it("sends the confirmed scenario and explicit options unchanged, preserving returned context", async () => {
     const scenario = buildOk(typedSampleDraft());
-    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => new Response(JSON.stringify({ ...comparison, inputRevision: scenario.revision, planning }), { status: 200 }));
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () => new Response(JSON.stringify({ ...comparison, inputRevision: scenario.revision, planning }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     const options = { mode: "EARLIEST_SAFE_COMPLETION" as const, schedule_locks: planning.locks, budget: planning.budget! };
     const outcome = await liveCalculationAdapter.compare(scenario, { analysisId: "a", requestId: "r", revision: scenario.revision, signal: new AbortController().signal, engineOptions: options });
@@ -49,5 +50,16 @@ describe("original flow planning bridge", () => {
   it("renders only supplied financial, payment, benefit and difference values", () => {
     const html = renderToStaticMarkup(createElement(PlanningDetails, { planning, record: comparison.best, procedureLabels: { p4: "Crown" } }));
     for (const text of ["Financial and benefit details", "Pinned by you", "Over your preferred target", "Payment date", "$800", "Annual maximum remaining", "$600", "eligible * share", "50%", "−$645"]) expect(html).toContain(text);
+  });
+
+  it("describes an earliest-priority result without claiming no cheaper schedule exists", () => {
+    const earliest = { ...comparison, best: comparison.baseline, cheaperAlternative: null, patientReductionCents: 0, status: "baselineBest" as const };
+    const html = renderToStaticMarkup(createElement(ComparisonView, {
+      comparison: earliest, scenario: buildOk(typedSampleDraft()), procedureLabels: {}, sourceMode: "live", fixtureName: null,
+      confirmedAt: "2026-10-04T12:00:00Z", historical: false, planning: { ...planning, mode: "EARLIEST_SAFE_COMPLETION", locks: [] },
+    }));
+    expect(html).toContain("Selected for earliest safe");
+    expect(html).not.toContain("No cheaper modeled permitted alternative");
+    expect(html).not.toContain("Equal-cost schedules; we show the earliest modeled care");
   });
 });
