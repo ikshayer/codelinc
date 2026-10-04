@@ -1,10 +1,12 @@
 "use client";
 
 import { AlertCircleIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { EASE_OUT, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Page, PageHeader } from "@/components/shared/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -107,8 +109,17 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
         description="Review your plan, prescribed care and dentist-approved timing. Then confirm the details to compare."
       />
 
+      <AnimatePresence>
       {issues.length > 0 && (
-        <div ref={summaryRef} tabIndex={-1} className="mb-8 outline-none">
+        <motion.div
+          ref={summaryRef}
+          tabIndex={-1}
+          initial={{ opacity: 0, y: -8, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3, ease: EASE_OUT }}
+          className="mb-8 overflow-hidden outline-none"
+        >
           <Alert variant="destructive" role="alert">
             <AlertCircleIcon aria-hidden />
             <AlertTitle className="font-medium">
@@ -134,8 +145,9 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
               </ul>
             </AlertDescription>
           </Alert>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {!attempted && (statusCounts.missing > 0 || statusCounts.conflict > 0) && (
         <p className="mb-6 text-sm text-muted-foreground">
@@ -144,6 +156,8 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
         </p>
       )}
 
+      <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
+      <div className="min-w-0 lg:col-span-8">
       <nav aria-label="Review sections" className="sticky top-14 z-20 mb-6 grid grid-cols-4 gap-1 rounded-lg border bg-background/95 p-1 backdrop-blur md:top-16">
         {[['group-plan-title', 'Plan'], ['group-care-title', 'Care'], ['group-timing-title', 'Timing'], ['confirm-title', 'Confirm']].map(([id, label]) => (
           <a key={id} href={`#${id}`} className="flex min-h-11 items-center justify-center rounded-md px-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary" onClick={() => {
@@ -153,13 +167,21 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
         ))}
       </nav>
 
-      <div className="space-y-5">
-        <PlanGroup analysisId={analysisId} errors={errors} collapsible />
-        <CareGroup analysisId={analysisId} errors={errors} collapsible />
-        <TimingGroup analysisId={analysisId} errors={errors} collapsible />
+      <Stagger className="space-y-5" gap={0.08}>
+        <StaggerItem><PlanGroup analysisId={analysisId} errors={errors} collapsible /></StaggerItem>
+        <StaggerItem><CareGroup analysisId={analysisId} errors={errors} collapsible /></StaggerItem>
+        <StaggerItem><TimingGroup analysisId={analysisId} errors={errors} collapsible /></StaggerItem>
+      </Stagger>
+      </div>
 
-        <section aria-labelledby="confirm-title" className="rounded-lg border bg-muted/30 px-5 py-6 md:px-6">
-          <h2 id="confirm-title" className="scroll-mt-36 text-xl font-semibold tracking-tight">
+        <motion.section
+          aria-labelledby="confirm-title"
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.55, delay: 0.25, ease: EASE_OUT }}
+          className="rounded-xl border border-t-4 border-t-brand bg-card px-5 py-6 shadow-[0_24px_48px_-28px_rgba(101,0,48,0.35)] md:px-6 lg:sticky lg:top-24 lg:col-span-4"
+        >
+          <h2 id="confirm-title" className="scroll-mt-36 font-display text-2xl font-semibold tracking-tight">
             Everything look right?
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">Estimates use exactly the values above. Payment is not guaranteed.</p>
@@ -183,15 +205,17 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
               error={confirmationMissing.includes("timing") && !analysis.confirmation.timingAffirmed ? "Confirm where the timing came from to compare." : undefined}
             />
           </div>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button size="lg" onClick={handleCompare} disabled={calculating}>
-              {calculating ? "Comparing…" : "Compare my options"}
-            </Button>
-            <Button asChild variant="ghost">
+          <div className="mt-6 flex flex-col gap-2">
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button size="lg" onClick={handleCompare} disabled={calculating} className="w-full">
+                {calculating ? "Comparing…" : "Compare my options"}
+              </Button>
+            </motion.div>
+            <Button asChild variant="ghost" className="w-full">
               <Link href={`/analysis/${analysisId}/intake`}>Back to describe</Link>
             </Button>
           </div>
-        </section>
+        </motion.section>
       </div>
     </Page>
   );

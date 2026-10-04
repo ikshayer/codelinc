@@ -1,6 +1,7 @@
 "use client";
 
 import { MenuIcon } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -54,11 +55,14 @@ export function SiteHeader() {
               href={item.href}
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
               className={cn(
-                "inline-flex h-11 items-center rounded-md px-3 text-[15px] text-muted-foreground transition-colors hover:text-foreground",
-                "aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-primary",
+                "relative inline-flex h-11 items-center rounded-md px-3 text-[15px] text-muted-foreground transition-colors hover:text-foreground",
+                "aria-[current=page]:font-medium aria-[current=page]:text-primary",
               )}
             >
-              {item.label}
+              {isActive(pathname, item.href) && (
+                <motion.span layoutId="main-nav-indicator" aria-hidden className="absolute inset-0 rounded-md bg-accent" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+              )}
+              <span className="relative">{item.label}</span>
             </Link>
           ))}
         </nav>

@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckIcon, SearchXIcon } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -54,7 +55,7 @@ export function AnalysisFrame({ analysisId, children }: { analysisId: string; ch
 
   return (
     <div>
-      <div className="border-b bg-muted/40">
+      <div className="relative z-10 border-b bg-card/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1120px] flex-col gap-3 px-5 py-3 md:flex-row md:items-center md:justify-between md:px-8">
           <p className="min-w-0 text-sm text-muted-foreground">
             <span className="text-foreground">Analysis for </span>
@@ -79,17 +80,24 @@ export function AnalysisFrame({ analysisId, children }: { analysisId: string; ch
                         href={`/analysis/${analysisId}/${stage.segment}`}
                         className="inline-flex h-9 items-center gap-1.5 rounded-md px-1.5 sm:px-2 text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
-                        {done && <CheckIcon aria-hidden className="size-3.5 text-primary" />}
+                        {done && (
+                          <motion.span initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 500, damping: 24 }}>
+                            <CheckIcon aria-hidden className="size-3.5 text-brand" />
+                          </motion.span>
+                        )}
                         {stage.label}
                         {done && <span className="sr-only"> (done)</span>}
                       </Link>
                     ) : (
                       <span
                         aria-current={current ? "step" : undefined}
-                        className={cn("inline-flex h-9 items-center gap-1.5 rounded-md px-1.5 sm:px-2", current ? "font-medium text-foreground" : "text-muted-foreground/70")}
+                        className={cn("relative inline-flex h-9 items-center gap-1.5 rounded-md px-1.5 sm:px-2.5", current ? "font-medium text-primary" : "text-muted-foreground/70")}
                       >
-                        <span aria-hidden className={cn("size-1.5 rounded-full", current ? "bg-primary" : "bg-border")} />
-                        {stage.label}
+                        {current && (
+                          <motion.span layoutId="analysis-stage-pill" aria-hidden className="absolute inset-0 rounded-md bg-card shadow-sm ring-1 ring-primary/15" transition={{ type: "spring", stiffness: 380, damping: 32 }} />
+                        )}
+                        <span aria-hidden className={cn("relative size-1.5 rounded-full", current ? "bg-brand" : "bg-border")} />
+                        <span className="relative">{stage.label}</span>
                         {!reachable && <span className="sr-only"> (available after you confirm)</span>}
                       </span>
                     )}

@@ -3,6 +3,7 @@
 import { ChevronDownIcon, CopyPlusIcon, PencilIcon, PaperclipIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 
+import { Press } from "@/features/analysis/compare/press";
 import { SourceBadge } from "@/components/shared/source-badge";
 import { StatusChip } from "@/components/shared/status-chip";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ interface HistoryRowProps {
   onRemoveAttachment: () => void;
 }
 
-/** Stacked card on phones, divider row from md up. No squeezed tables. */
+/** A card on every size: wide title and meta on the left, money and actions on the right from md up. */
 export function HistoryRow({ item, duplicating, onRename, onDelete, onDuplicate, onRemoveAttachment }: HistoryRowProps) {
   const title = itemTitle(item);
   const inputKinds = itemInputKinds(item);
@@ -29,11 +30,11 @@ export function HistoryRow({ item, duplicating, onRename, onDelete, onDuplicate,
   const canRemoveAttachment = item.kind === "draft" && item.report !== null;
 
   return (
-    <li className="rounded-lg border p-4 md:rounded-none md:border-0 md:px-1 md:py-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+    <div className="p-4 md:p-6">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-10">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <h3 className="min-w-0 text-base font-semibold break-words">{title}</h3>
+            <h3 className="min-w-0 font-display text-lg font-semibold break-words">{title}</h3>
             <StatusChip status={item.status} />
           </div>
           <p className="text-sm text-muted-foreground">For {itemPatientName(item)}</p>
@@ -55,24 +56,27 @@ export function HistoryRow({ item, duplicating, onRename, onDelete, onDuplicate,
             )}
           </div>
 
+        </div>
+
+        <div className="flex flex-col gap-4 md:items-end md:justify-between">
           {item.kind === "snapshot" && (
-            <dl className="flex flex-wrap gap-x-8 gap-y-2 pt-1 text-sm">
+            <dl className="flex flex-wrap gap-x-8 gap-y-2 md:flex-col md:items-end md:gap-y-3 md:text-right">
               <div>
-                <dt className="text-muted-foreground">You pay at baseline</dt>
-                <dd className="tabular font-medium">{formatCents(item.summary.baselinePatientCents)}</dd>
+                <dt className="text-sm text-muted-foreground">You pay at the best option</dt>
+                <dd className="tabular text-2xl font-semibold text-primary">{formatCents(item.summary.bestPatientCents)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">You pay at the best option</dt>
-                <dd className="tabular font-medium">{formatCents(item.summary.bestPatientCents)}</dd>
+                <dt className="text-sm text-muted-foreground">You pay at baseline</dt>
+                <dd className="tabular text-base font-medium">{formatCents(item.summary.baselinePatientCents)}</dd>
               </div>
             </dl>
           )}
-        </div>
-
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Press>
           <Button asChild variant="outline">
             <Link href={item.kind === "draft" ? item.resumeHref : item.viewHref}>{item.kind === "snapshot" ? "View snapshot" : item.status === "compared" ? "Open comparison" : "Resume draft"}</Link>
           </Button>
+          </Press>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" aria-label={`Actions for ${title}`} disabled={duplicating}>
@@ -105,8 +109,9 @@ export function HistoryRow({ item, duplicating, onRename, onDelete, onDuplicate,
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </div>
-    </li>
+    </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { FileTextIcon, MicIcon, PencilLineIcon } from "lucide-react";
+import { motion } from "motion/react";
+import { useId } from "react";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { IntakeMethod } from "@/features/analysis/state";
@@ -29,6 +31,8 @@ export const INTAKE_METHODS: { value: IntakeMethod; title: string; description: 
 
 /** Three quiet selectable rows; the screen supplies a single Continue action. */
 export function IntakeMethodPicker({ value, onChange, labelledBy }: { value: IntakeMethod | null; onChange: (method: IntakeMethod) => void; labelledBy: string }) {
+  // Scoped so two pickers on one screen don't share the sliding highlight.
+  const highlightId = `method-highlight-${useId()}`;
   return (
     <RadioGroup
       value={value ?? ""}
@@ -57,15 +61,22 @@ export function IntakeMethodPicker({ value, onChange, labelledBy }: { value: Int
           key={method}
           htmlFor={`method-${method}`}
           className={cn(
-            "flex min-h-11 cursor-pointer items-start gap-3 border-l-2 border-l-transparent px-3 py-5 transition-colors hover:bg-muted/50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2 sm:gap-4",
-            value === method && "border-l-primary bg-accent/60 hover:bg-accent/60",
+            "relative flex min-h-11 cursor-pointer items-start gap-3 px-3 py-5 transition-colors hover:bg-muted/50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2 sm:gap-4",
           )}
         >
-          <RadioGroupItem id={`method-${method}`} value={method} className="mt-1" />
-          <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", value === method ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
+          {value === method && (
+            <motion.span
+              layoutId={highlightId}
+              aria-hidden
+              className="absolute inset-0 border-l-2 border-l-brand bg-accent/70"
+              transition={{ type: "spring", stiffness: 420, damping: 36 }}
+            />
+          )}
+          <RadioGroupItem id={`method-${method}`} value={method} className="relative mt-1" />
+          <span className={cn("relative flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", value === method ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
             <Icon aria-hidden className="size-4" />
           </span>
-          <span className="min-w-0">
+          <span className="relative min-w-0">
             <span className={cn("block text-base", value === method ? "font-semibold" : "font-medium")}>{title}</span>
             <span className="mt-0.5 block text-sm text-muted-foreground">{description}</span>
           </span>

@@ -150,7 +150,7 @@ export function CareGroup({ analysisId, errors, collapsible = false }: { analysi
   );
 }
 
-function RemoveProcedureButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
+export function RemoveProcedureButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>

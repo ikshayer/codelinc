@@ -9,7 +9,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-display), ui-serif, Georgia, serif;
+  --font-display: var(--font-source-serif), ui-serif, Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -28,6 +29,10 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-success: var(--success);
@@ -65,44 +70,51 @@
 }
 
 :root {
-  /* CareWindow tokens — FRONTEND_DESIGN.md §4. Light theme only for this deliverable. */
-  --background: #ffffff;
-  --foreground: #202422;
+  /* Lincoln Financial 2024 palette, taken from lincolnfinancial.com's logo and bundle:
+     burgundy #650030 (primary/theme), horizon orange #FF4F17 (decorative accent —
+     large text, icons, dots and edges only; it fails contrast as small text),
+     link blue #036D9B, gray #616B72, border #DCDEE0, ink #231F20. */
+  --background: #f4f3f2;
+  --foreground: #231f20;
   --card: #ffffff;
-  --card-foreground: #202422;
+  --card-foreground: #231f20;
   --popover: #ffffff;
-  --popover-foreground: #202422;
-  --primary: #176b5b;
+  --popover-foreground: #231f20;
+  --primary: #650030;
   --primary-foreground: #ffffff;
-  --secondary: #f5f6f5;
-  --secondary-foreground: #202422;
-  --muted: #f5f6f5;
-  --muted-foreground: #626b66;
-  --accent: #eef4f2;
-  --accent-foreground: #145c4e;
-  --destructive: #b13d37;
+  --brand: #ff4f17;
+  --brand-foreground: #ffffff;
+  --secondary: #ebe9e8;
+  --secondary-foreground: #231f20;
+  --muted: #eceae9;
+  --muted-foreground: #5c656c;
+  --accent: #f7e8ee;
+  --accent-foreground: #650030;
+  --info: #036d9b;
+  --info-foreground: #ffffff;
+  --destructive: #c4321e;
   --destructive-foreground: #ffffff;
-  --warning: #fff4de;
-  --warning-foreground: #875b18;
-  --success: #e8f2ef;
-  --success-foreground: #145c4e;
-  --border: #e3e7e4;
-  --input: #cfd6d2;
-  --ring: #176b5b;
-  --chart-1: #176b5b;
-  --chart-2: #8fb8ae;
-  --chart-3: #626b66;
-  --chart-4: #c9d2cd;
-  --chart-5: #202422;
+  --warning: #fff1d6;
+  --warning-foreground: #7a4f0c;
+  --success: #e3f1ea;
+  --success-foreground: #1d6044;
+  --border: #dcdee0;
+  --input: #c4c9cd;
+  --ring: #650030;
+  --chart-1: #650030;
+  --chart-2: #036d9b;
+  --chart-3: #ff4f17;
+  --chart-4: #c9a2b2;
+  --chart-5: #37424a;
   --radius: 0.75rem;
-  --sidebar: #f5f6f5;
-  --sidebar-foreground: #202422;
-  --sidebar-primary: #176b5b;
+  --sidebar: #ebe9e8;
+  --sidebar-foreground: #231f20;
+  --sidebar-primary: #650030;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef4f2;
-  --sidebar-accent-foreground: #145c4e;
-  --sidebar-border: #e3e7e4;
-  --sidebar-ring: #176b5b;
+  --sidebar-accent: #f7e8ee;
+  --sidebar-accent-foreground: #650030;
+  --sidebar-border: #dcdee0;
+  --sidebar-ring: #650030;
 }
 
 @layer base {

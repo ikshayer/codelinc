@@ -1,10 +1,12 @@
 "use client";
 
-import { FlaskConicalIcon, HistoryIcon, PlusIcon, SearchIcon, SearchXIcon } from "lucide-react";
+import { FlaskConicalIcon, PlusIcon, SearchIcon, SearchXIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { EASE_OUT, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { EmptyState, ErrorPanel, Notice } from "@/components/shared/feedback";
 import { Page, PageHeader } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
@@ -14,7 +16,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
+import { cn } from "@/lib/utils";
 import type { HistoryStatusFilter } from "@/lib/adapters/types";
+import { AbeGuide } from "./abe-guide";
 import { patientDetailsOf } from "./patient-details";
 import { RemoveAttachmentDialog, DeleteDialog, RenameDialog } from "./history-dialogs";
 import { draftItems, draftMatchesSearch, matchesFilter, snapshotItems, sortNewestFirst, type DraftItem, type HistoryItem } from "./history-items";
@@ -104,42 +108,51 @@ export function HistoryScreen() {
         }
       />
 
-      {adapters.history.persistence === "session" && (
-        <div className="mb-8">
-          <Notice>Demo history lasts for this session. Refreshing resets it.</Notice>
-        </div>
-      )}
+      <Stagger gap={0.08}>
+        {adapters.history.persistence === "session" && (
+          <StaggerItem className="mb-8">
+            <Notice>Demo history lasts for this session. Refreshing resets it.</Notice>
+          </StaggerItem>
+        )}
 
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-sm">
-          <Label htmlFor="history-search" className="sr-only">
-            Search analyses
-          </Label>
-          <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input id="history-search" type="search" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Search by name or procedure" className="pl-9" />
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={filter}
-            onValueChange={(value) => value && setFilter(value as HistoryStatusFilter)}
-            aria-label="Filter by status"
-            className="flex-wrap"
-          >
-            {FILTERS.map(({ value, label }) => (
-              <ToggleGroupItem key={value} value={value} className="h-11 px-4">
-                {label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {filtersActive && (
-            <Button variant="link" onClick={clearFilters}>
-              Clear filters
-            </Button>
-          )}
-        </div>
-      </div>
+        <StaggerItem className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="relative w-full md:max-w-sm">
+            <Label htmlFor="history-search" className="sr-only">
+              Search analyses
+            </Label>
+            <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input id="history-search" type="search" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Search by name or procedure" className="bg-card pl-9" />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <ToggleGroup
+              type="single"
+              value={filter}
+              onValueChange={(value) => value && setFilter(value as HistoryStatusFilter)}
+              aria-label="Filter by status"
+              spacing={0}
+              className="max-w-full flex-wrap rounded-full border bg-card p-1"
+            >
+              {FILTERS.map(({ value, label }) => (
+                <ToggleGroupItem
+                  key={value}
+                  value={value}
+                  className={cn("relative h-11 min-w-16 rounded-full bg-transparent px-4 data-[state=on]:bg-transparent", filter === value ? "text-primary-foreground hover:text-primary-foreground" : "text-foreground")}
+                >
+                  {filter === value && (
+                    <motion.span layoutId="history-filter-pill" transition={{ type: "spring", stiffness: 420, damping: 34 }} className="absolute inset-0 rounded-full bg-primary" />
+                  )}
+                  <span className="relative">{label}</span>
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            {filtersActive && (
+              <Button variant="link" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            )}
+          </div>
+        </StaggerItem>
+      </Stagger>
 
       {duplicateError && (
         <div className="mb-6">
@@ -157,21 +170,31 @@ export function HistoryScreen() {
         {loading ? "Loading analyses" : `${items.length} ${items.length === 1 ? "analysis" : "analyses"}`}
       </p>
 
-      {items.length > 0 && (
-        <ul className="space-y-3 md:space-y-0 md:divide-y md:border-y">
-          {items.map((item) => (
-            <HistoryRow
+      <motion.ul layout className="relative space-y-3">
+        <AnimatePresence mode="popLayout" initial>
+          {items.map((item, index) => (
+            <motion.li
               key={item.key}
-              item={item}
-              duplicating={duplicatingKey === item.key}
-              onRename={() => setRenameTarget(targetOf(item))}
-              onDelete={() => setDeleteTarget(targetOf(item))}
-              onDuplicate={() => void duplicate(item)}
-              onRemoveAttachment={() => item.kind === "draft" && setAttachmentItem(item)}
-            />
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_OUT, delay: Math.min(index, 6) * 0.05 + 0.15 } }}
+              exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+              whileHover={{ y: -2 }}
+              transition={{ layout: { type: "spring", stiffness: 380, damping: 36 } }}
+              className="rounded-2xl border bg-card shadow-[0_1px_2px_rgba(35,31,32,0.04)] transition-shadow hover:shadow-[0_10px_28px_-14px_rgba(101,0,48,0.3)]"
+            >
+              <HistoryRow
+                item={item}
+                duplicating={duplicatingKey === item.key}
+                onRename={() => setRenameTarget(targetOf(item))}
+                onDelete={() => setDeleteTarget(targetOf(item))}
+                onDuplicate={() => void duplicate(item)}
+                onRemoveAttachment={() => item.kind === "draft" && setAttachmentItem(item)}
+              />
+            </motion.li>
           ))}
-        </ul>
-      )}
+        </AnimatePresence>
+      </motion.ul>
 
       {loading && <SkeletonRows />}
 
@@ -205,9 +228,9 @@ export function HistoryScreen() {
 
 function SkeletonRows() {
   return (
-    <div aria-hidden className="space-y-3 md:space-y-0 md:divide-y md:border-y">
+    <div aria-hidden className="space-y-3">
       {[0, 1, 2].map((row) => (
-        <div key={row} className="space-y-3 rounded-lg border p-4 md:rounded-none md:border-0 md:px-1 md:py-6">
+        <div key={row} className="space-y-3 rounded-2xl border bg-card p-4 md:p-6">
           <Skeleton className="h-5 w-56 max-w-full" />
           <Skeleton className="h-4 w-40 max-w-full" />
           <Skeleton className="h-4 w-72 max-w-full" />
@@ -227,17 +250,34 @@ function NoMatches({ onClear }: { onClear: () => void }) {
 
 function FirstRun({ onSample }: { onSample: () => void }) {
   return (
-    <EmptyState icon={HistoryIcon} title="Your analyses will appear here." description="Start with your own plan details, or try the synthetic sample treatment.">
-      <Button asChild>
-        <Link href="/analysis/new">
-          <PlusIcon aria-hidden />
-          New analysis
-        </Link>
-      </Button>
-      <Button variant="outline" onClick={onSample}>
-        <FlaskConicalIcon aria-hidden />
-        Use sample treatment
-      </Button>
-    </EmptyState>
+    <motion.section
+      aria-labelledby="first-run-heading"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
+      className="flex flex-col gap-6 rounded-2xl border border-dashed bg-card/60 p-6 md:flex-row md:items-center md:gap-8 md:p-10"
+    >
+      <AbeGuide className="h-20 rounded-lg md:h-24" />
+      <div className="min-w-0 space-y-4">
+        <div>
+          <h2 id="first-run-heading" className="font-display text-xl font-semibold">
+            Your analyses will appear here.
+          </h2>
+          <p className="mt-1 max-w-md text-base text-muted-foreground">Start with your own plan details, or try the synthetic sample treatment.</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild>
+            <Link href="/analysis/new">
+              <PlusIcon aria-hidden />
+              New analysis
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={onSample}>
+            <FlaskConicalIcon aria-hidden />
+            Use sample treatment
+          </Button>
+        </div>
+      </div>
+    </motion.section>
   );
 }

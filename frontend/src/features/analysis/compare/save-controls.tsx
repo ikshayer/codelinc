@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import type { AdapterError } from "@/lib/adapters/types";
 import { useAnalysisController } from "../analysis-provider";
 import type { SavedReference } from "../state";
+import { Press } from "./press";
 
 type SaveState = { status: "idle" } | { status: "saving" } | { status: "failed"; error: AdapterError };
 
@@ -51,10 +52,12 @@ export function SaveControls({ analysisId, saved }: SaveControlsProps) {
             </Link>
           </>
         ) : (
-          <Button onClick={save} disabled={state.status === "saving"}>
-            {state.status === "saving" ? <Spinner aria-hidden /> : <SaveIcon aria-hidden />}
-            {state.status === "saving" ? "Saving" : "Save to history"}
-          </Button>
+          <Press>
+            <Button onClick={save} disabled={state.status === "saving"}>
+              {state.status === "saving" ? <Spinner aria-hidden /> : <SaveIcon aria-hidden />}
+              {state.status === "saving" ? "Saving" : "Save to history"}
+            </Button>
+          </Press>
         )}
       </div>
       <div aria-live="polite" className="text-sm text-muted-foreground">

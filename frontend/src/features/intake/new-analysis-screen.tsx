@@ -1,9 +1,14 @@
 "use client";
 
+import { CheckIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import { BrandBackdrop } from "@/components/brand/brand-backdrop";
+import { LincolnAbe } from "@/components/brand/lincoln-logo";
+import { EASE_OUT, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Page, PageHeader } from "@/components/shared/page";
 import { Button } from "@/components/ui/button";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
@@ -60,7 +65,7 @@ export function NewAnalysisScreen() {
 
   if (!patient) {
     return (
-      <Page width="form">
+      <SetupLayout step={1}>
         <NewAnalysisProgress step={1} />
         <PageHeader title="Who is this analysis for?" description="Start with a name. Everything else is optional." className="mb-6 md:mb-8" />
         {demo && (
@@ -88,12 +93,12 @@ export function NewAnalysisScreen() {
           }
         />
         <p className="mt-4 text-sm text-muted-foreground">{demo ? "Use fictional details only. " : ""}{!signedIn && "You can continue without an account. Guest work lasts for this session."}</p>
-      </Page>
+      </SetupLayout>
     );
   }
 
   return (
-    <Page width="form">
+    <SetupLayout step={2}>
       <NewAnalysisProgress step={2} />
       <PageHeader title="How would you like to start?" description="Choose one way to begin. You can add the others later." className="mb-6 md:mb-8" />
       <div className="mb-6 flex items-start justify-between gap-3 rounded-lg bg-muted px-4 py-3">
@@ -136,6 +141,68 @@ export function NewAnalysisScreen() {
         >
           Use sample treatment
         </Button>
+      </div>
+    </SetupLayout>
+  );
+}
+
+const PROMISES = [
+  ["Only a name is required", "Date of birth and email are optional and never enter the estimate."],
+  ["You review every fact", "Reports and conversations only propose values. Nothing counts until you confirm it."],
+  ["Your dentist sets the dates", "We only compare timing your dentist has already approved."],
+] as const;
+
+/** Asymmetric setup frame: the task on the left, a living brand panel with what happens next on the right. */
+function SetupLayout({ step, children }: { step: 1 | 2; children: React.ReactNode }) {
+  return (
+    <Page>
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: step === 2 ? 32 : -32 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: step === 2 ? -32 : 32 }}
+            transition={{ duration: 0.35, ease: EASE_OUT }}
+            className="min-w-0 lg:col-span-7"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+        <aside aria-label="What happens next" className="relative mt-8 text-white lg:sticky lg:top-24 lg:col-span-5 lg:mt-16 lg:self-start">
+          {/* clip-path (not just overflow-hidden) so the WebGL canvas respects the rounded corners in every browser. */}
+          <div aria-hidden className="absolute inset-0 overflow-hidden rounded-3xl shadow-[0_32px_64px_-32px_rgba(101,0,48,0.65)] [clip-path:inset(0_round_1.5rem)]">
+            <BrandBackdrop variant="hero" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/45 to-primary/20" />
+            <div className="absolute inset-0 rounded-3xl ring-1 ring-white/15 ring-inset" />
+          </div>
+          {/* Abe breaks out over the top edge as the panel's badge. */}
+          <motion.div
+            initial={{ scale: 0.6, rotate: -12, opacity: 0, y: 8 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.15 }}
+            className="absolute -top-9 right-7 rounded-full bg-card p-1.5 shadow-lg shadow-primary/25 ring-4 ring-background"
+          >
+            <LincolnAbe className="h-14" />
+          </motion.div>
+          <div className="relative px-6 pt-8 pb-6 md:px-8 md:pt-10 md:pb-7">
+            <p className="font-display text-2xl leading-8 font-semibold">What happens next</p>
+            <Stagger className="mt-6 space-y-5" delay={0.2} gap={0.1}>
+              {PROMISES.map(([title, detail]) => (
+                <StaggerItem key={title} className="flex gap-3">
+                  <span aria-hidden className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+                    <CheckIcon className="size-3.5" />
+                  </span>
+                  <span>
+                    <span className="block font-medium">{title}</span>
+                    <span className="mt-1 block text-sm text-white/80">{detail}</span>
+                  </span>
+                </StaggerItem>
+              ))}
+            </Stagger>
+            <p className="mt-7 border-t border-white/20 pt-4 text-sm text-white/75">Synthetic demo. Nothing you enter leaves this browser.</p>
+          </div>
+        </aside>
       </div>
     </Page>
   );
