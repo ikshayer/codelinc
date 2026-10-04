@@ -101,7 +101,7 @@ export function createLiveSession(info: VoiceSessionInfo, token: string): VoiceS
 export const liveVoiceAdapter: VoiceAdapter = {
   mode: "live",
   async createSession(input, scope): Promise<AdapterResult<VoiceSessionHandle>> {
-    const created = await requestJson<SessionResponse>("/api/voice/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisId: scope.analysisId, revision: scope.revision, consent: input.consent }), signal: scope.signal, timeoutMs: 10_000, service: "voice service" });
+    const created = await requestJson<SessionResponse>("/api/voice/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisId: scope.analysisId, revision: scope.revision, consent: input.consent, memberId: input.memberId, facts: input.facts }), signal: scope.signal, timeoutMs: 25_000, service: "voice service" });
     if (!created.ok) return created;
     const s = created.value;
     if (typeof s.sessionId !== "string" || typeof s.token !== "string" || !Number.isFinite(Date.parse(s.expiresAt)) || s.capabilities?.simulated !== false) return { ok: false, error: adapterError("UNREADABLE", "The voice service returned an unusable session.", true) };

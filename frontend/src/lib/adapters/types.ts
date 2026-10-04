@@ -150,7 +150,7 @@ export interface VoiceSessionHandle {
 
 export interface VoiceAdapter {
   readonly mode: ServiceMode;
-  createSession(input: { consent: true }, scope: RequestScope): Promise<AdapterResult<VoiceSessionHandle>>;
+  createSession(input: { consent: true; memberId?: string; facts?: Record<string, { value: string | boolean | null; status: string }> }, scope: RequestScope): Promise<AdapterResult<VoiceSessionHandle>>;
 }
 
 // --- Typed interpretation (/api/interpret) ----------------------------------
