@@ -202,7 +202,11 @@ function isNameMismatch(patient: PatientDetails | null, identity: IntakeExtracti
 }
 
 function mergeExtraction(record: AnalysisRecord, extraction: IntakeExtraction, now: string): AnalysisRecord {
-  const draft = applyProposals(record.draft, extraction.proposals, extraction.evidence, extraction.overflow);
+  const evidence = extraction.evidence.map((item) => ({
+    ...item,
+    reviewNotes: [...new Set([...(item.reviewNotes ?? []), ...extraction.reviewNotes.filter((note) => note.evidenceId === item.id).map((note) => note.message)])],
+  }));
+  const draft = applyProposals(record.draft, extraction.proposals, evidence, extraction.overflow);
   return withDraftChange(record, draft, now, extraction.proposals.map((p) => p.fieldPath));
 }
 

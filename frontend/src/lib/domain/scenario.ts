@@ -48,6 +48,9 @@ function sourceFor(fact: DraftFact, evidence: Record<string, IntakeEvidence>, is
 
 export function buildConfirmedScenario(draft: IntakeDraft): ScenarioBuildResult {
   const issues = new IssueCollector();
+  for (const evidence of Object.values(draft.evidence)) {
+    for (const issue of evidence.blockingIssues ?? []) issues.block(issue.fieldPath, issue.code, issue.message);
+  }
   const confirmed: ConfirmedFact<unknown>[] = [];
 
   const fact = (path: string) => draft.facts[path];

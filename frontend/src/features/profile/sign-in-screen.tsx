@@ -33,13 +33,13 @@ function errorMessage(code: string | null): { title: string; message: string } |
   if (!code) return null;
   switch (code) {
     case "AccessDenied":
-      return { title: "Google sign-in was cancelled", message: "Google sign-in was cancelled. Your draft is still here." };
+      return { title: "Google sign-in was cancelled", message: "Google sign-in was cancelled. You can continue as a guest." };
     case "Configuration":
-      return { title: "Google sign-in isn't set up correctly", message: "Sign-in isn't configured correctly on this site. Your draft is still here and you can continue as a guest." };
+      return { title: "Google sign-in isn't set up correctly", message: "Sign-in isn't configured correctly on this site. You can continue as a guest." };
     case "SessionRequired":
-      return { title: "Your session ended", message: "Sign in again to keep saving analyses. Your draft is still here." };
+      return { title: "Your session ended", message: "Sign in again to reconnect your account." };
     default:
-      return { title: "Sign-in didn't finish", message: "Google sign-in didn't complete. Try again, or continue as a guest. Your draft is still here." };
+      return { title: "Sign-in didn't finish", message: "Google sign-in didn't complete. Try again, or continue as a guest." };
   }
 }
 
@@ -71,7 +71,7 @@ function SignInContent() {
           <StaggerItem>
             <h1 className="font-display text-[2rem] leading-[2.375rem] font-semibold tracking-tight text-foreground md:text-[2.75rem] md:leading-[3.125rem]">Sign in</h1>
             <p className="mt-3 max-w-[32rem] text-base text-pretty text-muted-foreground md:text-[17px] md:leading-7">
-              Signing in is optional. Sign in to save analyses across visits, or keep going as a guest.
+              Signing in is optional. Connect your Google account, or keep going as a guest.
             </p>
           </StaggerItem>
 
@@ -85,7 +85,7 @@ function SignInContent() {
           {auth.status === "expired" && !problem && (
             <StaggerItem>
               <Notice tone="warning" title="Your session ended">
-                Sign in again to keep saving analyses. Your draft is still here.
+                Sign in again to reconnect your account.
               </Notice>
             </StaggerItem>
           )}
@@ -112,7 +112,7 @@ function SignInContent() {
                   <div className="space-y-4 border-t pt-5">
                     <p className="text-base font-medium">Keep your current draft?</p>
                     <p className="text-sm text-muted-foreground">
-                      You started “{draftToKeep.title}” before signing in. It stays in this session either way, and saving a comparison from it stores that comparison with this account. Nothing is merged by name or email.
+                      “{draftToKeep.title}” remains open in this browser session. Saving analyses to your account is not available yet.
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <Press>
@@ -137,13 +137,13 @@ function SignInContent() {
           {(auth.status === "guest" || auth.status === "expired") && (
             <>
               <StaggerItem>
-                <OptionRow id="google-heading" featured title="Google account" description="Sign in to save analyses across visits.">
+                <OptionRow id="google-heading" featured title="Google account" description="Connect your Google account to CareWindow.">
                   <GoogleSignInControl google={google} />
                 </OptionRow>
               </StaggerItem>
 
               <StaggerItem>
-                <OptionRow id="guest-heading" title="Guest" description="Everything works without an account. Guest analyses last only for this session.">
+                <OptionRow id="guest-heading" title="Guest" description="Continue without signing in. Guest analyses last only for this session.">
                   <Press>
                     <Button asChild variant={google.availability.status === "available" ? "outline" : "default"}>
                       <Link href={destination}>Continue as guest</Link>

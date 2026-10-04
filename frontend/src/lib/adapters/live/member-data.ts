@@ -1,5 +1,5 @@
 import type { IntakeExtraction } from "../types";
-import type { FieldValue, PatientProfile } from "@/lib/domain/types";
+import type { FieldValue, IntakeEvidence, PatientProfile } from "@/lib/domain/types";
 
 export interface MemberData {
   member: {
@@ -7,7 +7,7 @@ export interface MemberData {
     benefit_state: { benefit_year: number; plan_paid_ytd_cents: number; annual_maximum_remaining_cents: number; deductible_remaining_cents: { in_network: number }; pending_claims: unknown[]; rollover_bank_cents?: number };
   };
   plan: { display_name: string; effective_from: string; effective_to: string; deductible: { in_network: { individual_cents: number } }; annual_maximum: { individual_cents: number; preventive_counts_toward_maximum: boolean }; coverage: Record<string, { in_network_plan_share_bps: number; deductible_applies: boolean }> };
-  procedure_card: { procedure_card_id: string; procedures: { procedure_id: string; cdt: string; label: string; dentist_estimated_fee_cents: number; target_by_date: string; earliest_safe_date: string; latest_safe_date: string; confirmation_status: string; dependencies: { procedure_id: string; minimum_gap_days: number }[] }[] } | null;
+  procedure_card: { procedure_card_id: string; procedures: { procedure_id: string; cdt: string; label: string; dentist_estimated_fee_cents: number; target_by_date: string; earliest_safe_date: string; latest_safe_date: string; confirmation_status: string; dependencies: { procedure_id: string; minimum_gap_days: number; maximum_gap_days?: number | null }[] }[] } | null;
   procedure_catalog: { cdt: string; service_class: string }[];
   claims: { claim_id: string; cdt: string; status: string; service_date: string; plan_payment_cents: number }[];
 }
@@ -20,6 +20,9 @@ export function memberProfile(data: MemberData): PatientProfile {
 export function memberExtraction(data: MemberData): IntakeExtraction {
   const evidenceId = `database:${data.member.member_id}:${data.member.observed_at}`;
   const values: Record<string, FieldValue> = {};
+  const blockingIssues: NonNullable<IntakeEvidence["blockingIssues"]> = [];
+  if (data.member.benefit_state.pending_claims.length > 0) blockingIssues.push({ fieldPath: "plan.y1.alreadyUsed", code: "PENDING_CLAIMS", message: "This member has pending claims. This comparison cannot reserve their benefit payments, so it cannot calculate this member's costs yet." });
+  if ((data.member.benefit_state.rollover_bank_cents ?? 0) > 0) blockingIssues.push({ fieldPath: "plan.y1.annualMaximum", code: "ROLLOVER", message: "This member has rollover benefits. This comparison cannot apply them, so it cannot calculate this member's costs yet." });
   const dollars = (cents: number) => {
     if (!Number.isSafeInteger(cents) || cents < 0) throw new Error("Invalid benefit amount returned by the backend.");
     return (cents / 100).toFixed(2);
@@ -62,14 +65,21 @@ export function memberExtraction(data: MemberData): IntakeExtraction {
       if (earliest <= latest) { values[`timing.${id}.${yid}.earliest`] = earliest; values[`timing.${id}.${yid}.latest`] = latest; }
     }
     const dependencies = p.dependencies ?? [];
-    if (dependencies.length === 1 && ids.has(dependencies[0].procedure_id)) {
-      values[`timing.${id}.after`] = ids.get(dependencies[0].procedure_id)!;
-      values[`timing.${id}.minGapDays`] = String(dependencies[0].minimum_gap_days);
+    if (dependencies.length > 0) {
+      const mapped = dependencies.map((d) => ids.get(d.procedure_id));
+      const gaps = new Set(dependencies.map((d) => d.minimum_gap_days));
+      if (mapped.every(Boolean) && gaps.size === 1) {
+        values[`timing.${id}.after`] = mapped.join(",");
+        values[`timing.${id}.minGapDays`] = String(dependencies[0].minimum_gap_days);
+      } else {
+        blockingIssues.push({ fieldPath: `timing.${id}.after`, code: "UNSUPPORTED_DEPENDENCY", message: `The required procedures or different spacing rules for ${p.label} cannot be represented in this comparison. Its dentist constraints must be supported before calculating.` });
+      }
+      if (dependencies.some((d) => d.maximum_gap_days != null)) blockingIssues.push({ fieldPath: `timing.${id}.minGapDays`, code: "UNSUPPORTED_MAXIMUM_GAP", message: `Your dentist specified a maximum interval before ${p.label}. This comparison cannot enforce that interval, so it cannot calculate this treatment plan yet.` });
     }
   });
   return {
     proposals: Object.entries(values).map(([fieldPath, value]) => ({ fieldPath, value, evidenceId })),
-    evidence: [{ id: evidenceId, kind: "manual", sourceId: data.member.member_id, sourceLabel: `Database record: ${data.member.member_id}`, receivedAt: data.member.observed_at }],
+    evidence: [{ id: evidenceId, kind: "manual", sourceId: data.member.member_id, sourceLabel: `Database record: ${data.member.member_id}`, receivedAt: data.member.observed_at, blockingIssues }],
     overflow: procedures.slice(4).map((p) => ({ label: p.label, evidenceId })), missingFieldPaths: [],
     reviewNotes: [{ message: "Review imported benefit and treatment facts. Contracted fees, eligibility and permission to change dates need confirmation. Pending claims and rollover are shown in the member view and are not supported by this comparison model.", evidenceId }],
   };

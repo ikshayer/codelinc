@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { memberExtraction, type MemberData } from "@/lib/adapters/live/member-data";
+import { buildConfirmedScenario } from "@/lib/domain/scenario";
+import { typedSampleDraft } from "./helpers";
 
 const data: MemberData = {
   member: { member_id: "member-42", display_name: "Test Member", observed_at: "2026-10-03T09:00:00-04:00", benefit_state: { benefit_year: 2026, plan_paid_ytd_cents: 48250, annual_maximum_remaining_cents: 101750, deductible_remaining_cents: { in_network: 2500 }, pending_claims: [{ claim_id: "pending-1" }] } },
@@ -29,5 +31,43 @@ describe("database member intake", () => {
   });
   it("supports a member without a stored treatment card", () => {
     expect(memberExtraction({ ...data, procedure_card: null }).proposals.some((p) => p.fieldPath.startsWith("care."))).toBe(false);
+  });
+
+  it("blocks pending claims even after all editable values have been filled", () => {
+    const evidence = memberExtraction(data).evidence[0];
+    const draft = typedSampleDraft();
+    draft.evidence[evidence.id] = evidence;
+    const built = buildConfirmedScenario(draft);
+    expect(built.ok).toBe(false);
+    if (!built.ok) expect(built.issues.some((issue) => issue.code === "PENDING_CLAIMS")).toBe(true);
+  });
+
+  it("blocks unsupported rollover benefits", () => {
+    const copy = structuredClone(data);
+    copy.member.benefit_state.rollover_bank_cents = 20000;
+    expect(memberExtraction(copy).evidence[0].blockingIssues).toEqual(expect.arrayContaining([expect.objectContaining({ code: "ROLLOVER" })]));
+  });
+
+  it("preserves multiple dependencies that share the same minimum gap", () => {
+    const copy = structuredClone(data);
+    const first = copy.procedure_card!.procedures[0];
+    copy.procedure_card!.procedures.push({ ...first, procedure_id: "second", dependencies: [] }, { ...first, procedure_id: "third", dependencies: [{ procedure_id: first.procedure_id, minimum_gap_days: 7 }, { procedure_id: "second", minimum_gap_days: 7 }] });
+    const facts = Object.fromEntries(memberExtraction(copy).proposals.map((p) => [p.fieldPath, p.value]));
+    expect(facts["timing.p3.after"]).toBe("p1,p2");
+    expect(facts["timing.p3.minGapDays"]).toBe("7");
+  });
+
+  it("blocks differing per-dependency gaps instead of silently losing them", () => {
+    const copy = structuredClone(data);
+    const first = copy.procedure_card!.procedures[0];
+    copy.procedure_card!.procedures.push({ ...first, procedure_id: "second", dependencies: [] }, { ...first, procedure_id: "third", dependencies: [{ procedure_id: first.procedure_id, minimum_gap_days: 7 }, { procedure_id: "second", minimum_gap_days: 14 }] });
+    expect(memberExtraction(copy).evidence[0].blockingIssues).toEqual(expect.arrayContaining([expect.objectContaining({ code: "UNSUPPORTED_DEPENDENCY" })]));
+  });
+
+  it("blocks maximum intervals the comparison cannot enforce", () => {
+    const copy = structuredClone(data);
+    const first = copy.procedure_card!.procedures[0];
+    copy.procedure_card!.procedures.push({ ...first, procedure_id: "second", dependencies: [{ procedure_id: first.procedure_id, minimum_gap_days: 7, maximum_gap_days: 30 }] });
+    expect(memberExtraction(copy).evidence[0].blockingIssues).toEqual(expect.arrayContaining([expect.objectContaining({ code: "UNSUPPORTED_MAXIMUM_GAP" })]));
   });
 });

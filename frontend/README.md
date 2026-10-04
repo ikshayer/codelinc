@@ -48,6 +48,8 @@ Profile → **Demo data** has switches that make the mock services fail on purpo
 | History | Session memory, seeded examples; refreshing resets it | `/api/analyses` (proposed), account-owned |
 | Google sign-in | Unavailable ("Use demo profile" is a separate, labeled action) | Auth.js REST routes (`/api/auth/*`) when configured |
 
+Google login is implemented with Auth.js. Follow [the Google setup guide](docs/google-auth.md) to configure the client and callback URL. Login provides session identity; account history persistence remains unfinished.
+
 Live mode never falls back to fixtures. A missing service shows an honest unavailable state and offers sample or manual input.
 
 ### Real-engine gate: incomplete
@@ -85,7 +87,7 @@ Trust boundaries the code enforces:
 
 ## Known gaps and decisions
 
-- **Not connected:** the real calculation engine, report extraction, voice transport, `/api/interpret`, history persistence, Auth.js and a live `/api/profile`. Each one has a typed live adapter and a documented contract, and each reports itself unavailable until the backend exists.
+- **Not connected:** the real calculation engine, report extraction, voice transport, `/api/interpret`, history persistence and a live `/api/profile`. Each one has a typed live adapter and a documented contract, and each reports itself unavailable until the backend exists. Google sign-in is available after configuring Auth.js credentials.
 - **Late source results after an edit:** report and typed-interpret replies are still accepted after an unrelated manual edit. They're keyed by request ID and session epoch, and `applyProposals` never overwrites an edited value; a clash becomes a visible conflict instead. File replacement, Clear, delete and sign-out reject late replies.
 - **Voice leave guard:** it covers in-app link clicks (including method switching) and tab close. Browser Back isn't intercepted, but unmount always stops the microphone and ends the session.
 - **Session memory:** refreshing the page restores the seeded demo data and drops in-progress drafts, by design: nothing is written to browser storage.

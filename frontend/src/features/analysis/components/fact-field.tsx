@@ -118,7 +118,7 @@ export function FactField({ analysisId, path, error, label, className }: FactFie
               className="inline-flex min-h-8 items-center rounded-sm underline-offset-4 hover:underline"
               aria-label={`View source for ${label ?? definition.label}`}
             >
-              <SourceBadge kind={fact.origin} evidence={firstEvidence} />
+              <SourceBadge kind={fact.origin} evidence={fact.userEdited ? undefined : firstEvidence} />
             </button>
           ) : (
             fact && <SourceBadge kind={fact.origin} />

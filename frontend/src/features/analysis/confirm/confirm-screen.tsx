@@ -79,6 +79,8 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
   );
 
   const calculating = analysis.result.status === "calculating";
+  const importedIssues = Object.values(analysis.draft.evidence).flatMap((item) => item.blockingIssues ?? []);
+  const reviewNotes = [...new Set(Object.values(analysis.draft.evidence).flatMap((item) => item.reviewNotes ?? []))];
   const procedureLabel = (id: string) => {
     const value = analysis.draft.facts[carePaths.label(id)]?.value;
     return typeof value === "string" && value ? value : "Unnamed procedure";
@@ -108,6 +110,17 @@ export function ConfirmScreen({ analysisId }: { analysisId: string }) {
         title="Review your details"
         description="Review your plan, prescribed care and dentist-approved timing. Then confirm the details to compare."
       />
+
+      {importedIssues.length > 0 && (
+        <Alert variant="destructive" role="alert" className="mb-6">
+          <AlertCircleIcon aria-hidden />
+          <AlertTitle>This member&apos;s plan needs a supported calculation service</AlertTitle>
+          <AlertDescription><ul className="list-disc space-y-1 pl-4">{importedIssues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></AlertDescription>
+        </Alert>
+      )}
+      {reviewNotes.length > 0 && (
+        <div className="mb-6 space-y-2 text-sm text-muted-foreground">{reviewNotes.map((note) => <p key={note}>{note}</p>)}</div>
+      )}
 
       <AnimatePresence>
       {issues.length > 0 && (
