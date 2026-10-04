@@ -1,5 +1,92 @@
 # Contract changelog
 
+## 1.5.0 — 2026-10-04 — FROZEN (year-close maximum carryover)
+
+CR 1.5.0 (MVP loop iteration 2, `docs/mvp-loop/current-plan.md`; decision D-028). **No existing golden number changed** (`npm run golden:check`); new rollover values are additions. Clauses changed in CONTRACT-v1.md are marked **(1.5)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | `data/sources/northwind-ppo-2026-carryover-rider.md`, `manifest.json`, CONTRACT §2.1 | New synthetic source, role `amendment`, appended last; 2026 `source_precedence` = rider, summary. | The summary defers to a rider that was missing; `rollover.2026` becomes VERIFIED with literal quotes. |
+| 2 | `src/domain/plan.ts` | `RolloverValue` replaced by the explicit model (basis, `LT`/`LTE`, award, bonus and condition, cap, eligible-claim flag, bank treatment, forfeit, next plan version ids). | Requirements §5.1. |
+| 3 | `src/domain/member.ts`, CONTRACT §3.1 | `AccumulatorSnapshot.carryover_balance` (optional, default null = unknown); the maximum consistency checks include an exact balance. | §5.2 ledger state; old requests still parse (review L-2). |
+| 4 | `src/domain/benefits.ts`, `fact-ids.ts`, `issues.ts`, CONTRACT §3.6, §3.9 | `RolloverStatus`, `RolloverOutcome`, `SimulationResult.rollover`; `ROLLOVER_STEPS`, `rolloverStepId`; codes `ROLLOVER_UNCERTAIN`, `ROLLOVER_NEXT_PLAN_UNKNOWN`, `ROLLOVER_NEXT_PLAN_INELIGIBLE`. A VERIFIED rollover no longer blocks (`RULE_TYPE_UNSUPPORTED` removed); it is closed once per period, carried into a fresh next period in `best_case` only. | ROLL-001..009. |
+| 5 | `src/domain/optimizer.ts`, CONTRACT §5.5, §5.10 | `Alternative.rollover`, `ScheduledEvent.rollover_shift` (`RolloverShift`, display only); `line_best` may differ from `line_worst` where a conditional carryover is applied. | ROLL-010, UI-007, §11.2 (per alternative). |
+| 6 | CONTRACT §3.7, §6.3, §6.4, §8 | Passport carryover text; template carryover sentences; closing plan versions count as used by the focus; rollover removed from out-of-scope. | §5.4. |
+| 7 | `fixtures/golden/registry-expectations.json`, `expected.json`, `golden-scenario.md`, `scripts/golden-check.mjs` | VERIFIED `rollover.2026` (with `evidence_source_id`); additions `postvisit.base.alternatives[].rollover`, `postvisit.rollover_shift_null_for`, `postvisit.variants.rollover_near_threshold`, derived independently by the checker. | §13. |
+| 8 | `fixtures/synthetic/member.json`, `fixtures/mock-responses/**` | 2026 `carryover_balance` $0; mocks carry `rollover`, `rollover_shift: null` and the VERIFIED passport item; the `RULE_UNVERIFIED rollover.2026` warning is gone. | |
+| 9 | `tests/acceptance/at21-rollover.test.ts`, AT-00/02/16/20, `tests/contracts/fixtures.test.ts`, `docs/acceptance.md` | New AT-21; tests that assumed one five-page source per plan or an UNVERIFIED carryover were corrected (see `docs/acceptance.md`). | |
+| 10 | `src/domain/version.ts` | `CONTRACT_VERSION = "1.5.0"`; `ENGINE_IDS` unchanged. | Minor: response fields and issue codes are additive; the new request key is optional; `RolloverValue` is server-owned registry data regenerated in the same change. |
+
+### Change requests
+
+| CR | From | Summary | Decision | Version |
+|---|---|---|---|---|
+| CR 1.5.0 | Planner (MVP loop iteration 2) | Year-close carryover model, outcome, shift, rider source | Accepted | 1.5.0 |
+
+## 1.4.0 — 2026-10-04 — FROZEN (plan identity, network per plan, source authority, price validity)
+
+CR 1.4.0 (MVP loop iteration 1, `docs/mvp-loop/current-plan.md`; decision D-027). **No golden number changed** (`npm run golden:check`). Clauses changed in CONTRACT-v1.md are marked **(1.4)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | `src/domain/provider.ts`, CONTRACT §3.3 step 2, §3.4 | `ProviderOption.network.tier` nullable; `network.network_id` = the plan network the status was verified against. Effective tier = tier only when `network_id` equals the resolved version's `key.network_id`; else blocking `NETWORK_STATUS_UNKNOWN`. Plan version resolves **before** the route check. | PLAN-002: tier is per plan, office and service date, never assumed. |
+| 2 | `src/domain/optimizer.ts`, CONTRACT §4 step 4 | `VisitOption.network_tier` nullable, taken from the simulated lines. | Same. |
+| 3 | `src/domain/plan.ts`, CONTRACT §2.1, §2.4 | `SourceRole`, `AUTHORITATIVE_SOURCE_ROLES`, `SourceDocument.document_role`, `PlanDefinition.source_precedence`; `validatePlan` adds `SOURCE_NOT_AUTHORITATIVE` and `SOURCE_PRECEDENCE_INVALID`. | PLAN-003: educational material never backs a calculation rule. |
+| 4 | `src/domain/provider.ts`, CONTRACT §3.4, §3.8 | `ProcedurePrice.cash_quote_valid_through`; null → `SELF_PAY_NOT_VERIFIED`, past the service date → `PRICE_QUOTE_EXPIRED`. §3.8 maps spec §9 `PriceFact` to existing fields. | PRICE-002 / FUND-003 quote validity. |
+| 5 | CONTRACT §1.9 | Price staleness (`INPUT_STALE` warning on the line) is required from benefits. | PRICE-002. |
+| 6 | CONTRACT §3.2 | `event_id` is the explicit same-day sequence (documented; behavior unchanged). | §6.5, REC-006 (AT-20). |
+| 7 | `src/domain/issues.ts`, CONTRACT §6.2 | New codes `NETWORK_STATUS_UNKNOWN`, `PRICE_QUOTE_EXPIRED`, `SOURCE_NOT_AUTHORITATIVE`, `SOURCE_PRECEDENCE_INVALID`; the first two feed `missing_fields`. | |
+| 8 | `data/sources/manifest.json`, `fixtures/synthetic/providers.*.json` | Both sources `document_role: "schedule_of_benefits"`; BrightSmile `network_id: "nwd-ppo"`; every price row has `cash_quote_valid_through` (Rivera D2392 `2027-06-30`, others null). | Keeps every golden number. |
+| 9 | `src/domain/version.ts`, `fixtures/mock-responses/**`, `scripts/golden-check.mjs` | `CONTRACT_VERSION = "1.4.0"`; mocks regenerated (version string only); checker banner reads the current version. | |
+| 10 | `tests/acceptance/at20-plan-identity-network-sources.test.ts`, `docs/acceptance.md` | New AT-20 (27 tests). | |
+
+### Change requests
+
+| CR | From | Summary | Decision | Version |
+|---|---|---|---|---|
+| CR 1.4.0 | Planner (MVP loop iteration 1) | Network per plan, source roles/precedence, quote validity, price staleness, explicit order | Accepted | 1.4.0 |
+
+## 1.3.0 — 2026-10-04 — FROZEN (repair gate: independent review fixes)
+
+CR 1.3.0 (Planner, from `docs/review/REVIEW.md`). **No golden number changed** (`npm run golden:check`). Clauses changed in CONTRACT-v1.md are marked **(1.3)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | CONTRACT §3.1 fresh period | A deductible/annual_maximum rule that is not exactly one VERIFIED rule puts the blocking `RULE_*` issue on every line of that period; the care plan surfaces it in `unresolved`. | Review P1-1: 2027 options vanished silently. |
+| 2 | CONTRACT §4 step 2 | Urgent + unresolvable/unsupported plan → `URGENT_CARE_ROUTE`, `options:[]`, plan issues kept. | Review P2-1. |
+| 3 | CONTRACT §4 step 6 | Urgent → `lowest_cost`/`best_overall` only among candidates on the soonest date. | Review P1-3: spec §5 "do not recommend delay to save benefits". |
+| 4 | CONTRACT §6.4 | Normalize text (NFKC, strip format chars, collapse whitespace) before rules 2/5/7 and the §6.1 scanner; wider money and date grammars; malformed money rejected. | Review P2-2, P2-3. |
+| 5 | `src/domain/version.ts`, `fixtures/mock-responses/**` | `CONTRACT_VERSION = "1.3.0"`; mocks regenerated. | |
+
+Also fixed without contract change: OON allowance rows quoted literally in `data/plans/**` (P1-2); server Origin check compares with `Host` only (P2-4).
+
+### Change requests
+
+| CR | From | Summary | Decision | Version |
+|---|---|---|---|---|
+| CR 1.3.0 | Reviewer → Planner | Urgent label rule, fresh-period rule issues, §6.4 normalization | Accepted | 1.3.0 |
+
+## 1.2.0 — 2026-10-04 — FROZEN (additive: cash vs claim)
+
+CR 1.2.0 (Planner). **No existing golden number changed**; new golden values only. Clauses added in CONTRACT-v1.md are marked **(1.2)**.
+
+| # | Where | Change | Why |
+|---|---|---|---|
+| 1 | `src/domain/optimizer.ts` | New `RouteComparison` (`claim_route`, `claim_total_cents`, `cash_total_cents`, `difference_cents`, `winner_claim_route`, `missing`); `ScheduledEvent.route_comparison: RouteComparison \| null`. `CONTRACT_VERSION = "1.2.0"`. | Spec §8: show the cash-vs-claim tradeoff over the whole horizon, not just the chosen route. |
+| 2 | CONTRACT §5.9 | Definition: re-simulate the whole schedule (worst case) with the event as claim vs self-pay; null + `missing` warnings when not evaluable; tie → claim; not a ranking input; no new trace kind. | Knock-on effects (annual maximum left for the crown) are the whole point. |
+| 3 | `fixtures/golden/expected.json` | `postvisit.route_comparisons`: base earliest (Oct 22: $1,456 claim vs $1,426 cash, $30, cash wins), base lowest (Jan 5, 2027: $1,372 claim, cash unknown — `RULE_UNKNOWN`), filling-this-year (Dec 3 and Oct 22: cash wins by $30), office self-pay unknown (Oct 22: $1,456 claim, cash unknown — `SELF_PAY_NOT_VERIFIED`); root canal and crown `null`. | |
+| 4 | `scripts/golden-check.mjs` | Re-derives every route comparison by flipping the route and re-adjudicating with its own `adjudicate()` (still no `src/` imports); asserts to the cent. | Independent check of the new numbers. |
+| 5 | `tests/acceptance/at19-cash-vs-claim.test.ts`, `docs/acceptance.md` | AT-19 (+7 tests). | |
+| 6 | `scripts/build-mocks.ts` → `fixtures/mock-responses/**` | Mocks regenerated with `route_comparison` and contract 1.2.0. | UX builds the cash-vs-claim card on mocks. |
+
+**Tooling/docs** — root README: run backend Claude Code sessions from `backend/`; D-024 and `docs/ownership.md` corrected for the `frontend/` + `backend/` layout.
+
+### Change requests
+
+| CR | From | Summary | Decision | Version |
+|---|---|---|---|---|
+| CR 1.2.0 | Planner | Cash vs claim route comparison per event | Accepted | 1.2.0 |
+
 ## 1.1.0 — 2026-10-03 — FROZEN (pre-build review)
 
 Independent review by the four agents in read-only mode (`docs/review/contract-review-v1.md`) plus a Planner brute-force re-derivation of every golden number (`scripts/golden-check.mjs`). **No golden number changed.** Clauses changed in CONTRACT-v1.md are marked **(1.1)**.

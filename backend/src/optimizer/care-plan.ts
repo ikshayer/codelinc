@@ -28,6 +28,8 @@ import {
   type ProcedureRecommendation,
   type ProviderOption,
   type ReasonCode,
+  type RolloverShift,
+  type RouteComparison,
   type ScheduledEvent,
   type SimulationResult,
 } from "@/domain";
@@ -299,6 +301,37 @@ function sameStringVector(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
+/**
+ * Worst-case whole-schedule member total with the event at `index` switched to `route` (everything else unchanged).
+ * `total` is null when any line is not OK/NOT_COVERED; `issues` then explain why.
+ */
+function simulateWithRoute(
+  benefits: BenefitEngine,
+  registry: PlanRegistry,
+  request: CarePlanRequest,
+  candidates: Candidate[],
+  index: number,
+  route: ClaimRoute,
+  prefix: string,
+): { total: number | null; issues: Issue[] } {
+  const switched = candidates.map((value, candidateIndex) => (candidateIndex === index ? { ...value, route } : value));
+  const simulation = benefits.simulate(registry, {
+    as_of: request.as_of,
+    scenario: "worst_case",
+    member: request.member,
+    providers: request.providers,
+    events: claimEvents(switched, prefix),
+  });
+  if (
+    simulation.status !== "OK" ||
+    simulation.totals === null ||
+    simulation.lines.some((line) => line.status !== "OK" && line.status !== "NOT_COVERED")
+  ) {
+    return { total: null, issues: simulationIssues(simulation) };
+  }
+  return { total: simulation.totals.member_responsibility_cents, issues: [] };
+}
+
 function selfPayIsStrictlyCheaper(
   benefits: BenefitEngine,
   registry: PlanRegistry,
@@ -308,33 +341,109 @@ function selfPayIsStrictlyCheaper(
 ): { eligible: boolean; issues: Issue[] } {
   const selfPayTotal = selfPaySimulation.totals?.member_responsibility_cents;
   if (selfPayTotal === null || selfPayTotal === undefined) return { eligible: false, issues: simulationIssues(selfPaySimulation) };
-  const issues: Issue[] = [];
   for (let index = 0; index < candidates.length; index += 1) {
     const candidate = candidates[index]!;
     if (candidate.route !== "SELF_PAY_NO_CLAIM") continue;
-    const claimCandidates = candidates.map((value, candidateIndex) =>
-      candidateIndex === index ? { ...value, route: providerClaimRoute(value.provider) } : value,
-    );
-    const claimSimulation = benefits.simulate(registry, {
-      as_of: request.as_of,
-      scenario: "worst_case",
-      member: request.member,
-      providers: request.providers,
-      events: claimEvents(claimCandidates, "eval-claim"),
-    });
-    if (
-      claimSimulation.status !== "OK" ||
-      claimSimulation.totals === null ||
-      claimSimulation.lines.some((line) => line.status !== "OK" && line.status !== "NOT_COVERED")
-    ) {
-      issues.push(...simulationIssues(claimSimulation));
-      return { eligible: false, issues: uniqueIssues(issues) };
-    }
-    if (claimSimulation.totals.member_responsibility_cents <= selfPayTotal) {
-      return { eligible: false, issues: uniqueIssues(issues) };
-    }
+    const claim = simulateWithRoute(benefits, registry, request, candidates, index, providerClaimRoute(candidate.provider), "eval-claim");
+    if (claim.total === null) return { eligible: false, issues: uniqueIssues(claim.issues) };
+    if (claim.total <= selfPayTotal) return { eligible: false, issues: [] };
   }
-  return { eligible: true, issues: uniqueIssues(issues) };
+  return { eligible: true, issues: [] };
+}
+
+/** (1.2) CONTRACT §5.9: cash vs claim for one event over the whole schedule, worst case. Not a ranking input. */
+function routeComparison(
+  benefits: BenefitEngine,
+  registry: PlanRegistry,
+  request: CarePlanRequest,
+  candidates: Candidate[],
+  index: number,
+  prefix: string,
+): RouteComparison | null {
+  const candidate = candidates[index]!;
+  const price = candidate.provider.pricing.find((row) => row.cdt_code === candidate.procedure.cdt_code);
+  if (price?.cash_quote === null || price?.cash_quote === undefined) return null;
+  const claimRoute = providerClaimRoute(candidate.provider);
+  const claim = simulateWithRoute(benefits, registry, request, candidates, index, claimRoute, prefix);
+  const cash = simulateWithRoute(benefits, registry, request, candidates, index, "SELF_PAY_NO_CLAIM", prefix);
+  const known = claim.total !== null && cash.total !== null;
+  return {
+    claim_route: claimRoute,
+    claim_total_cents: claim.total,
+    cash_total_cents: cash.total,
+    difference_cents: known ? Math.abs(claim.total! - cash.total!) : null,
+    winner_claim_route: known ? (cash.total! < claim.total! ? "SELF_PAY_NO_CLAIM" : claimRoute) : null,
+    missing: uniqueIssues([claim, cash].flatMap(missingIssues)),
+  };
+}
+
+/**
+ * (1.5) CONTRACT §5.10: what moving this flexible event into the next plan year would do to the closing
+ * year's carryover. Display only: never a ranking input, never for time-sensitive care.
+ */
+function rolloverShift(
+  benefits: BenefitEngine,
+  registry: PlanRegistry,
+  request: CarePlanRequest,
+  allCandidates: Map<string, Candidate[]>,
+  candidates: Candidate[],
+  index: number,
+  prefix: string,
+  worst: SimulationResult,
+): RolloverShift | null {
+  const candidate = candidates[index]!;
+  const line = worst.lines[index]!;
+  if (candidate.procedure.urgency !== "can_plan_later") return null;
+  if (line.status !== "OK" || line.counts_toward_maximum !== true || (line.plan_pay_cents ?? 0) <= 0) return null;
+  const outcome = worst.rollover.find(
+    (value) => value.closing_plan_version_id === line.plan_version_id && (value.status === "NOT_EARNED" || value.status === "UNCERTAIN"),
+  );
+  if (!outcome?.next_plan_version_id || worst.totals === null) return null;
+  const usedSlots = new Set(
+    candidates.filter((_, other) => other !== index).map((value) => `${value.provider.provider_id}@${value.slot.slot_id}`),
+  );
+  const picks = new Map(candidates.map((value) => [value.procedure.procedure_id, value] as [string, Candidate | null]));
+  const moved = (allCandidates.get(candidate.procedure.procedure_id) ?? []).find((option) => {
+    if (option.provider.provider_id !== candidate.provider.provider_id || option.route !== candidate.route) return false;
+    if (usedSlots.has(`${option.provider.provider_id}@${option.slot.slot_id}`)) return false;
+    const plan = benefits.resolvePlanVersion(registry, request.member.plan_key, option.slot.date);
+    if (!plan.ok || plan.plan.plan_version_id !== outcome.next_plan_version_id) return false;
+    return dependenciesSatisfied(new Map(picks).set(candidate.procedure.procedure_id, option), request.procedures);
+  });
+  if (!moved) return null;
+  const simulation = benefits.simulate(registry, {
+    as_of: request.as_of,
+    scenario: "worst_case",
+    member: request.member,
+    providers: request.providers,
+    events: claimEvents(chronologicalCandidates(new Map(picks).set(candidate.procedure.procedure_id, moved)), `${prefix}-shift`),
+  });
+  const after = simulation.rollover.find((value) => value.closing_plan_version_id === outcome.closing_plan_version_id);
+  if (
+    simulation.status !== "OK" ||
+    simulation.totals === null ||
+    !after?.final_bank ||
+    after.status === outcome.status ||
+    !(after.status === "CONDITIONAL" || after.status === "EARNED" || after.status === "UNCERTAIN")
+  ) {
+    return null;
+  }
+  return {
+    closing_plan_version_id: outcome.closing_plan_version_id,
+    moved_to_date: moved.slot.date,
+    moved_to_slot_id: moved.slot.slot_id,
+    plan_pay_in_closing_period_cents: line.plan_pay_cents!,
+    status_if_moved: after.status,
+    final_bank_if_moved: after.final_bank,
+    member_cost_delta_cents: simulation.totals.member_responsibility_cents - worst.totals.member_responsibility_cents,
+  };
+}
+
+/** Why a version is unknown: its blocking issues, or all of its issues if none blocks; as warnings. */
+function missingIssues(version: { total: number | null; issues: Issue[] }): Issue[] {
+  if (version.total !== null) return [];
+  const blocking = version.issues.filter((value) => value.severity === "blocking");
+  return (blocking.length ? blocking : version.issues).map((value) => ({ ...value, severity: "warning" as const }));
 }
 
 function allocateFunding(request: CarePlanRequest, candidates: Candidate[], lines: AdjudicationLine[]): FundingResult {
@@ -713,11 +822,15 @@ function finalAlternative(
       shortfall_cents: eventFunding.shortfall,
       reasons: eventReasons(benefits, registry, request, allCandidates, candidate, eventFunding.allocations),
       next_actions: nextActions,
+      route_comparison: routeComparison(benefits, registry, request, candidates, index, alternativeId),
+      rollover_shift: rolloverShift(benefits, registry, request, allCandidates, candidates, index, alternativeId, worst),
     };
   });
   const worstTotals = worst.totals!;
   const bestTotals = best.totals!;
-  const ruleIds = [...new Set([...worst.applied_rule_ids, ...best.applied_rule_ids])].sort(compareStrings);
+  const ruleIds = [
+    ...new Set([...worst.applied_rule_ids, ...best.applied_rule_ids, ...worst.rollover.flatMap((outcome) => outcome.applied_rule_ids)]),
+  ].sort(compareStrings);
   return {
     alternative_id: alternativeId,
     labels: [...labels].sort((a, b) => alternativeLabelOrder.indexOf(a) - alternativeLabelOrder.indexOf(b)),
@@ -737,6 +850,7 @@ function finalAlternative(
     objective: recalculated.objective,
     applied_rule_ids: ruleIds,
     issues: uniqueIssues([...simulationIssues(worst), ...simulationIssues(best), ...funding.issues]),
+    rollover: worst.rollover,
   };
 }
 

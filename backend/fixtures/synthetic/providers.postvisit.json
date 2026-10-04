@@ -137,7 +137,8 @@
           "source": "PROVIDER",
           "observed_at": "2026-10-01T15:00:00Z"
         },
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D0220",
@@ -159,7 +160,8 @@
           "source": "PROVIDER",
           "observed_at": "2026-10-01T15:00:00Z"
         },
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D3330",
@@ -181,7 +183,8 @@
           "source": "PROVIDER",
           "observed_at": "2026-10-01T15:00:00Z"
         },
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D2740",
@@ -203,7 +206,8 @@
           "source": "PROVIDER",
           "observed_at": "2026-10-01T15:00:00Z"
         },
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D2392",
@@ -233,7 +237,8 @@
           },
           "source": "PROVIDER",
           "observed_at": "2026-10-01T15:00:00Z"
-        }
+        },
+        "cash_quote_valid_through": "2027-06-30"
       }
     ],
     "self_pay": {
@@ -252,7 +257,7 @@
     "network": {
       "input_id": "provider.prov-brightsmile.network",
       "tier": "out_of_network",
-      "network_id": null,
+      "network_id": "nwd-ppo",
       "source": "PROVIDER",
       "observed_at": "2026-10-01T15:00:00Z"
     },
@@ -318,7 +323,8 @@
           "observed_at": "2026-10-01T15:00:00Z"
         },
         "contracted_allowed": null,
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D0220",
@@ -332,7 +338,8 @@
           "observed_at": "2026-10-01T15:00:00Z"
         },
         "contracted_allowed": null,
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D3330",
@@ -346,7 +353,8 @@
           "observed_at": "2026-10-01T15:00:00Z"
         },
         "contracted_allowed": null,
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D2740",
@@ -360,7 +368,8 @@
           "observed_at": "2026-10-01T15:00:00Z"
         },
         "contracted_allowed": null,
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       },
       {
         "cdt_code": "D2392",
@@ -374,7 +383,8 @@
           "observed_at": "2026-10-01T15:00:00Z"
         },
         "contracted_allowed": null,
-        "cash_quote": null
+        "cash_quote": null,
+        "cash_quote_valid_through": null
       }
     ],
     "self_pay": {

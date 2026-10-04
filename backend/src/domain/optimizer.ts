@@ -3,7 +3,7 @@
  * The exact ranking rules are normative in docs/contracts/CONTRACT-v1.md §7–§8.
  */
 import { z } from "zod";
-import { AdjudicationLine, BenefitPeriodState, ClaimRoute } from "./benefits";
+import { AdjudicationLine, BenefitPeriodState, ClaimRoute, RolloverOutcome, RolloverStatus } from "./benefits";
 import { Issue, IssueCode, ResultStatus } from "./issues";
 import { FundingSourceType, MemberState } from "./member";
 import { EvidenceRef, NetworkTier } from "./plan";
@@ -105,7 +105,8 @@ export const VisitOption = z.strictObject({
   provider_id: Id,
   location_id: Id,
   provider_name: z.string(),
-  network_tier: NetworkTier,
+  /** (1.4) The priced line's effective tier (benefits-owned); null = network status unknown. */
+  network_tier: NetworkTier.nullable(),
   network_observed_at: IsoDateTime,
   network_stale: z.boolean(),
   slot: AppointmentSlot,
@@ -223,6 +224,37 @@ export const FundingAllocation = z.strictObject({
 });
 export type FundingAllocation = z.infer<typeof FundingAllocation>;
 
+/** (1.2) Cash vs claim for one event over the whole schedule (spec §8). Worst case. CONTRACT §5.9. */
+export const RouteComparison = z.strictObject({
+  claim_route: ClaimRoute,
+  claim_total_cents: Cents.nullable(),
+  cash_total_cents: Cents.nullable(),
+  /** |claim − cash|; null unless both totals are known. */
+  difference_cents: Cents.nullable(),
+  /** SELF_PAY_NO_CLAIM only when strictly cheaper; ties go to the claim route; null unless both known. */
+  winner_claim_route: ClaimRoute.nullable(),
+  /** Why a total is unknown (warnings, deduplicated per §1.11). */
+  missing: z.array(Issue),
+});
+export type RouteComparison = z.infer<typeof RouteComparison>;
+
+/**
+ * (1.5) CONTRACT §5.10: display only, never a ranking input. What moving this flexible
+ * (can_plan_later) event into the next plan year would do to the closing year's carryover.
+ */
+export const RolloverShift = z.strictObject({
+  closing_plan_version_id: Id,
+  moved_to_date: IsoDate,
+  moved_to_slot_id: Id,
+  /** This event's plan payment (worst case) that counts in the closing year today. */
+  plan_pay_in_closing_period_cents: Cents,
+  status_if_moved: RolloverStatus,
+  final_bank_if_moved: AmountRange,
+  /** Moved schedule total − current total (worst-case member responsibility). */
+  member_cost_delta_cents: SignedCents,
+});
+export type RolloverShift = z.infer<typeof RolloverShift>;
+
 export const ScheduledEvent = z.strictObject({
   event_id: Id,
   procedure_id: Id,
@@ -241,6 +273,10 @@ export const ScheduledEvent = z.strictObject({
   shortfall_cents: Cents,
   reasons: z.array(ReasonCode).min(1),
   next_actions: z.array(NextAction),
+  /** (1.2) null when the price row at this provider has no cash quote. */
+  route_comparison: RouteComparison.nullable(),
+  /** (1.5) null unless moving this flexible event would change the closing year's carryover (§5.10). */
+  rollover_shift: RolloverShift.nullable(),
 });
 export type ScheduledEvent = z.infer<typeof ScheduledEvent>;
 
@@ -293,6 +329,8 @@ export const Alternative = z.strictObject({
   objective: ObjectiveVector,
   applied_rule_ids: z.array(Id),
   issues: z.array(Issue),
+  /** (1.5) Worst-case year-close carryover outcomes of this schedule (CONTRACT §5.10). Not a ranking input. */
+  rollover: z.array(RolloverOutcome),
 });
 export type Alternative = z.infer<typeof Alternative>;
 

@@ -56,3 +56,19 @@ export const CALC_STEPS = [
 ] as const;
 export type CalcStepName = (typeof CALC_STEPS)[number];
 export const calcStepId = (lineId: string, step: CalcStepName) => `${lineId}.${step}`;
+
+/** (1.5) Year-close carryover step ids: `rollover.<closing_plan_version_id>.<step>` (CONTRACT §3.9). */
+export const ROLLOVER_STEPS = [
+  "threshold",
+  "qualifying_low",
+  "qualifying_high",
+  "eligible_claim",
+  "base_award",
+  "network_bonus",
+  "prior_bank",
+  "bank_cap",
+  "final_bank",
+  "lost_to_cap",
+] as const;
+export type RolloverStepName = (typeof ROLLOVER_STEPS)[number];
+export const rolloverStepId = (closingPlanVersionId: string, step: RolloverStepName) => `rollover.${closingPlanVersionId}.${step}`;

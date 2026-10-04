@@ -148,7 +148,7 @@ function priceCandidate(
       provider_id: provider.provider_id,
       location_id: provider.location_id,
       provider_name: provider.name,
-      network_tier: provider.network.tier,
+      network_tier: worst.lines.find((line) => line.network_tier !== null)?.network_tier ?? null,
       network_observed_at: provider.network.observed_at,
       network_stale: isNetworkStale(provider, request.as_of),
       slot,
@@ -188,7 +188,8 @@ export function makeVisitNavigator(benefits: BenefitEngine): VisitNavigator {
 
       const resolution = benefits.resolvePlanVersion(registry, request.member.plan_key, asOfDate);
       if (!resolution.ok) {
-        const result = emptyResult(request, asOfDate, resolution.status, resolution.issues, trace);
+        // (1.3) §4.2: red flags keep the care route even when the plan cannot be priced.
+        const result = emptyResult(request, asOfDate, urgentSymptoms.length ? "URGENT_CARE_ROUTE" : resolution.status, resolution.issues, trace);
         result.safety = {
           urgent: urgentSymptoms.length > 0,
           triggered_by: urgentSymptoms,
@@ -236,7 +237,13 @@ export function makeVisitNavigator(benefits: BenefitEngine): VisitNavigator {
           compareNumbers(a.option.travel_minutes, b.option.travel_minutes) ||
           compareStrings(a.option.provider_id, b.option.provider_id),
       )[0];
-      const ok = remaining.filter((candidate) => candidate.option.status === "OK" && candidate.option.member_cost);
+      // (1.3) §4.6: under urgency only options on the soonest date are offered — never wait to save money.
+      const ok = remaining.filter(
+        (candidate) =>
+          candidate.option.status === "OK" &&
+          candidate.option.member_cost &&
+          (!urgentSymptoms.length || candidate.option.slot.date === soonest?.option.slot.date),
+      );
       const lowest = [...ok].sort(
         (a, b) =>
           compareNumbers(a.option.member_cost!.high_cents, b.option.member_cost!.high_cents) ||

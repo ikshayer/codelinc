@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.1.0",
+  "contract_version": "1.5.0",
   "ok": true,
   "data": {
-    "contract_version": "1.1.0",
+    "contract_version": "1.5.0",
     "engine_id": "optimizer-enum-1",
     "status": "OK",
     "as_of": "2026-10-15T21:00:00Z",
@@ -576,7 +576,9 @@
                 "slot_id": null,
                 "by_date": "2027-03-31"
               }
-            ]
+            ],
+            "route_comparison": null,
+            "rollover_shift": null
           },
           {
             "event_id": "alt-1-e2",
@@ -1149,7 +1151,9 @@
                 "slot_id": null,
                 "by_date": "2027-03-31"
               }
-            ]
+            ],
+            "route_comparison": null,
+            "rollover_shift": null
           },
           {
             "event_id": "alt-1-e3",
@@ -1699,7 +1703,27 @@
                 "slot_id": "prov-rivera-t-20270105-1000",
                 "by_date": null
               }
-            ]
+            ],
+            "route_comparison": {
+              "claim_route": "IN_NETWORK_CLAIM",
+              "claim_total_cents": 137200,
+              "cash_total_cents": null,
+              "difference_cents": null,
+              "winner_claim_route": null,
+              "missing": [
+                {
+                  "code": "RULE_UNKNOWN",
+                  "severity": "warning",
+                  "message": "The 2027 plan document does not address paying a network dentist without a claim.",
+                  "field": null,
+                  "rule_id": "claim_submission.2027",
+                  "input_id": null,
+                  "procedure_id": "proc-fill-14",
+                  "provider_id": null
+                }
+              ]
+            },
+            "rollover_shift": null
           }
         ],
         "unscheduled": [],
@@ -1854,11 +1878,52 @@
           "plan_share.in_network.basic.2026",
           "plan_share.in_network.basic.2027",
           "plan_share.in_network.major.2026",
+          "rollover.2026",
           "service_class_map.basic.2026",
           "service_class_map.basic.2027",
           "service_class_map.major.2026"
         ],
-        "issues": []
+        "issues": [],
+        "rollover": [
+          {
+            "rule_id": "rollover.2026",
+            "closing_plan_version_id": "nwd-ppo-standard-2026",
+            "closing_period_end": "2026-12-31",
+            "next_plan_version_id": "nwd-ppo-standard-2027",
+            "status": "NOT_EARNED",
+            "threshold_cents": 50000,
+            "threshold_comparison": "LT",
+            "settled_plan_paid_cents": 60000,
+            "pending_plan_pay_cents": 7600,
+            "qualifying_plan_paid": {
+              "low_cents": 142400,
+              "high_cents": 150000
+            },
+            "base_award_cents": 25000,
+            "network_bonus": {
+              "low_cents": 0,
+              "high_cents": 0
+            },
+            "prior_bank_cents": 0,
+            "bank_cap_cents": 100000,
+            "final_bank": {
+              "low_cents": 0,
+              "high_cents": 0
+            },
+            "lost_to_cap_cents": 0,
+            "forfeited_cents": 0,
+            "applied_rule_ids": [
+              "rollover.2026"
+            ],
+            "input_ids": [
+              "member.acc.2026.carryover_balance",
+              "member.acc.2026.plan_paid_ytd",
+              "member.pending.claim-2026-0928-d2391.plan_pay"
+            ],
+            "steps": [],
+            "issues": []
+          }
+        ]
       },
       {
         "alternative_id": "alt-2",
@@ -2426,7 +2491,9 @@
                 "slot_id": null,
                 "by_date": "2027-03-31"
               }
-            ]
+            ],
+            "route_comparison": null,
+            "rollover_shift": null
           },
           {
             "event_id": "alt-2-e2",
@@ -2721,7 +2788,16 @@
                 "slot_id": null,
                 "by_date": "2027-03-31"
               }
-            ]
+            ],
+            "route_comparison": {
+              "claim_route": "IN_NETWORK_CLAIM",
+              "claim_total_cents": 145600,
+              "cash_total_cents": 142600,
+              "difference_cents": 3000,
+              "winner_claim_route": "SELF_PAY_NO_CLAIM",
+              "missing": []
+            },
+            "rollover_shift": null
           },
           {
             "event_id": "alt-2-e3",
@@ -3294,7 +3370,9 @@
                 "slot_id": null,
                 "by_date": "2027-03-31"
               }
-            ]
+            ],
+            "route_comparison": null,
+            "rollover_shift": null
           }
         ],
         "unscheduled": [],
@@ -3433,10 +3511,51 @@
           "limitations_index.2026",
           "plan_share.in_network.basic.2026",
           "plan_share.in_network.major.2026",
+          "rollover.2026",
           "service_class_map.basic.2026",
           "service_class_map.major.2026"
         ],
-        "issues": []
+        "issues": [],
+        "rollover": [
+          {
+            "rule_id": "rollover.2026",
+            "closing_plan_version_id": "nwd-ppo-standard-2026",
+            "closing_period_end": "2026-12-31",
+            "next_plan_version_id": "nwd-ppo-standard-2027",
+            "status": "NOT_EARNED",
+            "threshold_cents": 50000,
+            "threshold_comparison": "LT",
+            "settled_plan_paid_cents": 60000,
+            "pending_plan_pay_cents": 7600,
+            "qualifying_plan_paid": {
+              "low_cents": 142400,
+              "high_cents": 150000
+            },
+            "base_award_cents": 25000,
+            "network_bonus": {
+              "low_cents": 0,
+              "high_cents": 0
+            },
+            "prior_bank_cents": 0,
+            "bank_cap_cents": 100000,
+            "final_bank": {
+              "low_cents": 0,
+              "high_cents": 0
+            },
+            "lost_to_cap_cents": 0,
+            "forfeited_cents": 0,
+            "applied_rule_ids": [
+              "rollover.2026"
+            ],
+            "input_ids": [
+              "member.acc.2026.carryover_balance",
+              "member.acc.2026.plan_paid_ytd",
+              "member.pending.claim-2026-0928-d2391.plan_pay"
+            ],
+            "steps": [],
+            "issues": []
+          }
+        ]
       }
     ],
     "evidence": [
@@ -3597,6 +3716,19 @@
         ]
       },
       {
+        "rule_id": "rollover.2026",
+        "plan_version_id": "nwd-ppo-standard-2026",
+        "evidence": [
+          {
+            "source_id": "nwd-ppo-2026-summary",
+            "page": 2,
+            "section": "Deductible and Maximums",
+            "locator": "mock",
+            "quote": "MOCK — see data/sources for the real passage"
+          }
+        ]
+      },
+      {
         "rule_id": "service_class_map.basic.2026",
         "plan_version_id": "nwd-ppo-standard-2026",
         "evidence": [
@@ -3643,16 +3775,6 @@
         "message": "2027 self-pay was not evaluated: the 2027 plan document does not address paying a network dentist without a claim.",
         "field": null,
         "rule_id": "claim_submission.2027",
-        "input_id": null,
-        "procedure_id": null,
-        "provider_id": null
-      },
-      {
-        "code": "RULE_UNVERIFIED",
-        "severity": "warning",
-        "message": "The 2026 maximum carryover is not verified, so no carryover was added to 2027.",
-        "field": null,
-        "rule_id": "rollover.2026",
         "input_id": null,
         "procedure_id": null,
         "provider_id": null

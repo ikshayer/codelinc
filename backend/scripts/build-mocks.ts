@@ -26,6 +26,8 @@ import {
   MemberState,
   ProcedureRecommendation,
   ProviderOption,
+  RolloverOutcome,
+  RouteComparison,
   VisitNavigatorResponse,
   VisitNavigatorResult,
   VisitOption,
@@ -269,10 +271,29 @@ const fill27 = line({ lineId: "alt-1-e3", procedureId: "proc-fill-14", code: "D2
 const fillSelf = line({ lineId: "alt-2-e2", procedureId: "proc-fill-14", code: "D2392", tooth: "14", date: "2026-10-22", providerId: P1, route: "SELF_PAY_NO_CLAIM", year: "2026", cls: "basic", charge: 15000, allowed: null, ded: 0, bps: 0, prelim: 0, plan: 0, cap: "none", before: sRc, after: sRc });
 const fund = (id: string, ev: string, type: "FSA" | "CASH", date: string, cents: number) => ({ allocation_id: `${ev}-f${id.split("-f")[1]}`, event_id: ev, source_id: type === "FSA" ? "fsa-2026" : "cash", source_type: type, payment_date: date, amount_cents: cents, fees_cents: 0, input_id: type === "FSA" ? "member.fsa-2026.balance" : "member.budget" });
 const appt = (slot: string) => ({ kind: "REQUEST_APPOINTMENT" as const, provider_id: P1, slot_id: slot, by_date: null });
-const ev = (eventId: string, l: AdjudicationLine, slot: string, funding: ReturnType<typeof fund>[], reasons: Alternative["events"][number]["reasons"], extra: Alternative["events"][number]["next_actions"] = []) => ({
+const ev = (eventId: string, l: AdjudicationLine, slot: string, funding: ReturnType<typeof fund>[], reasons: Alternative["events"][number]["reasons"], extra: Alternative["events"][number]["next_actions"] = [], cmp: RouteComparison | null = null) => ({
   event_id: eventId, procedure_id: l.procedure_id, service_date: l.service_date, slot_id: slot, provider_id: P1, location_id: "loc-rivera-fairfax", claim_route: l.claim_route,
   line_worst: l, line_best: l, member_cost: range(l.member_responsibility_cents!), plan_pay: range(l.plan_pay_cents!), funding, shortfall_cents: 0, reasons, next_actions: [appt(slot), ...extra],
+  route_comparison: cmp,
+  rollover_shift: null,
 });
+// (1.5) CONTRACT §3.9 golden 2026 year-close (worst case): $600 settled + simulated + $76 pending ≥ $500 → NOT_EARNED.
+// Steps omitted in the mock (the engine emits the ten rollover.<pv>.* steps).
+const rollover2026 = (simulated: number): RolloverOutcome => ({
+  rule_id: "rollover.2026", closing_plan_version_id: "nwd-ppo-standard-2026", closing_period_end: "2026-12-31", next_plan_version_id: "nwd-ppo-standard-2027",
+  status: "NOT_EARNED", threshold_cents: 50000, threshold_comparison: "LT", settled_plan_paid_cents: 60000, pending_plan_pay_cents: 7600,
+  qualifying_plan_paid: { low_cents: 60000 + simulated, high_cents: 67600 + simulated }, base_award_cents: 25000, network_bonus: range(0),
+  prior_bank_cents: 0, bank_cap_cents: 100000, final_bank: range(0), lost_to_cap_cents: 0, forfeited_cents: 0, applied_rule_ids: ["rollover.2026"],
+  input_ids: ["member.acc.2026.carryover_balance", "member.acc.2026.plan_paid_ytd", "member.pending.claim-2026-0928-d2391.plan_pay"], steps: [], issues: [],
+});
+// (1.2) CONTRACT §5.9 golden route comparisons for the filling (root canal and crown have no cash quote → null).
+const cmpFill27: RouteComparison = {
+  claim_route: "IN_NETWORK_CLAIM", claim_total_cents: 137200, cash_total_cents: null, difference_cents: null, winner_claim_route: null,
+  missing: [issue("RULE_UNKNOWN", "warning", "The 2027 plan document does not address paying a network dentist without a claim.", { rule_id: "claim_submission.2027", procedure_id: "proc-fill-14" })],
+};
+const cmpFillSelf: RouteComparison = {
+  claim_route: "IN_NETWORK_CLAIM", claim_total_cents: 145600, cash_total_cents: 142600, difference_cents: 3000, winner_claim_route: "SELF_PAY_NO_CLAIM", missing: [],
+};
 const pte = { kind: "REQUEST_PRETREATMENT_ESTIMATE" as const, provider_id: P1, slot_id: null, by_date: null };
 const fsaClaim = { kind: "SUBMIT_FSA_CLAIM" as const, provider_id: null, slot_id: null, by_date: "2027-03-31" };
 const altA: Alternative = {
@@ -282,7 +303,7 @@ const altA: Alternative = {
   events: [
     ev("alt-1-e1", rcLine("alt-1-e1"), "prov-rivera-t-20261020-0800", [fund("alt-1-f1", "alt-1-e1", "FSA", "2026-10-20", 20000)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "USES_EXPIRING_FUNDS"], [pte, fsaClaim]),
     ev("alt-1-e2", crownLine("alt-1-e2", sRc, sCrown), "prov-rivera-t-20261105-1500", [fund("alt-1-f1", "alt-1-e2", "FSA", "2026-11-05", 100000), fund("alt-1-f2", "alt-1-e2", "CASH", "2026-11-05", 7600)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "HEALING_INTERVAL", "USES_EXPIRING_FUNDS", "FITS_MONTHLY_BUDGET"], [pte, fsaClaim]),
-    ev("alt-1-e3", fill27, "prov-rivera-t-20270105-1000", [fund("alt-1-f1", "alt-1-e3", "CASH", "2027-01-05", 9600)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "AFTER_PLAN_RESET", "FITS_MONTHLY_BUDGET"]),
+    ev("alt-1-e3", fill27, "prov-rivera-t-20270105-1000", [fund("alt-1-f1", "alt-1-e3", "CASH", "2027-01-05", 9600)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "AFTER_PLAN_RESET", "FITS_MONTHLY_BUDGET"], [], cmpFill27),
   ],
   unscheduled: [],
   totals: { modeled_charge: range(331000), contractual_adjustment: range(103000), plan_pay: range(90800), member_cost: range(137200), fees_cents: 0 },
@@ -300,8 +321,9 @@ const altA: Alternative = {
   objective: { unscheduled_by_urgency: [0, 0, 0], lateness_days_by_urgency: [0, 0, 0], funding_shortfall_cents: 0, total_member_cost_cents: 137200, total_fees_cents: 0, peak_monthly_cash_cents: 9600, travel_minutes_total: 42, visit_days: 3, wait_days_total: 108, expiring_funds_unused_cents: 0, completion_date: "2027-01-05" },
   applied_rule_ids: [],
   issues: [],
+  rollover: [rollover2026(82400)],
 };
-altA.applied_rule_ids = [...new Set(altA.events.flatMap((e) => e.line_worst.applied_rule_ids))].sort();
+altA.applied_rule_ids = [...new Set([...altA.events.flatMap((e) => e.line_worst.applied_rule_ids), "rollover.2026"])].sort();
 const altB: Alternative = {
   ...altA,
   alternative_id: "alt-2",
@@ -309,7 +331,7 @@ const altB: Alternative = {
   schedule_key: "proc-crown-30@2026-11-05@prov-rivera@IN_NETWORK_CLAIM|proc-fill-14@2026-10-22@prov-rivera@SELF_PAY_NO_CLAIM|proc-rc-30@2026-10-20@prov-rivera@IN_NETWORK_CLAIM",
   events: [
     ev("alt-2-e1", rcLine("alt-2-e1"), "prov-rivera-t-20261020-0800", [fund("alt-2-f1", "alt-2-e1", "FSA", "2026-10-20", 20000)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "USES_EXPIRING_FUNDS"], [pte, fsaClaim]),
-    ev("alt-2-e2", fillSelf, "prov-rivera-t-20261022-1400", [fund("alt-2-f1", "alt-2-e2", "FSA", "2026-10-22", 15000)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "BEFORE_PLAN_RESET", "USES_EXPIRING_FUNDS", "SELF_PAY_LOWER_PORTFOLIO_COST"], [{ kind: "CONFIRM_SELF_PAY_WITH_OFFICE", provider_id: P1, slot_id: "prov-rivera-t-20261022-1400", by_date: "2026-10-22" }, fsaClaim]),
+    ev("alt-2-e2", fillSelf, "prov-rivera-t-20261022-1400", [fund("alt-2-f1", "alt-2-e2", "FSA", "2026-10-22", 15000)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "BEFORE_PLAN_RESET", "USES_EXPIRING_FUNDS", "SELF_PAY_LOWER_PORTFOLIO_COST"], [{ kind: "CONFIRM_SELF_PAY_WITH_OFFICE", provider_id: P1, slot_id: "prov-rivera-t-20261022-1400", by_date: "2026-10-22" }, fsaClaim], cmpFillSelf),
     ev("alt-2-e3", crownLine("alt-2-e3", sRc, sCrown), "prov-rivera-t-20261105-1500", [fund("alt-2-f1", "alt-2-e3", "FSA", "2026-11-05", 85000), fund("alt-2-f2", "alt-2-e3", "CASH", "2026-11-05", 22600)], ["WITHIN_SAFE_WINDOW", "MEETS_DENTIST_TARGET", "HEALING_INTERVAL", "USES_EXPIRING_FUNDS", "FITS_MONTHLY_BUDGET"], [pte, fsaClaim]),
   ],
   totals: { modeled_charge: range(320000), contractual_adjustment: range(95000), plan_pay: range(82400), member_cost: range(142600), fees_cents: 0 },
@@ -324,7 +346,7 @@ const altB: Alternative = {
   ],
   objective: { ...altA.objective, total_member_cost_cents: 142600, peak_monthly_cash_cents: 22600, wait_days_total: 33, completion_date: "2026-11-05" },
 };
-altB.applied_rule_ids = [...new Set(altB.events.flatMap((e) => e.line_worst.applied_rule_ids))].sort();
+altB.applied_rule_ids = [...new Set([...altB.events.flatMap((e) => e.line_worst.applied_rule_ids), "rollover.2026"])].sort();
 const careResult: CarePlanResult = {
   contract_version: CONTRACT_VERSION,
   engine_id: ENGINE_IDS.optimizer,
@@ -336,7 +358,6 @@ const careResult: CarePlanResult = {
   evidence: evidence([...new Set([...altA.applied_rule_ids, ...altB.applied_rule_ids])].sort()),
   unresolved: [
     issue("RULE_UNKNOWN", "warning", "2027 self-pay was not evaluated: the 2027 plan document does not address paying a network dentist without a claim.", { rule_id: "claim_submission.2027" }),
-    issue("RULE_UNVERIFIED", "warning", "The 2026 maximum carryover is not verified, so no carryover was added to 2027.", { rule_id: "rollover.2026" }),
     issue("PENDING_CLAIMS_PRESENT", "info", "A claim from Sep 28, 2026 is still pending; its estimated payment is reserved.", { input_id: "member.pending.claim-2026-0928-d2391.plan_pay" }),
   ],
   decision_trace: [{ seq: 0, kind: "INPUT_VALIDATED", message: "mock", data: {} }],
@@ -370,7 +391,7 @@ const passport: BenefitPassport = {
       items: [
         { item_id: "reset-date", label: "Deductible and annual maximum reset on", value_cents: null, value_range: null, value_bps: null, value_date: "2027-01-01", value_text: null, source: "PLAN_VERIFIED", rule_status: "VERIFIED", rule_ids: ["benefit_period.2026"], input_ids: [], observed_at: null },
         { item_id: "waiting-periods", label: "Waiting periods", value_cents: null, value_range: null, value_bps: null, value_date: null, value_text: "No waiting periods", source: "PLAN_VERIFIED", rule_status: "NOT_APPLICABLE", rule_ids: ["waiting_period.all.2026"], input_ids: [], observed_at: null },
-        { item_id: "rollover", label: "Maximum carryover (needs confirmation)", value_cents: 25000, value_range: null, value_bps: null, value_date: null, value_text: null, source: "NEEDS_CONFIRMATION", rule_status: "UNVERIFIED", rule_ids: ["rollover.2026"], input_ids: [], observed_at: null },
+        { item_id: "rollover", label: "Unused maximum carryover", value_cents: null, value_range: null, value_bps: null, value_date: null, value_text: "Up to $250 next year if plan payments stay below $500; balance capped at $1,000", source: "PLAN_VERIFIED", rule_status: "VERIFIED", rule_ids: ["rollover.2026"], input_ids: [], observed_at: null },
       ],
     },
     {

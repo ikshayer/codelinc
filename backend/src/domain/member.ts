@@ -29,6 +29,11 @@ export const AccumulatorSnapshot = z.strictObject({
   annual_max_remaining: SourcedMoney,
   /** Plan payments counted against the annual maximum so far (settled). */
   plan_paid_ytd: SourcedMoney,
+  /**
+   * (1.5) Carryover already added to this period's annual maximum (CONTRACT §3.9). Optional on input;
+   * null = unknown, never treated as 0.
+   */
+  carryover_balance: SourcedMoney.nullable().default(null),
 });
 export type AccumulatorSnapshot = z.infer<typeof AccumulatorSnapshot>;
 

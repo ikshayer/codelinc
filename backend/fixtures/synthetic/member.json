@@ -42,6 +42,15 @@
         },
         "source": "CLAIM_EOB",
         "observed_at": "2026-10-05T13:00:00Z"
+      },
+      "carryover_balance": {
+        "input_id": "member.acc.2026.carryover_balance",
+        "value": {
+          "kind": "exact",
+          "cents": 0
+        },
+        "source": "CLAIM_EOB",
+        "observed_at": "2026-10-05T13:00:00Z"
       }
     }
   ],

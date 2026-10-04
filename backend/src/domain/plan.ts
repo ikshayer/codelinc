@@ -39,10 +39,30 @@ export const EvidenceRef = z.strictObject({
 });
 export type EvidenceRef = z.infer<typeof EvidenceRef>;
 
+/**
+ * (1.4) PLAN-003: what kind of document a source is. `educational` (general or marketing
+ * material) may explain a term but never backs a rule used in a calculation.
+ */
+export const SourceRole = z.enum([
+  "certificate",
+  "group_policy",
+  "state_rider",
+  "amendment",
+  "schedule_of_benefits",
+  "employer_summary",
+  "educational",
+]);
+export type SourceRole = z.infer<typeof SourceRole>;
+
+/** Roles that may back a VERIFIED rule (every role except `educational`). */
+export const AUTHORITATIVE_SOURCE_ROLES: readonly SourceRole[] = SourceRole.options.filter((r) => r !== "educational");
+
 /** An immutable source document. Synthetic sources live in data/sources/** (Planner-seeded, read-only). */
 export const SourceDocument = z.strictObject({
   source_id: Id,
   title: z.string().min(1),
+  /** (1.4) PLAN-003 document authority. */
+  document_role: SourceRole,
   path: z.string().min(1),
   sha256: z.string().regex(/^[a-f0-9]{64}$/),
   media_type: z.literal("text/markdown"),
@@ -184,11 +204,29 @@ export const SublimitValue = z.strictObject({
   per: z.literal("benefit_period"),
 });
 
+/**
+ * (1.5) Maximum carryover (CONTRACT §3.9). Each enum lists only the values a seeded source
+ * documents; extend it (with a contract change) when a new source needs another.
+ */
 export const RolloverValue = z.strictObject({
-  threshold_plan_paid_cents: Cents,
-  rollover_cents: Cents,
-  in_network_bonus_cents: Cents,
-  max_accumulation_cents: Cents,
+  /** Only documented basis: incurred plan payments that count toward the annual maximum. */
+  qualification_basis: z.enum(["INCURRED_PLAN_PAID_TOWARD_MAXIMUM"]),
+  threshold_cents: Cents,
+  /** LT: qualifying < threshold; LTE: qualifying <= threshold. */
+  threshold_comparison: z.enum(["LT", "LTE"]),
+  base_award_cents: Cents,
+  network_bonus_cents: Cents,
+  /** Documented conditions only. */
+  network_bonus_condition: z.enum(["NONE", "ANY_IN_NETWORK_CLAIM"]),
+  /** Maximum carryover balance. */
+  bank_cap_cents: Cents,
+  requires_at_least_one_eligible_claim: z.boolean(),
+  /** Documented treatments only: add the award to the prior balance (then cap), or replace it. */
+  existing_bank_treatment: z.enum(["ADD_AND_CAP", "REPLACE"]),
+  /** Documented treatment only: a year that does not qualify ends the prior balance. */
+  bank_when_not_qualified: z.enum(["FORFEIT"]),
+  /** Exact next plan versions the carryover applies to (never an assumed renewal). */
+  applies_to_next_plan_version_ids: z.array(Id).min(1),
 });
 
 export const ClaimSubmissionValue = z.strictObject({
@@ -278,6 +316,8 @@ export const PlanDefinition = z.strictObject({
   /** true for every plan in this hackathon build. */
   synthetic: z.boolean(),
   source_documents: z.array(z.strictObject({ source_id: Id, sha256: z.string().regex(/^[a-f0-9]{64}$/) })).min(1),
+  /** (1.4) PLAN-003: the plan packet's source ids, highest authority first; a permutation of source_documents. */
+  source_precedence: z.array(Id).min(1),
   review: z.strictObject({
     status: z.enum(["REVIEWED", "DRAFT"]),
     reviewed_by: z.string().min(1),

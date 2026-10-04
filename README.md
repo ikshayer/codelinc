@@ -20,6 +20,10 @@ npm run dev
 
 ## Verify the backend
 
+Run Claude Code sessions for backend work from `backend/`: `backend/.claude/`
+holds the frozen-file guard hook, its settings and the agent definitions, and
+they only load when `backend/` is the project directory.
+
 ```bash
 cd backend
 npm ci
@@ -29,10 +33,10 @@ npm run test:contracts
 npm test
 ```
 
-The frontend currently uses demo adapters. Its live calculation adapter is not
-yet connected to the backend. Backend contract v1.1.0 and the optimizer are in
-place; the Benefits, API, and AI modules still need implementation before the
-full acceptance suite can pass.
+The `/care-window` page calls the live engine (run `cd backend && npm run serve`;
+Next proxies `/api/engine/*` to it). Backend contract v1.5.0 and the optimizer are in
+place, and the Benefits, API, and AI modules are implemented; the acceptance and
+integration suites pass.
 
 Key references:
 

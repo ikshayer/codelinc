@@ -87,7 +87,11 @@
           "objective": {
             "unscheduled_by_urgency": [0, 0, 0], "lateness_days_by_urgency": [0, 0, 0], "funding_shortfall_cents": 0, "total_member_cost_cents": 137200, "total_fees_cents": 0,
             "peak_monthly_cash_cents": 9600, "travel_minutes_total": 42, "visit_days": 3, "wait_days_total": 108, "expiring_funds_unused_cents": 0, "completion_date": "2027-01-05"
-          }
+          },
+          "rollover": [
+            { "closing_plan_version_id": "nwd-ppo-standard-2026", "status": "NOT_EARNED", "threshold_cents": 50000, "settled_plan_paid_cents": 60000, "pending_plan_pay_cents": 7600,
+              "qualifying_plan_paid": { "low_cents": 142400, "high_cents": 150000 }, "final_bank": { "low_cents": 0, "high_cents": 0 }, "lost_to_cap_cents": 0, "forfeited_cents": 0 }
+          ]
         },
         {
           "labels": ["earliest_safe_completion"],
@@ -102,8 +106,29 @@
             { "month": "2026-10", "cash_cents": 0 },
             { "month": "2026-11", "cash_cents": 22600 }
           ],
-          "objective": { "peak_monthly_cash_cents": 22600, "completion_date": "2026-11-05", "expiring_funds_unused_cents": 0 }
+          "objective": { "peak_monthly_cash_cents": 22600, "completion_date": "2026-11-05", "expiring_funds_unused_cents": 0 },
+          "rollover": [
+            { "closing_plan_version_id": "nwd-ppo-standard-2026", "status": "NOT_EARNED", "threshold_cents": 50000, "settled_plan_paid_cents": 60000, "pending_plan_pay_cents": 7600,
+              "qualifying_plan_paid": { "low_cents": 142400, "high_cents": 150000 }, "final_bank": { "low_cents": 0, "high_cents": 0 }, "lost_to_cap_cents": 0, "forfeited_cents": 0 }
+          ]
         }
+      ]
+    },
+    "rollover_shift_null_for": ["proc-rc-30", "proc-crown-30", "proc-fill-14"],
+    "route_comparisons": {
+      "_comment": "(1.2) CONTRACT §5.9. Whole-schedule worst-case member total with the event as its tier's claim vs SELF_PAY_NO_CLAIM, everything else unchanged. Unknown totals are null; missing lists issue codes only.",
+      "null_for": ["proc-rc-30", "proc-crown-30"],
+      "cases": [
+        { "variant": "base", "label": "earliest_safe_completion", "procedure_id": "proc-fill-14", "service_date": "2026-10-22", "chosen_route": "SELF_PAY_NO_CLAIM",
+          "claim_route": "IN_NETWORK_CLAIM", "claim_total_cents": 145600, "cash_total_cents": 142600, "difference_cents": 3000, "winner_claim_route": "SELF_PAY_NO_CLAIM", "missing_codes": [] },
+        { "variant": "base", "label": "lowest_total_cost", "procedure_id": "proc-fill-14", "service_date": "2027-01-05", "chosen_route": "IN_NETWORK_CLAIM",
+          "claim_route": "IN_NETWORK_CLAIM", "claim_total_cents": 137200, "cash_total_cents": null, "difference_cents": null, "winner_claim_route": null, "missing_codes": ["RULE_UNKNOWN"] },
+        { "variant": "filling_this_year_only", "label": "lowest_total_cost", "procedure_id": "proc-fill-14", "service_date": "2026-12-03", "chosen_route": "SELF_PAY_NO_CLAIM",
+          "claim_route": "IN_NETWORK_CLAIM", "claim_total_cents": 145600, "cash_total_cents": 142600, "difference_cents": 3000, "winner_claim_route": "SELF_PAY_NO_CLAIM", "missing_codes": [] },
+        { "variant": "filling_this_year_only", "label": "earliest_safe_completion", "procedure_id": "proc-fill-14", "service_date": "2026-10-22", "chosen_route": "SELF_PAY_NO_CLAIM",
+          "claim_route": "IN_NETWORK_CLAIM", "claim_total_cents": 145600, "cash_total_cents": 142600, "difference_cents": 3000, "winner_claim_route": "SELF_PAY_NO_CLAIM", "missing_codes": [] },
+        { "variant": "office_self_pay_unknown", "label": "earliest_safe_completion", "procedure_id": "proc-fill-14", "service_date": "2026-10-22", "chosen_route": "IN_NETWORK_CLAIM",
+          "claim_route": "IN_NETWORK_CLAIM", "claim_total_cents": 145600, "cash_total_cents": null, "difference_cents": null, "winner_claim_route": null, "missing_codes": ["SELF_PAY_NOT_VERIFIED"] }
       ]
     },
     "variants": {
@@ -166,6 +191,39 @@
           "member_cost_cents": 142600,
           "peak_monthly_cash_cents": 22600
         }
+      },
+      "rollover_near_threshold": {
+        "_comment": "(1.5) CONTRACT §3.9/§5.10. Worst-case 2026 year close per alternative and the display-only shift of the flexible filling into 2027.",
+        "mutation": "2026 accumulator: deductible_remaining 0, annual_max_remaining 108000, plan_paid_ytd 42000, carryover_balance 0; pending_claims []; procedures = [proc-fill-14]",
+        "status": "OK",
+        "alternatives": [
+          {
+            "labels": ["lowest_total_cost", "smoothest_monthly_payments"],
+            "member_cost_cents": 3600,
+            "events": [
+              { "procedure_id": "proc-fill-14", "service_date": "2026-10-20", "slot_id": "prov-rivera-t-20261020-0800", "provider_id": "prov-rivera", "claim_route": "IN_NETWORK_CLAIM", "plan_pay_cents": 14400, "member_responsibility_cents": 3600,
+                "rollover_shift": { "closing_plan_version_id": "nwd-ppo-standard-2026", "moved_to_date": "2027-01-05", "moved_to_slot_id": "prov-rivera-t-20270105-1000", "plan_pay_in_closing_period_cents": 14400,
+                  "status_if_moved": "CONDITIONAL", "final_bank_if_moved": { "low_cents": 25000, "high_cents": 25000 }, "member_cost_delta_cents": 6000 } }
+            ],
+            "rollover": [
+              { "closing_plan_version_id": "nwd-ppo-standard-2026", "status": "NOT_EARNED", "threshold_cents": 50000, "settled_plan_paid_cents": 42000, "pending_plan_pay_cents": 0,
+                "qualifying_plan_paid": { "low_cents": 56400, "high_cents": 56400 }, "final_bank": { "low_cents": 0, "high_cents": 0 }, "lost_to_cap_cents": 0, "forfeited_cents": 0 }
+            ]
+          },
+          {
+            "labels": ["earliest_safe_completion"],
+            "member_cost_cents": 16000,
+            "events": [
+              { "procedure_id": "proc-fill-14", "service_date": "2026-10-17", "slot_id": "prov-brightsmile-t-20261017-0900", "provider_id": "prov-brightsmile", "claim_route": "OUT_OF_NETWORK_CLAIM", "plan_pay_cents": 9000, "member_responsibility_cents": 16000,
+                "rollover_shift": { "closing_plan_version_id": "nwd-ppo-standard-2026", "moved_to_date": "2027-01-09", "moved_to_slot_id": "prov-brightsmile-t-20270109-0900", "plan_pay_in_closing_period_cents": 9000,
+                  "status_if_moved": "CONDITIONAL", "final_bank_if_moved": { "low_cents": 25000, "high_cents": 25000 }, "member_cost_delta_cents": 4500 } }
+            ],
+            "rollover": [
+              { "closing_plan_version_id": "nwd-ppo-standard-2026", "status": "NOT_EARNED", "threshold_cents": 50000, "settled_plan_paid_cents": 42000, "pending_plan_pay_cents": 0,
+                "qualifying_plan_paid": { "low_cents": 51000, "high_cents": 51000 }, "final_bank": { "low_cents": 0, "high_cents": 0 }, "lost_to_cap_cents": 0, "forfeited_cents": 0 }
+            ]
+          }
+        ]
       }
     }
   }

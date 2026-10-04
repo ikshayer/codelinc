@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.1.0",
+  "contract_version": "1.5.0",
   "ok": true,
   "data": {
-    "contract_version": "1.1.0",
+    "contract_version": "1.5.0",
     "as_of": "2026-10-05T14:00:00Z",
     "member_id": "member-alex-synthetic",
     "plan_version_id": "nwd-ppo-standard-2026",
@@ -91,14 +91,14 @@
           },
           {
             "item_id": "rollover",
-            "label": "Maximum carryover (needs confirmation)",
-            "value_cents": 25000,
+            "label": "Unused maximum carryover",
+            "value_cents": null,
             "value_range": null,
             "value_bps": null,
             "value_date": null,
-            "value_text": null,
-            "source": "NEEDS_CONFIRMATION",
-            "rule_status": "UNVERIFIED",
+            "value_text": "Up to $250 next year if plan payments stay below $500; balance capped at $1,000",
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
             "rule_ids": [
               "rollover.2026"
             ],

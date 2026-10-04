@@ -167,6 +167,42 @@ export const SimulationTotals = z.strictObject({
 });
 export type SimulationTotals = z.infer<typeof SimulationTotals>;
 
+/** (1.5) Year-close carryover status (CONTRACT §3.9). Never "guaranteed" before the year is closed. */
+export const RolloverStatus = z.enum(["EARNED", "CONDITIONAL", "NOT_EARNED", "UNCERTAIN", "NEEDS_CONFIRMATION"]);
+export type RolloverStatus = z.infer<typeof RolloverStatus>;
+
+/** (1.5) Outcome of closing one benefit period under a VERIFIED rollover rule (CONTRACT §3.9). */
+export const RolloverOutcome = z.strictObject({
+  rule_id: Id,
+  closing_plan_version_id: Id,
+  closing_period_end: IsoDate,
+  /** Resolved plan version on the day after the period ends; null when none resolves. */
+  next_plan_version_id: Id.nullable(),
+  status: RolloverStatus,
+  threshold_cents: Cents,
+  threshold_comparison: z.enum(["LT", "LTE"]),
+  /** Settled plan payments toward the maximum (snapshot plan_paid_ytd; 0 for a fresh period); null = unknown. */
+  settled_plan_paid_cents: Cents.nullable(),
+  /** High estimate of pending claims in the period; null = unknown. */
+  pending_plan_pay_cents: Cents.nullable(),
+  /** low = settled + simulated; high = low + pending. */
+  qualifying_plan_paid: AmountRange.nullable(),
+  base_award_cents: Cents,
+  network_bonus: AmountRange,
+  /** Carryover balance before this close; null = unknown. */
+  prior_bank_cents: Cents.nullable(),
+  bank_cap_cents: Cents,
+  /** Carryover available in the next period; null = needs confirmation. */
+  final_bank: AmountRange.nullable(),
+  lost_to_cap_cents: Cents.nullable(),
+  forfeited_cents: Cents.nullable(),
+  applied_rule_ids: z.array(Id),
+  input_ids: z.array(Id),
+  steps: z.array(CalcStep),
+  issues: z.array(Issue),
+});
+export type RolloverOutcome = z.infer<typeof RolloverOutcome>;
+
 export const SimulationResult = z.strictObject({
   contract_version: z.string(),
   engine_id: z.string(),
@@ -180,6 +216,8 @@ export const SimulationResult = z.strictObject({
   totals: SimulationTotals.nullable(),
   applied_rule_ids: z.array(Id),
   issues: z.array(Issue),
+  /** (1.5) One outcome per closed period with a VERIFIED rollover rule, by closing_period_end. */
+  rollover: z.array(RolloverOutcome),
 });
 export type SimulationResult = z.infer<typeof SimulationResult>;
 

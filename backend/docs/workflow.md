@@ -43,4 +43,4 @@ The Planner accepts or rejects each CR, records it in `docs/contracts/CHANGELOG.
 
 ## Definition of done (spec §13 + §12 step 9)
 
-`npm run verify` = `check:frozen` → `typecheck` → `lint` → `test:contracts` → `test` (unit) → `test:acceptance` → `test:integration` → `build`, all green, plus the synthetic demo working offline.
+`npm run verify` = `check:frozen` → `golden:check` → `typecheck` → `lint` → `test:contracts` → `test` (unit) → `test:acceptance` → `test:integration`, all green (the backend has no build step; the UI builds in `../frontend` with `npm run build`), plus the synthetic demo working offline (`npm run serve`, `npm run demo:cli`).

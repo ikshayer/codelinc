@@ -51,9 +51,11 @@ describe("AT-00 plan registry grounding", () => {
         expect(r.effective_to, er.rule_id).toBe(exp.coverage_period.end);
         expect(ruleStructuralProblems(r), er.rule_id).toEqual([]);
         if (er.evidence_page !== null) {
+          // (1.5) A rule may name its cited source (the 2026 carryover rider); otherwise the plan summary.
+          const source = "evidence_source_id" in er ? er.evidence_source_id : exp.source_id;
           expect(
-            r.evidence.some((e) => e.page === er.evidence_page && e.source_id === exp.source_id),
-            `${er.rule_id} cites page ${er.evidence_page} of ${exp.source_id}`,
+            r.evidence.some((e) => e.page === er.evidence_page && e.source_id === source),
+            `${er.rule_id} cites page ${er.evidence_page} of ${source}`,
           ).toBe(true);
         }
       }

@@ -7,7 +7,7 @@ Every path has exactly one owner. Agents write **only** inside their own paths. 
 | **Planner/Integrator** (main Claude Code session) | `.claude/agents/dental-planner.md` (reference) | `docs/**` except `docs/review/**` · `src/domain/**` · `fixtures/**` · `tests/acceptance/**` · `tests/contracts/**` · `scripts/**` · `data/sources/**` · root config: `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `vitest.config.ts`, `eslint.config.mjs`, `postcss.config.mjs`, `playwright.config.ts`, `components.json`, `.mcp.json`, `.env.example`, `.gitignore`, `.nvmrc`, `CLAUDE.md`, `AGENTS.md`, `README.md`, `.claude/**` | `src/domain/**`, `fixtures/**`, `tests/acceptance/**`, `tests/contracts/**`, `data/sources/**`, `docs/contracts/CONTRACT-v1.md` |
 | **Plan & Benefits** | `.claude/agents/dental-benefits.md` | `data/**` except `data/sources/**` · `src/benefits/**` · `tests/benefits/**` | — |
 | **Optimizer** | `.claude/agents/dental-optimizer.md` | `src/optimizer/**` · `tests/optimizer/**` | — |
-| **UX/API/AI** | `.claude/agents/dental-uxapi.md` | `src/app/**` · `src/api/**` · `src/ai/**` · `src/ui/**` · `src/components/**` · `src/lib/**` · `public/**` · `tests/api/**` · `tests/ai/**` · `tests/ui/**` | — |
+| **UX/API/AI** | `.claude/agents/dental-uxapi.md` | `src/api/**` · `src/ai/**` · `tests/api/**` · `tests/ai/**` · the UI in the separate top-level `frontend/` project (`frontend/src/**`, `frontend/public/**`, `frontend/tests/**`) | — |
 | **Independent Reviewer** | `.claude/agents/dental-reviewer.md` | `tests/integration/**` · `tests/e2e/**` · `docs/review/**` | Never edits production code |
 
 ## Planner-created placeholders now owned by others
@@ -20,7 +20,6 @@ The Planner created these so the project typechecks and the acceptance suite fai
 | `src/optimizer/index.ts` | Optimizer | `createVisitNavigator`, `createCarePlanOptimizer`, `optimizerModule` |
 | `src/ai/index.ts` | UX/API/AI | `createAiAdapters`, `validateExplanation`, `buildExplanationInput`, `aiModule` |
 | `src/api/index.ts` | UX/API/AI | `createApiHandlers`, `loadDemoScenario`, `apiModule` |
-| `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `src/app/favicon.ico` | UX/API/AI | — |
 
 ## Import rules (no cycles)
 
@@ -29,7 +28,7 @@ The Planner created these so the project typechecks and the acceptance suite fai
 - `src/optimizer/**` → `@/domain` only. It receives the `BenefitEngine` by injection; it never imports `@/benefits` internals and never re-implements adjudication.
 - `src/ai/**` → `@/domain` only. Bedrock code lives in `src/ai/**/*.server.ts` and is imported only by `src/api/**`.
 - `src/api/**` → `@/domain`, `@/benefits`, `@/optimizer`, `@/ai` entry points only.
-- `src/ui/**`, `src/components/**`, `src/app/**` (client) → `@/domain` types/formatters and `fetch` to `/api/*`. **No calculation logic in UI or prompts.**
+- `frontend/src/**` (separate project) never imports backend code; it calls the backend over HTTP (`/api/*`) through its adapters and only displays result fields. **No calculation logic in UI or prompts.**
 - Tests import modules only through their entry points (`@/benefits`, `@/optimizer`, `@/ai`, `@/api`).
 
 ## Dependencies

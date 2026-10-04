@@ -13,7 +13,9 @@ import { formatIsoDate, formatTimestamp } from "@/lib/domain/dates";
 import { YEAR_LABELS } from "@/lib/domain/fields";
 import { formatCents } from "@/lib/domain/money";
 import type { CalculationRecord, ProcedureCalculation } from "@/lib/domain/types";
+import { CASH_VS_CLAIM_ROWS } from "@/fixtures/cash-vs-claim";
 import { BenefitWindow, type ScheduleRow } from "./benefit-window";
+import { CashVsClaimPreview } from "./cash-vs-claim-card";
 import {
   assumesNextYearUnused,
   EQUAL_COST_TEXT,
@@ -159,6 +161,17 @@ export function ComparisonView({ comparison, scenario, procedureLabels, sourceMo
           </ul>
         </Disclosure>
       </section>
+
+      {sourceMode === "fixturePreview" && !historical && (
+        <section aria-labelledby="cash-vs-claim-heading">
+          <h2 id="cash-vs-claim-heading" className="sr-only">
+            Cash or claim
+          </h2>
+          <Disclosure label="Cash or claim? (preview)">
+            <CashVsClaimPreview rows={CASH_VS_CLAIM_ROWS} />
+          </Disclosure>
+        </section>
+      )}
 
       {otherRecords.length > 0 && (
         <section aria-labelledby="other-heading">
