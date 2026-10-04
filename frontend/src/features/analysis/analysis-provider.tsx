@@ -42,7 +42,7 @@ export type CompareAttempt =
 export interface AnalysisController {
   state: StoreState;
   adapters: Adapters;
-  createAnalysis(patient: PatientDetails | null, title?: string): string;
+  createAnalysis(patient: PatientDetails | null, title?: string, memberData?: MemberData): string;
   createFromMember(data: MemberData): string;
   setPatient(analysisId: string, patient: PatientDetails): void;
   setMethod(analysisId: string, method: IntakeMethod): void;
@@ -181,6 +181,8 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     (analysisId: string, engineOptions?: EngineCalculationOptions): CompareAttempt => {
       const record = stateRef.current.analyses[analysisId];
       if (!record) throw new Error(`compare: unknown analysis ${analysisId}`);
+      const identity = record.patient?.memberId && record.patient.dateOfBirth ? { memberId: record.patient.memberId, dateOfBirth: record.patient.dateOfBirth } : null;
+      if (record.patient?.memberId && (!identity || record.memberData?.member.member_id !== identity.memberId || record.memberData.member.date_of_birth !== identity.dateOfBirth)) return { status: "blocked", issues: [{ code: "MEMBER_IDENTITY_MISMATCH", fieldPath: "plan.y1.alreadyUsed", message: "Verify the member ID and date of birth again before calculating member benefits.", severity: "blocking" }] };
       const built = buildConfirmedScenario(record.draft);
       if (!built.ok) return { status: "blocked", issues: built.issues };
       const missing: ("financial" | "timing")[] = [];
@@ -192,7 +194,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "startCalculation", analysisId, requestId: ticket.requestId, revision: ticket.revision, epoch: ticket.epoch });
       const scenario = { ...built.scenario, revision: ticket.revision };
       void adapters.calculation
-        .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal, ...(engineOptions ? { engineOptions } : {}) })
+        .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal, ...(engineOptions ? { engineOptions } : {}), ...(identity && record.memberData ? { memberIdentity: identity } : {}) })
         .catch((error: unknown) => {
           console.error("Calculation adapter failed", error);
           return { ok: false as const, error: { code: "UNKNOWN" as const, message: "The calculation failed unexpectedly. Your confirmed details are kept — try again.", retryable: true } };
@@ -299,14 +301,14 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
         const now = nowIso();
         const profile = memberProfile(data);
         dispatch({ type: "setProfile", profile });
-        dispatch({ type: "createAnalysis", id, patient: profile, title: `${profile.displayName}'s treatment plan`, now });
+        dispatch({ type: "createAnalysis", id, patient: profile, title: `${profile.displayName}'s treatment plan`, now, memberData: data });
         dispatch({ type: "setMethod", analysisId: id, method: "manual" });
         dispatch({ type: "applyDirectProposals", analysisId: id, extraction, now });
         return id;
       },
-      createAnalysis(patient, title) {
+      createAnalysis(patient, title, memberData) {
         const id = newId("an");
-        dispatch({ type: "createAnalysis", id, patient, title: title ?? (patient ? `${patient.displayName}'s treatment plan` : "Treatment plan"), now: nowIso() });
+        dispatch({ type: "createAnalysis", id, patient, title: title ?? (patient ? `${patient.displayName}'s treatment plan` : "Treatment plan"), now: nowIso(), ...(memberData ? { memberData } : {}) });
         return id;
       },
       setPatient: (analysisId, patient) => dispatch({ type: "setPatient", analysisId, patient, now: nowIso() }),

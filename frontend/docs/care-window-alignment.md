@@ -6,7 +6,7 @@ The original `/api/calculate` scaffold is replaced with a server calculation ada
 
 ## Contract and trust boundaries
 
-The checked-in engine uses the fixture-backed `backend npm run serve` runtime. It does not provide authenticated payer retrieval, member accounts, care-plan history retrieval, booking, corrections or verified installment financing. The UI does not advertise those features. The attachment's Mongo canonicalization and persistence description does not match this checkout; no claim of account saving or live insurance verification is made.
+The merged engine supports both file fixtures and Mongo-backed canonical data. `backend npm run serve` loads `.env.local`; when `MONGODB_URI` is configured, startup requires a reachable database and a seeded canonical registry/scenario. Mongo mode restores server-owned member/provider facts and stores immutable care-plan audit records; only budget, availability and travel preferences remain member-editable. The original category-based calculation uses the user's confirmed scenario instead of substituting the canonical demo member. Neither path provides authenticated payer retrieval, account-owned history retrieval, booking, corrections or verified installment financing. No claim of account saving or live insurance verification is made.
 
 Contract 1.8 adds the missing exact `schedule_locks` tuple (`procedure_id`, `provider_id`, `slot_id`, `claim_route`) and `events[].user_locked`. A pin must match a feasible returned appointment, survive every returned alternative, and obey clinical windows, dependencies and member preferences. Impossible pins produce explicit issues; they are never silently dropped. Removing pins and resetting sends another engine request. The browser performs input normalization and display formatting, never benefit, schedule, ranking or result-difference calculations.
 
@@ -33,6 +33,6 @@ Decision traces, search statistics and internal objective components are deliber
 
 ## Run and verify
 
-Start `npm run serve` in `backend`, then `npm run dev` in `frontend`, and open `http://localhost:3000/care-window`. The frontend proxy uses `CAREWINDOW_ENGINE_URL` (default `http://localhost:4000`). If using another frontend port, include its origin in the backend `ALLOWED_ORIGINS` environment variable.
+Start `npm run serve` in `backend`, then `npm run dev` in `frontend`, and open `http://localhost:3000` for the original flow. `/care-window` is the additional canonical engine demo. Start `npm run dev:voice` for Gemini/Chatterbox intake; the demo data API is the separate `npm run dev:api` service. The frontend calculation and engine proxy use `CAREWINDOW_ENGINE_URL` (default `http://localhost:4000`). If using another frontend port, include its origin in the backend `ALLOWED_ORIGINS` environment variable.
 
 Validation commands: backend `npm run verify`; frontend `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. The keyboard browser runner is documented in [care-window-browser.md](../scripts/care-window-browser.md). Its report and screenshots are written to `integration-audit/care-window-browser/` by default.

@@ -18,6 +18,7 @@ function watch(page, expected = new Set()) {
   const failures = [];
   const requests = [];
   const cancellations = [];
+  const completedVoiceDeletes = new Set();
   page.on("pageerror", error => failures.push(`Page error: ${error.message}`));
   page.on("console", message => {
     if (message.type() !== "error") return;
@@ -29,6 +30,10 @@ function watch(page, expected = new Set()) {
   page.on("request", request => requests.push(new URL(request.url()).pathname));
   page.on("requestfailed", request => {
     const url = new URL(request.url());
+    if (request.method() === "DELETE" && completedVoiceDeletes.has(request) && request.failure()?.errorText === "net::ERR_ABORTED") {
+      cancellations.push({ url: request.url(), reason: "Chromium cancelled a bodyless voice teardown after the server confirmed HTTP 204" });
+      return;
+    }
     if (url.searchParams.has("_rsc") && /^\/analysis\/[^/]+\/(confirm|intake|compare)$/.test(url.pathname) && request.failure()?.errorText === "net::ERR_ABORTED") {
       cancellations.push({ url: request.url(), reason: "Next.js cancelled a speculative route payload" });
       return;
@@ -36,6 +41,7 @@ function watch(page, expected = new Set()) {
     failures.push(`Failed request: ${request.url()} (${request.failure()?.errorText})`);
   });
   page.on("response", response => {
+    if (response.request().method() === "DELETE" && response.status() === 204 && /^\/api\/voice\/sessions\/[^/]+$/.test(new URL(response.url()).pathname)) completedVoiceDeletes.add(response.request());
     if (response.status() >= 400 && !expected.has(new URL(response.url()).pathname)) {
       failures.push(`HTTP ${response.status()}: ${response.url()}`);
     }
@@ -57,6 +63,19 @@ async function tabTo(page, locator) {
 async function activate(page, locator, key = "Enter") {
   await tabTo(page, locator);
   await page.keyboard.press(key);
+}
+
+async function capturePage(page, filename) {
+  // Visit each viewport so existing scroll-triggered reveals are visible in
+  // the exported full-page screenshot, then capture from the top.
+  const dimensions = await page.evaluate(() => ({ height: document.documentElement.scrollHeight, step: innerHeight * 0.8 }));
+  for (let top = 0; top < dimensions.height; top += dimensions.step) {
+    await page.evaluate(position => window.scrollTo(0, position), top);
+    await page.waitForTimeout(80);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: resolve(outputDirectory, filename), fullPage: true });
 }
 
 async function engineAction(page, locator, endpoint, key = "Enter") {
@@ -157,7 +176,7 @@ async function journey(viewport) {
     assert.notDeepEqual(preferences.request.member.availability, built.request.member.availability);
     assert.deepEqual(preferences.request.member.plan_key, built.request.member.plan_key, "Preferences must preserve canonical plan identity");
 
-    await page.screenshot({ path: resolve(outputDirectory, `${viewport.width}-journey.png`), fullPage: true });
+    await capturePage(page, `${viewport.width}-journey.png`);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     const overflowElements = overflow ? await page.evaluate(() => [...document.querySelectorAll("body *")].filter(element => element.getBoundingClientRect().right > innerWidth + 1).slice(-15).map(element => ({ tag: element.tagName, text: element.textContent.slice(0, 140), className: typeof element.className === "string" ? element.className : "" }))) : [];
     assert.equal(overflow, false, `The page must fit the viewport: ${JSON.stringify(overflowElements)}`);
@@ -271,11 +290,14 @@ async function voiceJourney() {
   try {
     await page.goto(baseURL, { waitUntil: "networkidle" });
     await activate(page, page.getByRole("link", { name: "Start an analysis", exact: true }));
-    const name = page.getByLabel("Name", { exact: true });
-    await tabTo(page, name);
+    const memberId = page.getByLabel("Member ID", { exact: true });
+    await tabTo(page, memberId);
     await page.keyboard.press("ControlOrMeta+A");
-    await page.keyboard.type("Fictional Alex Browser Test");
-    await activate(page, page.getByRole("button", { name: "Continue as guest", exact: true }));
+    await page.keyboard.type("SYN-MEMBER-0021");
+    await typeField(page, page.getByLabel("Month", { exact: true }), "08");
+    await typeField(page, page.getByLabel("Day", { exact: true }), "19");
+    await typeField(page, page.getByLabel("Year", { exact: true }), "1974");
+    await activate(page, page.getByRole("button", { name: /^Continue(?: as guest)?$/ }));
     const firstMethod = page.getByRole("radio").first();
     await tabTo(page, firstMethod);
     await page.keyboard.press("ArrowDown");
@@ -286,7 +308,7 @@ async function voiceJourney() {
     await activate(page, page.getByRole("button", { name: "Type instead", exact: true }));
     const answer = page.getByLabel("Type your answer", { exact: true });
     await tabTo(page, answer);
-    await page.keyboard.type("Use these fictional demo details: my dentist recommends a root canal D3330 on tooth 30 for $1000. The planned service date is November 2, 2026. My dentist says it is safe from October 20 through November 10, 2026. My dental plan annual maximum is $1500 and the deductible is $50.");
+    await page.keyboard.type("Use these fictional demo details: my dentist recommends a root canal D3330 on tooth 30. The contracted fee for this root canal is 1000 dollars. The planned service date is November 2, 2026. My dentist says it is safe from October 20 through November 10, 2026. My dental plan annual maximum is 1500 dollars and the deductible is 50 dollars.");
     await tabTo(page, page.getByRole("button", { name: "Send", exact: true }));
     const turnPromise = page.waitForResponse(response => /\/api\/voice\/sessions\/[^/]+\/turns$/.test(new URL(response.url()).pathname), { timeout: 90000 });
     await page.keyboard.press("Enter");
@@ -311,14 +333,17 @@ async function voiceJourney() {
     await page.getByRole("region", { name: "Voice conversation", exact: true }).getByRole("status").filter({ hasText: /^Listening\./ }).waitFor({ timeout: 120000 });
     const closed = page.waitForResponse(response => /\/api\/voice\/sessions\/[^/]+$/.test(new URL(response.url()).pathname) && response.request().method() === "DELETE");
     await activate(page, page.getByRole("button", { name: "End conversation", exact: true }));
-    assert.equal((await closed).status(), 204);
+    const closedResponse = await closed;
+    assert.equal(closedResponse.status(), 204);
     await visibleText(page, "What was gathered");
     await activate(page, page.getByRole("link", { name: "Review details", exact: true }));
     await page.waitForURL(/\/analysis\/[^/]+\/confirm$/);
     await openDisclosure(page, /^Your prescribed care$/);
     assert.match(await page.locator("#input-care-p1-label").inputValue(), /D3330/);
-    assert.equal(await page.locator("#input-care-p1-fee").inputValue(), "1000");
-    await page.screenshot({ path: resolve(outputDirectory, "voice-confirmation.png"), fullPage: true });
+    const feeProposal = complete.extraction.proposals.find(proposal => proposal.fieldPath === "care.p1.fee");
+    assert.ok(feeProposal, "Live Gemini should extract the explicitly stated contracted fee");
+    assert.equal(await page.locator("#input-care-p1-fee").inputValue(), feeProposal.value);
+    await capturePage(page, "voice-confirmation.png");
     assert.deepEqual(observed.failures, [], "Original voice journey must have no unexpected browser or HTTP failures");
     results.push({ voice: "Original landing → name → Talk it through → live typed Gemini facts → Chatterbox WAV → confirmation", passed: true, proposedFacts: complete.extraction.proposals.length, speechResponses: speech.length, expectedRouteCancellations: observed.cancellations });
     console.log("Original live voice journey passed");
@@ -361,18 +386,19 @@ async function originalJourney(viewport) {
     await openDisclosure(page, /^See how this was calculated$/);
     await visibleText(page, "Payment date");
     await visibleText(page, "Annual maximum remaining");
-    await activate(page, page.locator('button[aria-haspopup="dialog"]').filter({ visible: true }).first());
+    const recommendedCrown = () => page.getByRole("list", { name: "Best dentist-permitted alternative, next year", exact: true }).getByRole("button", { name: /^Crown/ });
+    await activate(page, recommendedCrown());
     const pinned = await calculateAction(page, page.getByRole("button", { name: "Pin this service date", exact: true }));
     assert.equal(pinned.request.engineOptions.schedule_locks.length, 1);
     const lock = pinned.request.engineOptions.schedule_locks[0];
-    assert.ok(pinned.result.planning.records.every(record => record.events.some(event => event.procedureId === lock.procedureId && event.serviceDate === lock.serviceDate && event.userLocked)), "Every original-flow record must preserve the pinned service date");
+    assert.ok(pinned.result.planning.alternatives.every(alternative => pinned.result.planning.records.find(record => record.recordId === alternative.recordId).events.some(event => event.procedureId === lock.procedureId && event.serviceDate === lock.serviceDate && event.userLocked)), "Every original-flow alternative must preserve the pinned service date; the original baseline remains available for comparison");
     await visibleText(page, "Your plan");
     const rerun = await calculateAction(page, page.getByRole("button", { name: "Re-optimize unpinned care", exact: true }));
     assert.deepEqual(rerun.request.engineOptions.schedule_locks, [lock]);
     const undo = await calculateAction(page, page.getByRole("button", { name: "Undo last change", exact: true }));
     assert.equal(undo.result.planning.locks.length, 0);
     assert.deepEqual(undo.result.best, baseline.result.best);
-    await activate(page, page.locator('button[aria-haspopup="dialog"]').filter({ visible: true }).first());
+    await activate(page, recommendedCrown());
     await calculateAction(page, page.getByRole("button", { name: "Pin this service date", exact: true }));
     const reset = await calculateAction(page, page.getByRole("button", { name: "Reset to recommended", exact: true }));
     assert.equal(reset.result.planning.locks.length, 0);
@@ -389,7 +415,7 @@ async function originalJourney(viewport) {
     assert.deepEqual(preferred.result.planning.budget, preferred.request.engineOptions.budget);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, "Original comparison must fit desktop and mobile viewports");
-    await page.screenshot({ path: resolve(outputDirectory, `${viewport.width}-original-compare.png`), fullPage: true });
+    await capturePage(page, `${viewport.width}-original-compare.png`);
     assert.deepEqual(observed.failures, []);
     results.push({ original: "Landing sample → confirmation → real calculation → financial/benefit calculations → pin → rerun → undo/reset → payment preferences", viewport, passed: true, pinnedDate: lock, expectedRouteCancellations: observed.cancellations });
     console.log(`${viewport.width}px original comparison journey passed`);
@@ -402,16 +428,162 @@ async function originalJourney(viewport) {
   }
 }
 
+async function typeField(page, locator, value) {
+  await tabTo(page, locator);
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type(value);
+}
+
+async function memberJourney(viewport, identity, expectedBenefits, mismatchFirst = false) {
+  const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  page.setDefaultTimeout(30000);
+  const observed = watch(page);
+  try {
+    await page.goto(baseURL, { waitUntil: "networkidle" });
+    await activate(page, page.getByRole("link", { name: "Start an analysis", exact: true }));
+    await typeField(page, page.getByLabel("Member ID", { exact: true }), identity.memberId);
+    assert.equal(await page.getByLabel("Name", { exact: true }).count(), 0, "Identity entry must use only member ID and DOB");
+    assert.equal(await page.locator("summary").filter({ hasText: "More details" }).count(), 0);
+    const [year, month, day] = identity.dateOfBirth.split("-");
+    await typeField(page, page.getByLabel("Month", { exact: true }), month);
+    await typeField(page, page.getByLabel("Day", { exact: true }), mismatchFirst ? String(Number(day) + 1) : day);
+    await typeField(page, page.getByLabel("Year", { exact: true }), year);
+    async function lookup() {
+      await tabTo(page, page.getByRole("button", { name: /^Continue(?: as guest)?$/ }));
+      const waiting = page.waitForResponse(response => new URL(response.url()).pathname === "/api/demo/member-lookup" && response.request().method() === "POST");
+      await page.keyboard.press("Enter");
+      const response = await waiting;
+      assert.equal(response.status(), 200);
+      return { request: response.request().postDataJSON(), data: await response.json() };
+    }
+    if (mismatchFirst) {
+      const mismatch = await lookup();
+      assert.deepEqual(mismatch.data, { matched: false }, "Wrong DOB must return the same generic non-match as an unknown ID, with no member or plan");
+      await visibleText(page, "Check both fields and try again");
+      assert.equal(await page.getByRole("region", { name: "Matched member benefits" }).count(), 0);
+      assert.equal(await page.getByRole("heading", { name: "How would you like to start?" }).count(), 0);
+      await typeField(page, page.getByLabel("Day", { exact: true }), day);
+    }
+    const matched = await lookup();
+    assert.equal(matched.request.memberId, identity.memberId);
+    assert.equal(matched.request.dateOfBirth, identity.dateOfBirth);
+    assert.equal(matched.request.displayName, undefined);
+    assert.equal(matched.data.member.member_id, identity.memberId);
+    assert.equal(matched.data.member.date_of_birth, identity.dateOfBirth);
+    assert.notEqual(matched.data.member.member_id, "DEMO-ALEX-001");
+    for (const [key, value] of Object.entries(expectedBenefits)) assert.equal(matched.data.member.benefit_state[key], value);
+    await page.getByRole("region", { name: "Matched member benefits" }).waitFor();
+    await visibleText(page, matched.data.member.display_name);
+    await activate(page, page.getByRole("button", { name: "Use sample treatment", exact: true }));
+    await page.waitForURL(/\/analysis\/[^/]+\/confirm$/);
+    await openDisclosure(page, /^Your plan$/);
+    const storedMoney = async path => Number((await page.locator(`#input-${path}`).locator("p").first().innerText()).replace(/[^\d.]/g, "")) * 100;
+    assert.equal(await storedMoney("plan-y1-annualMaximum"), expectedBenefits.annual_maximum_total_cents, "Sample care must retain this member's actual plan limit");
+    assert.equal(await storedMoney("plan-y1-alreadyUsed"), expectedBenefits.plan_paid_ytd_cents, "Sample care must retain this member's settled YTD balance");
+    // Explicit fictional future-use assumptions are separate from imported
+    // settled balances; the fixture contains no future-year member snapshot.
+    await typeField(page, page.locator("#input-plan-y2-alreadyUsed"), "0");
+    await typeField(page, page.locator("#input-plan-y2-deductibleSatisfied"), "0");
+    const unchanged = page.locator("#input-plan-y2-rulesUnchanged");
+    if (await unchanged.getAttribute("aria-pressed") !== "true") await activate(page, unchanged, "Space");
+    await activate(page, page.getByRole("checkbox", { name: "My plan and prescribed care details are correct.", exact: true }), "Space");
+    await activate(page, page.getByRole("checkbox", { name: "The timing options came from my dentist, or are the synthetic sample.", exact: true }), "Space");
+    const baseline = await calculateAction(page, page.getByRole("button", { name: "Compare my options", exact: true }));
+    assert.equal(baseline.request.memberIdentity.dateOfBirth, identity.dateOfBirth);
+    assert.equal(baseline.request.memberIdentity.memberId, identity.memberId, "Calculation must remain tied to the internally resolved member ID");
+    const benefit = baseline.result.memberBenefitContext;
+    assert.equal(benefit.memberId, identity.memberId);
+    assert.equal(benefit.status, identity.memberId === "SYN-MEMBER-0002" ? "CONSERVATIVE" : "READY");
+    assert.equal(benefit.annualMaximumCents, expectedBenefits.annual_maximum_total_cents);
+    assert.equal(benefit.settledPlanPaidCents, expectedBenefits.plan_paid_ytd_cents);
+    assert.equal(benefit.baseRemainingCents, expectedBenefits.annual_maximum_remaining_cents);
+    if (identity.memberId === "SYN-MEMBER-0002") {
+      assert.equal(benefit.pendingProjectedPlanPaymentCents, 9300);
+      assert.equal(benefit.rolloverBankCents, 30000);
+      assert.equal(benefit.baseAvailableAfterPendingCents, 162990);
+      assert.equal(benefit.deductibleRemainingCents, 2500);
+      assert.equal(benefit.estimateKind, "CONSERVATIVE_BASE_ONLY");
+      await visibleText(page, "Conservative estimate");
+      await visibleText(page, "Pending projected plan payment reservation");
+      await visibleText(page, "Base available after pending reservation");
+      await visibleText(page, "Rollover bank");
+    }
+    // Exercise the real server trust boundary with a captured valid request.
+    // Only financial plan facts change; the identity and confirmed care remain.
+    const tampered = structuredClone(baseline.request);
+    tampered.requestId += "-tampered";
+    for (const year of tampered.scenario.plan.years) {
+      year.annualMaximumCents = 9999999;
+      year.deductibleCents = 0;
+      year.utilization.priorInsurerPaymentsCents = 0;
+      year.utilization.priorDeductibleSatisfiedCents = 0;
+      for (const rule of Object.values(year.rules)) { rule.insurerBasisPoints = 10000; rule.deductibleApplies = false; }
+    }
+    const tamperedResponse = await context.request.post(`${baseURL}/api/calculate`, { data: tampered });
+    assert.equal(tamperedResponse.status(), 200, await tamperedResponse.text());
+    const protectedResult = await tamperedResponse.json();
+    assert.deepEqual(protectedResult.memberBenefitContext, benefit);
+    assert.equal(protectedResult.baseline.totalPatientCents, baseline.result.baseline.totalPatientCents, "Edited browser plan facts must not change the authoritative member calculation");
+    assert.equal(protectedResult.baseline.totalInsurerCents, baseline.result.baseline.totalInsurerCents);
+    if (mismatchFirst) {
+      const wrongIdentity = structuredClone(baseline.request);
+      wrongIdentity.memberIdentity.dateOfBirth = `${year}-${month}-${String(Number(day) + 1).padStart(2, "0")}`;
+      const rejected = await context.request.post(`${baseURL}/api/calculate`, { data: wrongIdentity });
+      assert.equal(rejected.status(), 404, "A calculation with a wrong DOB must not fall back to guest or Alex benefits");
+      const rejectedBody = await rejected.json();
+      assert.equal(rejectedBody.error.code, "MEMBER_NOT_FOUND");
+      assert.equal(rejectedBody.baseline, undefined);
+      const unresolvedRequest = structuredClone(baseline.request);
+      unresolvedRequest.memberIdentity = { memberId: "SYN-MEMBER-0002", dateOfBirth: "2018-02-28" };
+      const unresolved = await context.request.post(`${baseURL}/api/calculate`, { data: unresolvedRequest });
+      assert.equal(unresolved.status(), 200, "Approved pending/rollover treatment must return an explicitly conservative estimate");
+      const unresolvedBody = await unresolved.json();
+      assert.equal(unresolvedBody.memberBenefitContext.memberId, "SYN-MEMBER-0002");
+      assert.equal(unresolvedBody.memberBenefitContext.settledPlanPaidCents, 27710);
+      assert.equal(unresolvedBody.memberBenefitContext.pendingProjectedPlanPaymentCents, 9300);
+      assert.equal(unresolvedBody.memberBenefitContext.rolloverBankCents, 30000);
+      assert.equal(unresolvedBody.memberBenefitContext.baseAvailableAfterPendingCents, 162990);
+      assert.equal(unresolvedBody.memberBenefitContext.deductibleRemainingCents, 2500);
+      assert.equal(unresolvedBody.memberBenefitContext.status, "CONSERVATIVE");
+      assert.equal(unresolvedBody.memberBenefitContext.estimateKind, "CONSERVATIVE_BASE_ONLY");
+      assert.equal(unresolvedBody.memberBenefitContext.pendingTreatment, "RESERVED_PROJECTED");
+      assert.equal(unresolvedBody.memberBenefitContext.pendingDeductibleTreatment, "UNCHANGED_CONSERVATIVE");
+      assert.equal(unresolvedBody.memberBenefitContext.rolloverTreatment, "EXCLUDED_UNCONFIRMED");
+      assert.equal(unresolvedBody.baseline.ledgers[0].maximum.usedBeforeCents, 27710);
+      assert.equal(unresolvedBody.baseline.ledgers[0].maximum.reservedBeforeCents, 9300);
+      assert.equal(unresolvedBody.baseline.ledgers[0].procedures[0].maximumBeforeCents, 162990);
+    }
+    const unknownResponse = await context.request.post(`${baseURL}/api/demo/member-lookup`, { data: { ...matched.request, memberId: "SYN-MEMBER-9999" } });
+    assert.equal(unknownResponse.status(), 200);
+    assert.deepEqual(await unknownResponse.json(), { matched: false });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await capturePage(page, `${viewport.width}-${identity.memberId}-compare.png`);
+    assert.deepEqual(observed.failures, []);
+    results.push({ member: identity.memberId, viewport, passed: true, memberBenefitContext: benefit, originalFlow: true, submittedPlanOverrideBlocked: true, mismatchBlocked: mismatchFirst, expectedRouteCancellations: observed.cancellations });
+    console.log(`${viewport.width}px ${identity.memberId} lookup and server-owned calculation passed`);
+  } catch (error) {
+    await page.screenshot({ path: resolve(outputDirectory, `${identity.memberId}-failure.png`), fullPage: true });
+    await writeFile(resolve(outputDirectory, `${identity.memberId}-failure.txt`), JSON.stringify({ url: page.url(), failures: observed.failures, text: await page.locator("body").innerText() }, null, 2));
+    throw error;
+  } finally { await context.close(); }
+}
+
 try {
-  if (!process.argv.includes("--states-only") && !process.argv.includes("--voice-only") && !process.argv.includes("--original-only")) {
+  if (!process.argv.includes("--states-only") && !process.argv.includes("--voice-only") && !process.argv.includes("--original-only") && !process.argv.includes("--member-only")) {
     await journey({ width: 1440, height: 1000 });
     await journey({ width: 390, height: 844 });
   }
-  if (!process.argv.includes("--voice-only") && !process.argv.includes("--original-only")) await states();
+  if (!process.argv.includes("--voice-only") && !process.argv.includes("--original-only") && !process.argv.includes("--member-only")) await states();
   if (process.argv.includes("--voice") || process.argv.includes("--voice-only")) await voiceJourney();
   if (process.argv.includes("--original") || process.argv.includes("--original-only")) {
     await originalJourney({ width: 1440, height: 1000 });
     await originalJourney({ width: 390, height: 844 });
+  }
+  if (process.argv.includes("--member") || process.argv.includes("--member-only")) {
+    await memberJourney({ width: 1440, height: 1000 }, { name: "Parker Patel", memberId: "SYN-MEMBER-0021", dateOfBirth: "1974-08-19" }, { annual_maximum_total_cents: 150000, plan_paid_ytd_cents: 13360, annual_maximum_remaining_cents: 136640 }, true);
+    await memberJourney({ width: 390, height: 844 }, { name: "Dakota Bennett", memberId: "SYN-MEMBER-0024", dateOfBirth: "2004-04-19" }, { annual_maximum_total_cents: 100000, plan_paid_ytd_cents: 52320, annual_maximum_remaining_cents: 47680 });
+    await memberJourney({ width: 1440, height: 1000 }, { name: "Parker Irwin", memberId: "SYN-MEMBER-0002", dateOfBirth: "2018-02-28" }, { annual_maximum_total_cents: 200000, plan_paid_ytd_cents: 27710, annual_maximum_remaining_cents: 172290 });
   }
   await writeFile(resolve(outputDirectory, "results.json"), JSON.stringify({ baseURL, results }, null, 2));
   console.log(JSON.stringify({ passed: true, results, outputDirectory }, null, 2));

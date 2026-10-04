@@ -140,7 +140,8 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
   }
 
   function startOver(record: AnalysisRecord) {
-    const id = controller.startSampleAnalysis(record.patient);
+    const id = record.memberData ? controller.createAnalysis(record.patient, "Sample treatment", record.memberData) : controller.startSampleAnalysis(record.patient);
+    if (record.memberData) { controller.setMethod(id, "manual"); controller.loadSample(id); }
     router.push(`/analysis/${id}/confirm`);
   }
 

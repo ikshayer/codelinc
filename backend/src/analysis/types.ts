@@ -49,4 +49,28 @@ export interface AnalysisPlanningContext {
   issues: string[];
   limitations: string[];
 }
-export type AnalysisComparison = ScenarioComparison & { planning: AnalysisPlanningContext };
+export interface MemberBenefitContext {
+  memberId: string;
+  planVersionId: string;
+  planName: string;
+  snapshotId: string | null;
+  observedAt: string;
+  benefitYear: number;
+  sourceStatus: string;
+  annualMaximumCents: number;
+  settledPlanPaidCents: number;
+  baseRemainingCents: number;
+  pendingProjectedPlanPaymentCents: number | null;
+  baseAvailableAfterPendingCents: number | null;
+  deductibleRemainingCents: number;
+  rolloverBankCents: number;
+  rolloverSpendingStatus: "NOT_APPLICABLE" | "NEEDS_CONFIRMATION";
+  status: "READY" | "CONSERVATIVE" | "NEEDS_CONFIRMATION";
+  estimateKind: "SETTLED_BASE" | "CONSERVATIVE_BASE_ONLY";
+  pendingTreatment: "NONE" | "RESERVED_PROJECTED" | "UNKNOWN";
+  pendingDeductibleTreatment: "NONE" | "UNCHANGED_CONSERVATIVE";
+  rolloverTreatment: "NONE" | "EXCLUDED_UNCONFIRMED";
+  issues: string[];
+}
+export interface MemberBenefitAdjustments { pendingReserveCents: number; rolloverExcludedCents: number }
+export type AnalysisComparison = ScenarioComparison & { planning: AnalysisPlanningContext; memberBenefitContext?: MemberBenefitContext };

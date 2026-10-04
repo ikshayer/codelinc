@@ -1,0 +1,70 @@
+{
+  "baseURL": "http://localhost:3010",
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "apiRequests": [
+        "/api/engine/health",
+        "/api/engine/scenario",
+        "/api/engine/passport",
+        "/api/engine/visit-navigator",
+        "/api/engine/intake/extract",
+        "/api/engine/intake/confirm",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan"
+      ],
+      "pinnedTuple": {
+        "procedure_id": "proc-d3330-30",
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-t-20261020-0800",
+        "claim_route": "IN_NETWORK_CLAIM"
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "passed": true,
+      "apiRequests": [
+        "/api/engine/health",
+        "/api/engine/scenario",
+        "/api/engine/passport",
+        "/api/engine/visit-navigator",
+        "/api/engine/intake/extract",
+        "/api/engine/intake/confirm",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan"
+      ],
+      "pinnedTuple": {
+        "procedure_id": "proc-d3330-30",
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-t-20261020-0800",
+        "claim_route": "IN_NETWORK_CLAIM"
+      }
+    },
+    {
+      "states": "health and visit retry, empty visit and treatment, partial network/cost, future urgent response suppression",
+      "passed": true
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: Original voice journey must have no unexpected browser or HTTP failures\n+ actual - expected\n\n+ [\n+   'Failed request: http://localhost:3010/api/voice/sessions/4be5d9fa-0a43-4a3a-a8c1-7d9b3273001d (net::ERR_ABORTED)'\n+ ]\n- []\n\n    at voiceJourney (file:///D:/Work/codelinc/frontend/scripts/care-window-browser.mjs:322:12)\n    at async file:///D:/Work/codelinc/frontend/scripts/care-window-browser.mjs:411:82"
+}

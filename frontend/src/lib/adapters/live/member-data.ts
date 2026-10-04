@@ -1,10 +1,12 @@
 import type { IntakeExtraction } from "../types";
 import type { FieldValue, IntakeEvidence, PatientProfile } from "@/lib/domain/types";
+import { adapterError, requestJson } from "../shared";
+import type { AdapterResult } from "../types";
 
 export interface MemberData {
   member: {
     member_id: string; display_name: string; date_of_birth?: string; observed_at: string;
-    benefit_state: { benefit_year: number; plan_paid_ytd_cents: number; annual_maximum_remaining_cents: number; deductible_remaining_cents: { in_network: number }; pending_claims: unknown[]; rollover_bank_cents?: number };
+    benefit_state: { benefit_year: number; plan_paid_ytd_cents: number; annual_maximum_remaining_cents: number; annual_maximum_total_cents?: number; deductible_remaining_cents: { in_network: number }; pending_claims: unknown[]; rollover_bank_cents?: number; source?: { type: string; status: string; as_of: string } };
   };
   plan: { display_name: string; effective_from: string; effective_to: string; deductible: { in_network: { individual_cents: number } }; annual_maximum: { individual_cents: number; preventive_counts_toward_maximum: boolean }; coverage: Record<string, { in_network_plan_share_bps: number; deductible_applies: boolean }> };
   procedure_card: { procedure_card_id: string; procedures: { procedure_id: string; cdt: string; label: string; dentist_estimated_fee_cents: number; target_by_date: string; earliest_safe_date: string; latest_safe_date: string; confirmation_status: string; dependencies: { procedure_id: string; minimum_gap_days: number; maximum_gap_days?: number | null }[] }[] } | null;
@@ -13,7 +15,28 @@ export interface MemberData {
 }
 
 export function memberProfile(data: MemberData): PatientProfile {
-  return { id: data.member.member_id, displayName: data.member.display_name, fullName: data.member.display_name, dateOfBirth: data.member.date_of_birth };
+  return { id: data.member.member_id, displayName: data.member.display_name, fullName: data.member.display_name, dateOfBirth: data.member.date_of_birth, memberId: data.member.member_id };
+}
+
+/** Exact pair only. A successful but different member response is rejected. */
+export async function lookupMember(identity: { memberId: string; dateOfBirth: string }, signal: AbortSignal): Promise<AdapterResult<MemberData>> {
+  const result = await requestJson<MemberData>("/api/demo/member-lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(identity), signal, service: "synthetic member lookup" });
+  if (!result.ok) return result;
+  if (result.value.member?.member_id !== identity.memberId || result.value.member?.date_of_birth !== identity.dateOfBirth) return { ok: false, error: adapterError("CONFLICT", "No matching synthetic member was returned for this member ID and date of birth. Check both fields and try again.", false) };
+  return result;
+}
+
+/** Benefits are imported before the member chooses their existing treatment intake. */
+export function memberBenefitsExtraction(data: MemberData): IntakeExtraction {
+  return memberExtraction({ ...data, procedure_card: null });
+}
+
+export function supportsConservativeMemberEstimate(data: MemberData): boolean {
+  return data.member.benefit_state.source?.status === "VERIFIED_DEMO" && data.member.benefit_state.pending_claims.every((pending) => {
+    if (!pending || typeof pending !== "object") return false;
+    const projection = (pending as Record<string, unknown>).projected_plan_payment_cents;
+    return typeof projection === "number" && Number.isSafeInteger(projection) && projection >= 0;
+  });
 }
 
 /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
@@ -21,8 +44,10 @@ export function memberExtraction(data: MemberData): IntakeExtraction {
   const evidenceId = `database:${data.member.member_id}:${data.member.observed_at}`;
   const values: Record<string, FieldValue> = {};
   const blockingIssues: NonNullable<IntakeEvidence["blockingIssues"]> = [];
-  if (data.member.benefit_state.pending_claims.length > 0) blockingIssues.push({ fieldPath: "plan.y1.alreadyUsed", code: "PENDING_CLAIMS", message: "This member has pending claims. This comparison cannot reserve their benefit payments, so it cannot calculate this member's costs yet." });
-  if ((data.member.benefit_state.rollover_bank_cents ?? 0) > 0) blockingIssues.push({ fieldPath: "plan.y1.annualMaximum", code: "ROLLOVER", message: "This member has rollover benefits. This comparison cannot apply them, so it cannot calculate this member's costs yet." });
+  const conservativeSupported = supportsConservativeMemberEstimate(data);
+  if (data.member.benefit_state.pending_claims.length > 0 && !conservativeSupported) blockingIssues.push({ fieldPath: "plan.y1.alreadyUsed", code: "PENDING_CLAIMS", message: "The member source or pending plan-payment projection needs confirmation before this comparison can reserve pending benefits." });
+  if ((data.member.benefit_state.rollover_bank_cents ?? 0) > 0 && !conservativeSupported) blockingIssues.push({ fieldPath: "plan.y1.annualMaximum", code: "ROLLOVER", message: "The source for this member's rollover balance needs confirmation before a conservative estimate can exclude its spending effects." });
+  if (data.member.benefit_state.source && data.member.benefit_state.source.status !== "VERIFIED_DEMO") blockingIssues.push({ fieldPath: "plan.y1.alreadyUsed", code: "MEMBER_SOURCE_UNCONFIRMED", message: "This stored member benefit source is stale or unverified. Confirm a current source before calculating." });
   const dollars = (cents: number) => {
     if (!Number.isSafeInteger(cents) || cents < 0) throw new Error("Invalid benefit amount returned by the backend.");
     return (cents / 100).toFixed(2);
@@ -81,6 +106,6 @@ export function memberExtraction(data: MemberData): IntakeExtraction {
     proposals: Object.entries(values).map(([fieldPath, value]) => ({ fieldPath, value, evidenceId })),
     evidence: [{ id: evidenceId, kind: "manual", sourceId: data.member.member_id, sourceLabel: `Database record: ${data.member.member_id}`, receivedAt: data.member.observed_at, blockingIssues }],
     overflow: procedures.slice(4).map((p) => ({ label: p.label, evidenceId })), missingFieldPaths: [],
-    reviewNotes: [{ message: "Review imported benefit and treatment facts. Contracted fees, eligibility and permission to change dates need confirmation. Pending claims and rollover are shown in the member view and are not supported by this comparison model.", evidenceId }],
+    reviewNotes: [{ message: conservativeSupported && (data.member.benefit_state.pending_claims.length > 0 || (data.member.benefit_state.rollover_bank_cents ?? 0) > 0) ? "Conservative base-benefit estimate: the server reserves supplied pending plan-payment projections, leaves pending deductible effects unchanged, and excludes the unconfirmed rollover bank. This is not a complete claim-settlement estimate. Confirm treatment fees, eligibility and dentist timing separately." : "Review imported benefit and treatment facts. Contracted fees, eligibility and permission to change dates need confirmation. The server rechecks stored member benefits before calculating.", evidenceId }],
   };
 }

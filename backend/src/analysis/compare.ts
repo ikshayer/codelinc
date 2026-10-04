@@ -2,7 +2,8 @@ import { z } from "zod";
 import { addDays, applyRateRoundHalfUp, diffDays, sumCents } from "../domain";
 import { Cents, IsoDate } from "../domain/primitives";
 import { RecommendationMode } from "../domain/optimizer";
-import type { AnalysisComparison, AnalysisEngineOptions, AnalysisPlanningContext, AnalysisRecordDetail, CalculationRecord, ConfirmedScenario } from "./types";
+import { MemberIdentity } from "./member-identity";
+import type { AnalysisComparison, AnalysisEngineOptions, AnalysisPlanningContext, AnalysisRecordDetail, CalculationRecord, ConfirmedScenario, MemberBenefitAdjustments } from "./types";
 
 const id = z.string().min(1).max(150);
 const source = z.strictObject({ kind: z.enum(["userEntry", "userReportedDentist", "syntheticFixture", "aiProposal"]), label: z.string().max(500), quote: z.string().max(4000).nullable() });
@@ -17,7 +18,7 @@ export const ConfirmedAnalysisScenario = z.strictObject({ revision: z.number().i
   facts: z.array(z.strictObject({ fieldPath: z.string().max(256), value: z.unknown(), source, confirmedAtRevision: z.number().int().nonnegative() })).max(200),
 });
 export const AnalysisOptions = z.strictObject({ mode: RecommendationMode.optional(), schedule_locks: z.array(z.strictObject({ procedureId: id, serviceDate: IsoDate })).max(4).optional(), budget: z.strictObject({ hardMonthlyLimitCents: Cents, preferredMonthlyLimitCents: Cents }).optional() });
-export const AnalysisCalculateRequest = z.strictObject({ requestId: id, analysisId: id, revision: z.number().int().nonnegative(), scenario: ConfirmedAnalysisScenario, engineOptions: AnalysisOptions.optional() });
+export const AnalysisCalculateRequest = z.strictObject({ requestId: id, analysisId: id, revision: z.number().int().nonnegative(), scenario: ConfirmedAnalysisScenario, engineOptions: AnalysisOptions.optional(), memberIdentity: MemberIdentity.optional() });
 
 export class AnalysisInputError extends Error { constructor(message: string, readonly fieldPath: string) { super(message); } }
 const fail = (message: string, fieldPath: string): never => { throw new AnalysisInputError(message, fieldPath); };
@@ -62,11 +63,12 @@ function validate(scenario: ConfirmedScenario, options: AnalysisEngineOptions) {
 }
 
 /** Financial records use the engine's shared cent rounding, chronological service dates, and independent annual ledgers. */
-function calculate(scenario: ConfirmedScenario, assignments: Assignment[], baseline: boolean): CalculationRecord {
+function calculate(scenario: ConfirmedScenario, assignments: Assignment[], baseline: boolean, adjustments?: MemberBenefitAdjustments): CalculationRecord {
   const ordered = [...assignments].sort(order);
   const ledgers = scenario.plan.years.map((y) => ({ benefitYearId: y.id,
     deductible: { totalCents:y.deductibleCents, satisfiedBeforeCents:y.utilization.priorDeductibleSatisfiedCents, remainingCents:y.deductibleCents - y.utilization.priorDeductibleSatisfiedCents, appliedInScheduleCents:0 },
-    maximum: { totalCents:y.annualMaximumCents, usedBeforeCents:y.utilization.priorInsurerPaymentsCents, remainingCents:y.annualMaximumCents - y.utilization.priorInsurerPaymentsCents, consumedInScheduleCents:0 }, procedures:[], totalFeeCents:0, totalInsurerCents:0, totalPatientCents:0 })) as unknown as CalculationRecord["ledgers"];
+    maximum: { totalCents:y.annualMaximumCents, usedBeforeCents:y.utilization.priorInsurerPaymentsCents, remainingCents:Math.max(0, y.annualMaximumCents - y.utilization.priorInsurerPaymentsCents - (y.id === "y1" ? adjustments?.pendingReserveCents ?? 0 : 0)), consumedInScheduleCents:0,
+      ...(adjustments && y.id === "y1" ? { reservedBeforeCents: Math.min(adjustments.pendingReserveCents, Math.max(0, y.annualMaximumCents - y.utilization.priorInsurerPaymentsCents)) } : {}) }, procedures:[], totalFeeCents:0, totalInsurerCents:0, totalPatientCents:0 })) as unknown as CalculationRecord["ledgers"];
   for (const [processingIndex, a] of ordered.entries()) {
     const p = scenario.procedures.find((p) => p.id === a.procedureId)!;
     const y = scenario.plan.years.find((y) => y.id === a.benefitYearId)!;
@@ -102,7 +104,7 @@ function dependenciesFit(scenario: ConfirmedScenario, assignments: Assignment[])
   return scenario.dependencies.every((d) => diffDays(assignments.find((a) => a.procedureId === d.beforeProcedureId)!.serviceDate, assignments.find((a) => a.procedureId === d.afterProcedureId)!.serviceDate) >= d.minGapDays);
 }
 
-function recordDetail(_scenario: ConfirmedScenario, record: CalculationRecord, baseline: CalculationRecord, options: AnalysisEngineOptions): AnalysisRecordDetail {
+function recordDetail(_scenario: ConfirmedScenario, record: CalculationRecord, baseline: CalculationRecord, options: AnalysisEngineOptions, adjustments?: MemberBenefitAdjustments): AnalysisRecordDetail {
   const used = new Map<string, number>();
   let fundingGapCents = 0;
   const events = record.ledgers.flatMap((l) => l.procedures).sort((a, b) => a.processingIndex - b.processingIndex).map((line) => {
@@ -117,6 +119,7 @@ function recordDetail(_scenario: ConfirmedScenario, record: CalculationRecord, b
       benefitsAfter:{ deductibleRemainingCents:line.deductibleAfterCents, annualMaximumRemainingCents:line.maximumAfterCents },
       issues:[...(shortfallCents ? ["This visit exceeds the cash available under your hard monthly limit."] : []), ...(line.patientDueToMaximumCents ? ["The annual maximum limits the modeled plan payment for this visit."] : [])],
       calculationSteps:[
+        ...(adjustments && line.benefitYearId === "y1" ? [{ label:"Available base maximum before this visit", formula:"max(0, base maximum - settled plan payments - pending reserve - prior scheduled maximum use)", operands:[operand("base maximum",record.ledgers[0].maximum.totalCents),operand("settled plan payments",record.ledgers[0].maximum.usedBeforeCents),operand("projected pending reserve",adjustments.pendingReserveCents),operand("prior scheduled maximum use",Math.max(0,record.ledgers[0].maximum.totalCents - record.ledgers[0].maximum.usedBeforeCents - Math.min(adjustments.pendingReserveCents, Math.max(0,record.ledgers[0].maximum.totalCents - record.ledgers[0].maximum.usedBeforeCents)) - line.maximumBeforeCents))], resultCents:line.maximumBeforeCents }] : []),
         { label:"Deductible applied", formula:line.deductibleApplies ? "min(fee, deductible remaining)" : "0 (deductible does not apply)", operands:[operand("fee",line.feeCents),operand("deductible remaining",line.deductibleBeforeCents)], resultCents:line.deductibleAppliedCents },
         { label:"Eligible after deductible", formula:"fee - deductible applied", operands:[operand("fee",line.feeCents),operand("deductible applied",line.deductibleAppliedCents)], resultCents:line.eligibleAfterDeductibleCents },
         { label:"Potential plan payment", formula:"round_half_up(eligible after deductible × share / 10000)", operands:[operand("eligible after deductible",line.eligibleAfterDeductibleCents),operand("share",line.insurerBasisPoints,"basisPoints")], resultCents:line.potentialInsurerCents },
@@ -137,16 +140,16 @@ function recordDetail(_scenario: ConfirmedScenario, record: CalculationRecord, b
 }
 
 /** Enumerate benefit-year choices and every financial ordering for up to four procedures. */
-export function compareAnalysis(scenario: ConfirmedScenario, options: AnalysisEngineOptions = {}): AnalysisComparison {
+export function compareAnalysis(scenario: ConfirmedScenario, options: AnalysisEngineOptions = {}, adjustments?: MemberBenefitAdjustments): AnalysisComparison {
   validate(scenario, options);
   const baselineAssignments = scenario.procedures.map((p) => ({ procedureId:p.id, benefitYearId:periodOf(scenario,p.anchorDate)!.id, serviceDate:p.anchorDate }));
   if (!dependenciesFit(scenario,baselineAssignments)) fail("Planned dates do not satisfy the dentist-confirmed dependencies.", "scenario.dependencies");
-  const baseline = calculate(scenario,baselineAssignments,true);
+  const baseline = calculate(scenario,baselineAssignments,true,adjustments);
   const locks = new Map((options.schedule_locks ?? []).map((lock) => [lock.procedureId,lock.serviceDate]));
   const candidates = new Map<string,CalculationRecord>();
   const accepted = (assignments:Assignment[]) => {
     if (!dependenciesFit(scenario,assignments) || assignments.some((a) => locks.has(a.procedureId) && locks.get(a.procedureId)!==a.serviceDate)) return;
-    const record=calculate(scenario,assignments,key(assignments)===baseline.schedule.id); candidates.set(record.id,record);
+    const record=calculate(scenario,assignments,key(assignments)===baseline.schedule.id,adjustments); candidates.set(record.id,record);
   };
   if (!locks.size || baselineAssignments.every((a) => !locks.has(a.procedureId) || locks.get(a.procedureId)===a.serviceDate)) accepted(baselineAssignments);
   const rejectedCandidates: AnalysisComparison["rejectedCandidates"] = [];
@@ -199,7 +202,7 @@ export function compareAnalysis(scenario: ConfirmedScenario, options: AnalysisEn
   yearChoices(0,[]);
   if (!candidates.size) fail("Pinned dates cannot satisfy the approved windows and dependencies together. Unpin a date to try again.", "engineOptions.schedule_locks");
   const mode=options.mode ?? "BALANCED";
-  const details=new Map([...candidates.values(),baseline].map((record) => [record.id,recordDetail(scenario,record,baseline,options)]));
+  const details=new Map([...candidates.values(),baseline].map((record) => [record.id,recordDetail(scenario,record,baseline,options,adjustments)]));
   const ranking=(record:CalculationRecord,selectedMode:typeof mode) => {
     const detail=details.get(record.id)!;
     const targetDeviation=record.schedule.assignments.reduce((sum,a) => sum+Math.abs(diffDays(scenario.procedures.find((p) => p.id===a.procedureId)!.anchorDate,a.serviceDate)),0);

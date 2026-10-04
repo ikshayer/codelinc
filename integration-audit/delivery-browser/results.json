@@ -1,0 +1,105 @@
+{
+  "baseURL": "http://localhost:3010",
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "apiRequests": [
+        "/api/engine/health",
+        "/api/engine/scenario",
+        "/api/engine/passport",
+        "/api/engine/visit-navigator",
+        "/api/engine/intake/extract",
+        "/api/engine/intake/confirm",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan"
+      ],
+      "pinnedTuple": {
+        "procedure_id": "proc-d3330-30",
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-t-20261020-0800",
+        "claim_route": "IN_NETWORK_CLAIM"
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "passed": true,
+      "apiRequests": [
+        "/api/engine/health",
+        "/api/engine/scenario",
+        "/api/engine/passport",
+        "/api/engine/visit-navigator",
+        "/api/engine/intake/extract",
+        "/api/engine/intake/confirm",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan",
+        "/api/engine/care-plan"
+      ],
+      "pinnedTuple": {
+        "procedure_id": "proc-d3330-30",
+        "provider_id": "prov-rivera",
+        "slot_id": "prov-rivera-t-20261020-0800",
+        "claim_route": "IN_NETWORK_CLAIM"
+      }
+    },
+    {
+      "states": "health and visit retry, empty visit and treatment, partial network/cost, future urgent response suppression",
+      "passed": true
+    },
+    {
+      "original": "Landing sample → confirmation → real calculation → financial/benefit calculations → pin → rerun → undo/reset → payment preferences",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "pinnedDate": {
+        "procedureId": "p4",
+        "serviceDate": "2027-01-08"
+      },
+      "expectedRouteCancellations": [
+        {
+          "url": "http://localhost:3010/analysis/an_1703145899d64762/intake?_rsc=HKKF5HANfedSh9t9",
+          "reason": "Next.js cancelled a speculative route payload"
+        }
+      ]
+    },
+    {
+      "original": "Landing sample → confirmation → real calculation → financial/benefit calculations → pin → rerun → undo/reset → payment preferences",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "passed": true,
+      "pinnedDate": {
+        "procedureId": "p4",
+        "serviceDate": "2027-01-08"
+      },
+      "expectedRouteCancellations": [
+        {
+          "url": "http://localhost:3010/analysis/an_822b5868fbb94da3/intake?_rsc=MveP_JqBke_QF5st",
+          "reason": "Next.js cancelled a speculative route payload"
+        }
+      ]
+    }
+  ]
+}

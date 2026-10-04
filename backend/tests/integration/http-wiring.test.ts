@@ -15,6 +15,10 @@ describe("frontend proxy to backend HTTP boundary", () => {
     server = createMongoServer({ readDemo: async (path) => {
       if (path === "/api/demo/health") throw new Error("Simulated database connection failure");
       return { status: 200, body: members };
+    }, lookupMember: async (identity) => {
+      if (identity.dateOfBirth === "1990-01-01") throw new Error("Private database connection failure");
+      if (!("displayName" in identity) || identity.displayName.toLowerCase() !== "parker patel" || identity.dateOfBirth !== "1974-08-19") return { status: 200, body: { matched: false } };
+      return { status: 200, body: { synthetic_demo: true, member: { member_id: "SYN-MEMBER-0021", display_name: "Parker Patel", date_of_birth: "1974-08-19" }, procedure_card: null } };
     } });
     server.listen(0, "127.0.0.1");
     await once(server, "listening");
@@ -51,6 +55,31 @@ describe("frontend proxy to backend HTTP boundary", () => {
     const response=await proxyBackend("/api/calculate",{method:"POST",body:JSON.stringify({requestId:"test",analysisId:"original",revision:0,scenario:originalScenario()})},`${base}/`);
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({baseline:{totalPatientCents:150000},best:{totalPatientCents:85500},patientReductionCents:64500,planning:{syntheticData:true}});
+  });
+
+  it("looks up the required name and DOB through the same HTTP proxy without fabricating treatment", async () => {
+    const response = await proxyBackend("/api/demo/member-lookup", { method: "POST", body: JSON.stringify({ displayName: "Parker Patel", dateOfBirth: "1974-08-19" }) }, base);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ member: { member_id: "SYN-MEMBER-0021" }, procedure_card: null });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("gives the same generic no-match response for wrong DOB and unknown name", async () => {
+    const responses = await Promise.all([{ displayName: "Parker Patel", dateOfBirth: "1974-08-18" }, { displayName: "Unknown Member", dateOfBirth: "1974-08-19" }].map(async (body) => {
+      const response = await proxyBackend("/api/demo/member-lookup", { method: "POST", body: JSON.stringify(body) }, base);
+      return { status: response.status, body: await response.json() };
+    }));
+    expect(responses[0]).toEqual({ status: 200, body: { matched: false } }); expect(responses[1]).toEqual(responses[0]);
+  });
+
+  it("rejects invalid lookup dates and unknown identity properties and separates a database failure from invalid JSON", async () => {
+    for (const body of [{ displayName: "Parker Patel", dateOfBirth: "1974-02-30" }, { displayName: "Parker Patel", dateOfBirth: "1974-08-19", editedBalance: 0 }]) {
+      const response = await proxyBackend("/api/demo/member-lookup", { method: "POST", body: JSON.stringify(body) }, base);
+      expect(response.status).toBe(422);
+    }
+    const failed = await proxyBackend("/api/demo/member-lookup", { method: "POST", body: JSON.stringify({ displayName: "Parker Patel", dateOfBirth: "1990-01-01" }) }, base);
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).toMatchObject({ error: { code: "UNAVAILABLE", retryable: true } });
   });
 
   it("preserves a validation error rather than turning it into method-not-allowed", async () => {

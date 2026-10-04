@@ -34,12 +34,14 @@ describe("live voice", () => {
   });
   it("aborts requests on end and discards late events", async () => {
     let finish!: (response: Response) => void, signal: AbortSignal | undefined;
-    vi.stubGlobal("fetch", vi.fn((url: string, init: RequestInit) => {
+    const fetcher = vi.fn((url: string, init: RequestInit) => {
       if (!url.endsWith("/turns")) return Promise.resolve(new Response(null, { status: 204 }));
       signal = init.signal as AbortSignal; return new Promise<Response>((resolve) => { finish = resolve; });
-    }));
+    });
+    vi.stubGlobal("fetch", fetcher);
     const handle = createLiveSession(info, "token"), events: VoiceEvent[] = []; handle.subscribe((e) => events.push(e)); handle.sendText("Hello");
     await handle.end(); expect(signal?.aborted).toBe(true);
+    expect(fetcher.mock.calls.at(-1)?.[1]).toMatchObject({ method: "DELETE", keepalive: true });
     const count = events.length; finish(stream([{ type: "person", turnId: "late", text: "discard" }]));
     await new Promise((resolve) => setTimeout(resolve, 10)); expect(events).toHaveLength(count);
   });

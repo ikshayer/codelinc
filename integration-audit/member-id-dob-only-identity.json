@@ -1,0 +1,35 @@
+{
+  "url": "http://localhost:3000/analysis/new",
+  "labels": [
+    "Member ID",
+    "Month",
+    "Day",
+    "Year"
+  ],
+  "inputs": [
+    {
+      "id": "_R_15r9bn5ritpddqlb_-memberId",
+      "required": true,
+      "type": "text"
+    },
+    {
+      "id": "_R_15r9bn5ritpddqlb_-dob-month",
+      "required": true,
+      "type": "text"
+    },
+    {
+      "id": "_R_15r9bn5ritpddqlb_-dob-day",
+      "required": true,
+      "type": "text"
+    },
+    {
+      "id": "_R_15r9bn5ritpddqlb_-dob-year",
+      "required": true,
+      "type": "text"
+    }
+  ],
+  "noName": true,
+  "noMoreDetails": true,
+  "noOptionalText": true,
+  "failures": []
+}

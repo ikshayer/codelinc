@@ -12,7 +12,7 @@ benefits engine, optimizer, plan registry, fixtures, or raw payer data.
 
 ## Current status
 
-- Contract v1.7.0 is frozen and synthetic-only.
+- Contract v1.8.0 is frozen and synthetic-only.
 - Benefits, optimizer, API, and AI modules are implemented; the acceptance and
   integration suites pass.
 - MongoDB serves synthetic plans, members, claims, treatment cards, and providers

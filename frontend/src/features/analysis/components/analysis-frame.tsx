@@ -13,6 +13,8 @@ import { IdentityCheckDialog } from "@/features/intake/identity-check-dialog";
 import { cn } from "@/lib/utils";
 import { useAnalysis, useAnalysisController } from "../analysis-provider";
 import { analysisStatus, currentResult } from "../state";
+import { MemberBenefitSummary } from "@/features/intake/member-benefit-summary";
+import { MemberBenefitContextPanel } from "@/features/intake/member-benefit-context";
 
 const STAGES = [
   { segment: "intake", label: "Describe" },
@@ -52,6 +54,7 @@ export function AnalysisFrame({ analysisId, children }: { analysisId: string; ch
   const activeIndex = STAGES.findIndex((stage) => pathname.endsWith(`/${stage.segment}`));
   const status = analysisStatus(analysis);
   const comparedNow = currentResult(analysis) !== null;
+  const serverBenefits = analysis.result.status === "calculated" ? analysis.result.memberBenefitContext : analysis.result.status === "failed" ? analysis.result.error.memberBenefitContext : undefined;
 
   return (
     <div>
@@ -108,6 +111,7 @@ export function AnalysisFrame({ analysisId, children }: { analysisId: string; ch
           </nav>
         </div>
       </div>
+      {analysis.memberData && <div className="mx-auto max-w-[1120px] px-5 pt-5 md:px-8">{serverBenefits ? <MemberBenefitContextPanel context={serverBenefits} /> : <MemberBenefitSummary data={analysis.memberData} />}</div>}
       {children}
       <IdentityCheckDialog analysisId={analysisId} />
     </div>

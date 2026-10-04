@@ -1,0 +1,25 @@
+{
+  "baseURL": "http://localhost:3010",
+  "results": [
+    {
+      "voice": "Original landing → name → Talk it through → live typed Gemini facts → Chatterbox WAV → confirmation",
+      "passed": true,
+      "proposedFacts": 7,
+      "speechResponses": 2,
+      "expectedRouteCancellations": [
+        {
+          "url": "http://localhost:3010/analysis/an_d4fe9361151242c5/intake?method=pdf&_rsc=QVvCrAgllwQtZOeH",
+          "reason": "Next.js cancelled a speculative route payload"
+        },
+        {
+          "url": "http://localhost:3010/analysis/an_d4fe9361151242c5/intake?method=manual&_rsc=QVvCrAgllwQtZOeH",
+          "reason": "Next.js cancelled a speculative route payload"
+        },
+        {
+          "url": "http://localhost:3010/api/voice/sessions/54ddea18-7625-4e1b-9458-b65fb48a060f",
+          "reason": "Chromium cancelled a bodyless voice teardown after the server confirmed HTTP 204"
+        }
+      ]
+    }
+  ]
+}
