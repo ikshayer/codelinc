@@ -200,7 +200,7 @@ function SetupLayout({ step, children }: { step: 1 | 2; children: React.ReactNod
                 </StaggerItem>
               ))}
             </Stagger>
-            <p className="mt-7 border-t border-white/20 pt-4 text-sm text-white/75">Synthetic demo. Nothing you enter leaves this browser.</p>
+            <p className="mt-7 border-t border-white/20 pt-4 text-sm text-white/75">Synthetic data only. Live services receive the details needed to process your request.</p>
           </div>
         </aside>
       </div>

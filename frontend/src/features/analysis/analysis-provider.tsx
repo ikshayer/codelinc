@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { createSeedSession } from "@/fixtures/seed-session";
 import { sampleTreatmentProposals } from "@/fixtures/sample-treatment";
 import { getAdapters } from "@/lib/adapters";
+import { memberExtraction, memberProfile, type MemberData } from "@/lib/adapters/live/member-data";
 import { newId } from "@/lib/adapters/shared";
 import type { AdapterResult, Adapters, IntakeExtraction } from "@/lib/adapters/types";
 import { evidenceKindsOf } from "@/lib/domain/draft";
@@ -41,6 +42,7 @@ export interface AnalysisController {
   state: StoreState;
   adapters: Adapters;
   createAnalysis(patient: PatientDetails | null, title?: string): string;
+  createFromMember(data: MemberData): string;
   setPatient(analysisId: string, patient: PatientDetails): void;
   setMethod(analysisId: string, method: IntakeMethod): void;
   renameAnalysis(analysisId: string, title: string): void;
@@ -106,6 +108,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     stateRef.current = reducer(stateRef.current, action);
     rawDispatch(action);
   }, []);
+
 
   const controllers = useRef(new Map<string, AbortController>());
   const teardowns = useRef(new Map<string, Set<() => void>>());
@@ -286,6 +289,17 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       adapters,
       historyVersion,
       bumpHistory: bumpHistoryVersion,
+      createFromMember(data) {
+        const extraction = memberExtraction(data);
+        const id = newId("an");
+        const now = nowIso();
+        const profile = memberProfile(data);
+        dispatch({ type: "setProfile", profile });
+        dispatch({ type: "createAnalysis", id, patient: profile, title: `${profile.displayName}'s treatment plan`, now });
+        dispatch({ type: "setMethod", analysisId: id, method: "manual" });
+        dispatch({ type: "applyDirectProposals", analysisId: id, extraction, now });
+        return id;
+      },
       createAnalysis(patient, title) {
         const id = newId("an");
         dispatch({ type: "createAnalysis", id, patient, title: title ?? (patient ? `${patient.displayName}'s treatment plan` : "Treatment plan"), now: nowIso() });

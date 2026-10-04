@@ -7,9 +7,12 @@
     "node": ">=20.9"
   },
   "scripts": {
+    "dev:api": "tsx src/api/mongo-server.ts",
+    "db:verify": "tsx scripts/verify-dental-demo.ts",
+    "test:data": "node --import tsx --test tests/data/*.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --project unit",
+    "test": "npm run test:data && vitest run --project unit",
     "test:contracts": "vitest run --project contracts",
     "test:acceptance": "vitest run --project acceptance",
     "test:integration": "vitest run --project integration",
@@ -21,6 +24,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1146.0",
+    "mongodb": "^6.20.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
