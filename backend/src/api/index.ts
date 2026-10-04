@@ -8,6 +8,7 @@
 import { NotImplementedError } from "@/domain";
 import type { DemoScenario } from "@/domain";
 import type { ApiDeps, ApiHandlers, ApiModule } from "@/domain/ports";
+export { readMongoDemo } from "./mongo-demo";
 
 export function createApiHandlers(deps?: Partial<ApiDeps>): ApiHandlers {
   void deps;

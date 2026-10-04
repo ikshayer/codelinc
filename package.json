@@ -12,11 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "data:generate": "node --import tsx scripts/generate-expanded-demo.ts",
-    "db:seed": "node --import tsx scripts/seed-dental-demo.ts",
-    "db:verify": "node --import tsx scripts/verify-dental-demo.ts",
-    "test:data": "node --import tsx --test tests/*.test.ts",
-    "test": "npm run test:data && npm --prefix backend test",
+    "test": "npm --prefix backend test",
     "test:contracts": "npm --prefix backend run test:contracts",
     "test:acceptance": "npm --prefix backend run test:acceptance",
     "test:integration": "npm --prefix backend run test:integration",
@@ -30,14 +26,11 @@
     "verify": "npm run typecheck && npm run lint && npm run check:frozen && npm run golden:check && npm run backend:typecheck && npm run backend:lint && npm run test:contracts && npm test && npm run test:acceptance && npm run test:integration && npm run build"
   },
   "dependencies": {
-    "mongodb": "^6.20.0",
-    "zod": "^4.1.11",
     "next": "^16.3.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "tsx": "^4.20.6",
     "@playwright/test": "1.56",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/react": "^16.3.3",

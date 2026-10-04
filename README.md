@@ -1,7 +1,7 @@
 # CareWindow / Dental Payment & Scheduling Optimizer
 
-The root package contains the Next.js scaffold and MongoDB data tools. The
-standalone `backend/` package contains the frozen v1.1 contracts and optimizer.
+The root package contains the Next.js frontend. The `backend/` package owns
+MongoDB, synthetic data, the read-only demo API, frozen v1.1 contracts, and optimizer.
 
 ## Setup
 
@@ -10,39 +10,42 @@ Run from the repository root with Node 22 (see `.nvmrc`):
 ```sh
 npm install
 npm --prefix backend ci
+npm --prefix backend run dev:api
+```
+
+In a second terminal:
+
+```sh
 npm run dev
 ```
 
-MongoDB commands also run from the root:
+MongoDB commands run from `backend/`:
 
 ```sh
-npm run data:generate
-npm run db:seed
-npm run db:verify
+npm --prefix backend run db:verify
 ```
 
-Configure `MONGODB_URI` and `MONGODB_DB` in root `.env` using `.env.example`.
-The database scripts also accept the existing `frontend/.env` when root `.env`
-does not exist. Existing process environment variables take precedence. Never
-commit credentials. Docker Compose is optional for local MongoDB; Atlas uses the
-same connection setting. Seeding writes synthetic data to the configured database
-and prunes obsolete records scoped to the expanded synthetic dataset.
+Configure `MONGODB_URI` and `MONGODB_DB` in `backend/.env` using
+`backend/.env.example`. For existing local installs the backend also checks
+`frontend/.env` and root `.env`; environment variables take precedence. The
+frontend calls the backend through `BACKEND_BASE_URL` (default port 3001).
+MongoDB Atlas is the supported database deployment. Never commit credentials.
 
 ## Data and backend contracts
 
-`data/dental_demo_data_package/` retains the original three-plan fixture and its
-expanded population. Server-side MongoDB helpers live in `src/db/`; query helpers
+The raw demo package is not checked in; MongoDB is the source of truth. Server-side MongoDB helpers live in `backend/src/db/`; query helpers
 include `getDemoDataset`, `findPlanVersion`, and `findLatestMemberSnapshot`.
 Collections contain plans, member snapshots, provider/price snapshots, normalized
 providers and quotes, claims, appointments, procedure cards, expected results,
 scenario fixtures, source documents, and dataset manifests.
 
-The backend uses a different Northwind scenario and frozen v1.1 schema. The
-MongoDB package is not yet an input adapter for that optimizer. Its expected
-results must not be substituted for the backend's golden answers. See
-[import notes](backend/data/reference/dental-demo-data-package-v1/IMPORT-NOTES.md).
+The backend now reads MongoDB through `GET /api/demo`,
+`GET /api/demo/health`, `GET /api/demo/providers`, and
+`GET /api/demo/members/:id`; Next.js proxies those paths. The backend's frozen
+optimizer uses a different Northwind scenario and v1.1 schema. MongoDB data
+still needs a validated adapter before that optimizer can price it.
 
-The backend's benefits, API, and AI entry points are currently stubs; their
+The backend's v1.1 benefits, calculation API, and AI entry points are currently stubs; their
 acceptance tests fail until those implementations land. This merge supplies the
 optimizer and scaffold, not a completed end-to-end product.
 
@@ -51,7 +54,7 @@ optimizer and scaffold, not a completed end-to-end product.
 ```sh
 npm run typecheck
 npm run lint
-npm test                 # MongoDB fixture checks and backend optimizer tests
+npm test                 # backend data checks and optimizer tests
 npm run test:contracts
 npm run check:frozen
 npm run golden:check
