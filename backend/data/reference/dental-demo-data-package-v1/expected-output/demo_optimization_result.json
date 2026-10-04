@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "synthetic_demo": true,
+  "optimization_result_id": "demo-opt-result-2026-10-03-v1",
+  "engine_version": "demo-deterministic-engine-1.0",
+  "generated_at": "2026-10-03T21:05:00-04:00",
+  "input_snapshots": {
+    "plan_version_id": "demo-core-dppo-2026-2027-v1",
+    "member_snapshot_id": "demo-member-alex-2026-10-03-v1",
+    "provider_snapshot_id": "demo-providers-2026-10-03-v1",
+    "price_snapshot_id": "demo-prices-2026-10-03-v1",
+    "procedure_card_id": "demo-procedure-card-2026-10-03-v1"
+  },
+  "benefit_passport": {
+    "display_name": "Demo Dental Core DPPO",
+    "plan_type": "DPPO",
+    "enrollment_tier": "employee_only",
+    "current_benefit_year": 2026,
+    "next_reset_date": "2027-01-01",
+    "annual_maximum_total_cents": 150000,
+    "plan_paid_ytd_cents": 70000,
+    "annual_maximum_remaining_cents": 80000,
+    "deductible_remaining_cents": {
+      "in_network": 0,
+      "out_of_network": 7500
+    },
+    "fsa_available_cents": 18000,
+    "fsa_eligible_through": "2026-12-31",
+    "data_as_of": "2026-10-03T21:00:00-04:00"
+  },
+  "recommended_option": {
+    "option_id": "lowest-cost-safe-and-affordable",
+    "label": "Lowest cost within dentist-approved timing",
+    "status": "FEASIBLE",
+    "total_plan_payment_cents": 132700,
+    "total_member_responsibility_cents": 73800,
+    "total_financing_fees_cents": 0,
+    "schedule": [
+      {
+        "procedure_id": "proc-root-canal-19",
+        "cdt": "D3330",
+        "provider_id": "provider-carolina-endo",
+        "network_status": "in_network",
+        "service_date": "2026-10-08",
+        "claim_route": "submit_to_primary_dental",
+        "calculation": {
+          "provider_charge_cents": 130000,
+          "allowed_amount_cents": 90000,
+          "contractual_writeoff_cents": 40000,
+          "deductible_before_cents": 0,
+          "deductible_applied_cents": 0,
+          "plan_share_bps": 8000,
+          "preliminary_plan_payment_cents": 72000,
+          "annual_maximum_before_cents": 80000,
+          "actual_plan_payment_cents": 72000,
+          "member_responsibility_cents": 18000,
+          "annual_maximum_after_cents": 8000
+        },
+        "funding": [
+          {"source": "fsa", "payment_month": "2026-10", "amount_cents": 18000}
+        ],
+        "clinical_reason": "Dentist confirmed completion by 2026-10-25; this is the earliest compatible in-network specialist slot.",
+        "applied_rule_ids": [
+          "core-basic-in-network-8000bps",
+          "core-annual-maximum-150000",
+          "core-in-network-deductible-5000"
+        ]
+      },
+      {
+        "procedure_id": "proc-crown-19",
+        "cdt": "D2740",
+        "provider_id": "provider-friendly-smiles",
+        "network_status": "in_network",
+        "service_date": "2027-01-05",
+        "claim_route": "submit_to_primary_dental",
+        "calculation": {
+          "provider_charge_cents": 140000,
+          "allowed_amount_cents": 100000,
+          "contractual_writeoff_cents": 40000,
+          "deductible_before_cents": 5000,
+          "deductible_applied_cents": 5000,
+          "plan_share_bps": 5000,
+          "preliminary_plan_payment_cents": 47500,
+          "annual_maximum_before_cents": 150000,
+          "actual_plan_payment_cents": 47500,
+          "member_responsibility_cents": 52500,
+          "annual_maximum_after_cents": 102500
+        },
+        "funding": [
+          {"source": "provider_payment_plan", "payment_plan_id": "friendly-zero-interest-3", "payment_month": "2027-01", "amount_cents": 17500},
+          {"source": "provider_payment_plan", "payment_plan_id": "friendly-zero-interest-3", "payment_month": "2027-02", "amount_cents": 17500},
+          {"source": "provider_payment_plan", "payment_plan_id": "friendly-zero-interest-3", "payment_month": "2027-03", "amount_cents": 17500}
+        ],
+        "clinical_reason": "The dentist confirmed the crown may be completed through 2027-01-31; January 5 follows the root-canal gap and uses the renewed benefit maximum.",
+        "applied_rule_ids": [
+          "core-major-in-network-5000bps",
+          "core-annual-maximum-150000",
+          "core-in-network-deductible-5000",
+          "replacement-D2740"
+        ]
+      },
+      {
+        "procedure_id": "proc-filling-3",
+        "cdt": "D2392",
+        "provider_id": "provider-friendly-smiles",
+        "network_status": "in_network",
+        "service_date": "2027-01-07",
+        "claim_route": "submit_to_primary_dental",
+        "calculation": {
+          "provider_charge_cents": 22000,
+          "allowed_amount_cents": 16500,
+          "contractual_writeoff_cents": 5500,
+          "deductible_before_cents": 0,
+          "deductible_applied_cents": 0,
+          "plan_share_bps": 8000,
+          "preliminary_plan_payment_cents": 13200,
+          "annual_maximum_before_cents": 102500,
+          "actual_plan_payment_cents": 13200,
+          "member_responsibility_cents": 3300,
+          "annual_maximum_after_cents": 89300
+        },
+        "funding": [
+          {"source": "monthly_cash_budget", "payment_month": "2027-01", "amount_cents": 3300}
+        ],
+        "clinical_reason": "The filling is dentist-confirmed as flexible through 2027-03-31 and fits a January in-network slot after the deductible is met.",
+        "applied_rule_ids": [
+          "core-basic-in-network-8000bps",
+          "core-annual-maximum-150000"
+        ]
+      }
+    ],
+    "monthly_member_payments": [
+      {"month": "2026-10", "fsa_cents": 18000, "cash_cents": 0, "payment_plan_cents": 0, "total_cents": 18000},
+      {"month": "2027-01", "fsa_cents": 0, "cash_cents": 3300, "payment_plan_cents": 17500, "total_cents": 20800},
+      {"month": "2027-02", "fsa_cents": 0, "cash_cents": 0, "payment_plan_cents": 17500, "total_cents": 17500},
+      {"month": "2027-03", "fsa_cents": 0, "cash_cents": 0, "payment_plan_cents": 17500, "total_cents": 17500}
+    ],
+    "member_budget_check": {
+      "hard_monthly_limit_cents": 30000,
+      "passes": true,
+      "highest_monthly_payment_cents": 20800
+    }
+  },
+  "alternatives": [
+    {
+      "option_id": "crown-before-reset",
+      "label": "Complete crown in November",
+      "status": "CLINICALLY_FEASIBLE_HIGHER_COST",
+      "service_dates": {
+        "proc-root-canal-19": "2026-10-08",
+        "proc-crown-19": "2026-11-03",
+        "proc-filling-3": "2027-01-07"
+      },
+      "total_member_responsibility_cents": 117300,
+      "difference_from_recommended_cents": 43500,
+      "tradeoff": "Completes the crown earlier but uses only the final $80 of 2026 plan benefit for it."
+    },
+    {
+      "option_id": "earliest-out-of-network-root-canal",
+      "label": "Out-of-network root canal two days earlier",
+      "status": "CLINICALLY_FEASIBLE_HIGHER_COST",
+      "service_date": "2026-10-06",
+      "provider_id": "provider-rapid-dental",
+      "root_canal_member_responsibility_cents": 94500,
+      "root_canal_in_network_member_responsibility_cents": 18000,
+      "difference_for_root_canal_cents": 76500,
+      "tradeoff": "Two days earlier and 6.5 miles closer, but includes a separate out-of-network deductible and balance billing."
+    }
+  ],
+  "explanation_inputs": {
+    "facts": [
+      {"fact_id": "core-basic-in-network-8000bps", "text": "Core pays 80% of the in-network allowed amount for basic services after deductible.", "evidence_ref": "synthetic-demo-benefit-schedule-2026-v1#plan-share-by-service-class"},
+      {"fact_id": "core-major-in-network-5000bps", "text": "Core pays 50% of the in-network allowed amount for major services after deductible.", "evidence_ref": "synthetic-demo-benefit-schedule-2026-v1#plan-share-by-service-class"},
+      {"fact_id": "core-annual-maximum-150000", "text": "Core has a $1,500 annual plan-payment maximum per member.", "evidence_ref": "synthetic-demo-benefit-schedule-2026-v1#deductibles-and-maximums"},
+      {"fact_id": "dentist-crown-latest-2027-01-31", "text": "The dentist confirmed the crown may be completed through January 31, 2027.", "evidence_ref": "demo-procedure-card-2026-10-03-v1#proc-crown-19"}
+    ],
+    "missing_data": [],
+    "prohibited_ai_actions": [
+      "recalculate_money",
+      "change_service_dates",
+      "change_clinical_urgency",
+      "add_plan_rules",
+      "convert_estimate_to_guarantee"
+    ]
+  },
+  "audit": {
+    "deterministic": true,
+    "currency_math": "integer_cents",
+    "schedule_search": "bounded_exact_enumeration",
+    "tie_breaker": "stable_option_id",
+    "unknown_plan_rules_defaulted": false,
+    "all_clinical_constraints_confirmed": true
+  }
+}

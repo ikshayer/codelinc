@@ -1,0 +1,35 @@
+{
+  "name": "codelinc-dental-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:contracts": "vitest run --project contracts",
+    "test:acceptance": "vitest run --project acceptance",
+    "test:integration": "vitest run --project integration",
+    "check:frozen": "node scripts/check-frozen.mjs",
+    "freeze": "node scripts/freeze.mjs",
+    "golden:check": "node scripts/golden-check.mjs",
+    "demo:cli": "tsx src/api/demo-cli.ts",
+    "verify": "npm run check:frozen && npm run golden:check && npm run typecheck && npm run lint && npm run test:contracts && npm test && npm run test:acceptance && npm run test:integration"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1146.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9.39.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}

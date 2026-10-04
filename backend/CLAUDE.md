@@ -1,5 +1,3 @@
-@AGENTS.md
-
 # Dental Payment & Scheduling Optimizer — codeLinc 11
 
 A calm, evidence-backed assistant that helps a member choose where and when to get dental care, use coverage, and fund the rest. Two modes on one deterministic foundation: **Visit Navigator** (before the visit) and **Care Plan Optimizer** (after the visit). Synthetic data only.

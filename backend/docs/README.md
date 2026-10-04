@@ -2,6 +2,7 @@
 
 | Doc | What it is |
 |---|---|
+| [`production-architecture-plan.md`](production-architecture-plan.md) | Proposed production v2 architecture for verified insurance-ID onboarding, required data/frontend, security, testing, and delivery phases. |
 | [`spec/Dental_Optimizer_Algorithm_and_Claude_Agent_Spec.md`](spec/Dental_Optimizer_Algorithm_and_Claude_Agent_Spec.md) | Product + algorithm spec (source of truth for scope). Frozen copy. |
 | [`contracts/CONTRACT-v1.md`](contracts/CONTRACT-v1.md) | **Normative behavior** for every module. Frozen. |
 | [`contracts/golden-scenario.md`](contracts/golden-scenario.md) | The synthetic demo story with every number worked out. |
