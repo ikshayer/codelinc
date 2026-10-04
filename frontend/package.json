@@ -1,5 +1,22 @@
 {
+  "name": "carewindow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "data:generate": "node --import tsx scripts/generate-expanded-demo.ts",
+    "db:seed": "node --env-file=.env --import tsx scripts/seed-dental-demo.ts",
+    "db:verify": "node --env-file=.env --import tsx scripts/verify-dental-demo.ts",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mongodb": "^6.20.0",
+    "zod": "^4.1.11"
+  },
   "devDependencies": {
-    "shadcn": "^4.21.1"
+    "@types/node": "^24.7.0",
+    "shadcn": "^4.21.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/dental-plan-registry-1.0.json",
+  "title": "Dental Plan Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "synthetic_demo",
+    "currency",
+    "money_unit",
+    "rate_unit",
+    "source",
+    "shared_rules",
+    "plans"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "synthetic_demo": {"type": "boolean"},
+    "currency": {"const": "USD"},
+    "money_unit": {"const": "integer_cents"},
+    "rate_unit": {"const": "basis_points"},
+    "source": {"$ref": "#/$defs/source"},
+    "shared_rules": {"type": "object"},
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/plan"}
+    }
+  },
+  "$defs": {
+    "money": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "basisPoints": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "evidenceRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "file_name", "document_role", "verification_status"],
+      "properties": {
+        "source_id": {"type": "string"},
+        "file_name": {"type": "string"},
+        "document_role": {"type": "string"},
+        "verification_status": {"type": "string"},
+        "warning": {"type": "string"}
+      }
+    },
+    "networkDeductible": {
+      "type": "object",
+      "required": ["individual_cents", "family_cents"],
+      "properties": {
+        "individual_cents": {"$ref": "#/$defs/money"},
+        "family_cents": {"$ref": "#/$defs/money"}
+      }
+    },
+    "deductible": {
+      "type": "object",
+      "required": [
+        "rule_ids",
+        "in_network",
+        "out_of_network",
+        "network_accumulation",
+        "waived_for_service_classes",
+        "family_basis",
+        "evidence_ref"
+      ],
+      "properties": {
+        "rule_ids": {"type": "object"},
+        "in_network": {"$ref": "#/$defs/networkDeductible"},
+        "out_of_network": {"$ref": "#/$defs/networkDeductible"},
+        "network_accumulation": {"enum": ["combined", "separate"]},
+        "waived_for_service_classes": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "family_basis": {"enum": ["embedded", "aggregate"]},
+        "evidence_ref": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "coverageClass": {
+      "type": "object",
+      "required": [
+        "in_network_rule_id",
+        "out_of_network_rule_id",
+        "in_network_plan_share_bps",
+        "out_of_network_plan_share_bps",
+        "deductible_applies"
+      ],
+      "properties": {
+        "covered": {"type": "boolean"},
+        "in_network_rule_id": {"type": "string"},
+        "out_of_network_rule_id": {"type": "string"},
+        "in_network_plan_share_bps": {"$ref": "#/$defs/basisPoints"},
+        "out_of_network_plan_share_bps": {"$ref": "#/$defs/basisPoints"},
+        "deductible_applies": {"type": "boolean"}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["preventive", "basic", "major", "orthodontic", "evidence_ref"],
+      "properties": {
+        "preventive": {"$ref": "#/$defs/coverageClass"},
+        "basic": {"$ref": "#/$defs/coverageClass"},
+        "major": {"$ref": "#/$defs/coverageClass"},
+        "orthodontic": {"$ref": "#/$defs/coverageClass"},
+        "evidence_ref": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "annualMaximum": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "individual_cents",
+        "network_accumulation",
+        "accumulator_basis",
+        "preventive_counts_toward_maximum",
+        "evidence_ref"
+      ],
+      "properties": {
+        "rule_id": {"type": "string"},
+        "individual_cents": {"$ref": "#/$defs/money"},
+        "network_accumulation": {"enum": ["combined", "separate"]},
+        "accumulator_basis": {"const": "plan_paid_amount"},
+        "preventive_counts_toward_maximum": {"type": "boolean"},
+        "evidence_ref": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "rollover": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "threshold_plan_paid_cents",
+        "base_award_cents",
+        "network_bonus_cents",
+        "bank_cap_cents",
+        "evidence_ref"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "threshold_plan_paid_cents": {
+          "oneOf": [{"$ref": "#/$defs/money"}, {"type": "null"}]
+        },
+        "base_award_cents": {"$ref": "#/$defs/money"},
+        "network_bonus_cents": {"$ref": "#/$defs/money"},
+        "bank_cap_cents": {"$ref": "#/$defs/money"},
+        "requires_at_least_one_settled_claim": {"type": "boolean"},
+        "evidence_ref": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "plan": {
+      "type": "object",
+      "required": [
+        "plan_id",
+        "plan_version_id",
+        "display_name",
+        "carrier",
+        "employer_group_id",
+        "jurisdiction",
+        "plan_type",
+        "option_tier",
+        "effective_from",
+        "effective_to",
+        "verification_status",
+        "monthly_employee_contribution_cents",
+        "deductible",
+        "annual_maximum",
+        "coverage",
+        "orthodontic_lifetime_maximum_cents",
+        "procedure_class_overrides",
+        "rollover"
+      ],
+      "properties": {
+        "plan_id": {"type": "string"},
+        "plan_version_id": {"type": "string"},
+        "display_name": {"type": "string"},
+        "carrier": {"type": "string"},
+        "employer_group_id": {"type": "string"},
+        "jurisdiction": {"type": "string"},
+        "plan_type": {"enum": ["DPPO", "DHMO", "INDEMNITY", "DISCOUNT"]},
+        "option_tier": {"type": "string"},
+        "effective_from": {"type": "string", "format": "date"},
+        "effective_to": {"type": "string", "format": "date"},
+        "verification_status": {"type": "string"},
+        "monthly_employee_contribution_cents": {
+          "type": "object",
+          "required": ["employee_only", "employee_spouse", "employee_children", "family"],
+          "additionalProperties": {"$ref": "#/$defs/money"}
+        },
+        "deductible": {"$ref": "#/$defs/deductible"},
+        "annual_maximum": {"$ref": "#/$defs/annualMaximum"},
+        "coverage": {"$ref": "#/$defs/coverage"},
+        "orthodontic_lifetime_maximum_cents": {"$ref": "#/$defs/money"},
+        "procedure_class_overrides": {"type": "array", "items": {"type": "object"}},
+        "rollover": {"$ref": "#/$defs/rollover"}
+      }
+    }
+  }
+}
