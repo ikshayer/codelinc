@@ -51,9 +51,11 @@ export function normalizeIssue(raw: WireIssue | undefined, fallback: AdapterErro
 
 /** Maps an HTTP failure (status + optional { error } envelope) to a normalized AdapterError. */
 export function errorFromHttp(status: number, body: unknown, service = "service"): AdapterError {
-  const envelope = body && typeof body === "object" ? (body as { error?: WireIssue }).error : undefined;
+  const envelope = body && typeof body === "object" ? (body as { error?: WireIssue & { issues?: { field?: string | null }[] } }).error : undefined;
   const [code, message, retryable] = statusDefaults(status, service);
-  return normalizeIssue(envelope, adapterError(code, message, retryable));
+  // The engine reports field problems as error.issues[].field; surface the first as fieldPath.
+  const fieldPath = envelope?.fieldPath ?? envelope?.issues?.find((i) => i.field)?.field ?? undefined;
+  return normalizeIssue(envelope && { ...envelope, fieldPath }, adapterError(code, message, retryable));
 }
 
 /**

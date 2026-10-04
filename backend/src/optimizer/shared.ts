@@ -64,6 +64,10 @@ export function isMemberAvailable(member: MemberState, slot: AppointmentSlot): b
   );
 }
 
+/**
+ * Unknown tier (null) maps to the OON placeholder: benefits blocks the line with NETWORK_STATUS_UNKNOWN
+ * before any pricing, so it only ever surfaces as missing data. Never drop the candidate (CONTRACT §5.3).
+ */
 export function providerClaimRoute(provider: ProviderOption): "IN_NETWORK_CLAIM" | "OUT_OF_NETWORK_CLAIM" {
   return provider.network.tier === "in_network" ? "IN_NETWORK_CLAIM" : "OUT_OF_NETWORK_CLAIM";
 }

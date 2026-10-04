@@ -35,6 +35,8 @@ export const ProcedurePrice = z.strictObject({
   contracted_allowed: SourcedMoney.nullable(),
   /** Verified cash price for self-pay/no-claim; null when the office has not quoted one. */
   cash_quote: SourcedMoney.nullable(),
+  /** (1.4) Last service date the cash quote is honored; null = validity unknown, so the quote is not definitive. */
+  cash_quote_valid_through: IsoDate.nullable(),
 });
 export type ProcedurePrice = z.infer<typeof ProcedurePrice>;
 
@@ -62,7 +64,12 @@ export const ProviderOption = z.strictObject({
   specialty: Specialty,
   network: z.strictObject({
     input_id: Id,
-    tier: NetworkTier,
+    /** (1.4) null = network status unknown. */
+    tier: NetworkTier.nullable(),
+    /**
+     * (1.4) The plan network this status was verified against. The status counts only when it
+     * equals the resolved plan version's key.network_id; null = not verified for any plan.
+     */
     network_id: Id.nullable(),
     source: SourceLabel,
     /** When network participation was last verified. */

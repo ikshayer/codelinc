@@ -9,8 +9,10 @@ import {
   benefits,
   carePlanRequest,
   fx,
+  mutateRule,
   optimize,
   POSTVISIT_AS_OF,
+  PV2026,
   registry,
   visitNavigator,
   visitRequest,
@@ -137,10 +139,19 @@ describe("AT-02 traceability of every number", () => {
       for (const i of item.input_ids) expect(inputs.has(i), `${item.item_id} input ${i}`).toBe(true);
       if (item.source === "PLAN_VERIFIED") expect(["VERIFIED", "NOT_APPLICABLE"]).toContain(item.rule_status);
     }
-    // The UNVERIFIED carryover rule is displayed for confirmation, never as a verified value.
+    // (1.5) The carryover rule is now VERIFIED by the rider and shown from the rule value.
     const carry = items.find((i) => i.rule_ids.includes("rollover.2026"));
     expect(carry, "rollover.2026 is shown").toBeDefined();
-    expect(carry!.rule_status).toBe("UNVERIFIED");
-    expect(carry!.source).toBe("NEEDS_CONFIRMATION");
+    expect(carry!.rule_status).toBe("VERIFIED");
+    expect(carry!.source).toBe("PLAN_VERIFIED");
+    expect(carry!.value_text).toBe("Up to $250 next year if plan payments stay below $500; balance capped at $1,000");
+    // An UNVERIFIED carryover rule is displayed for confirmation, never as a verified value.
+    const unverified = mutateRule(registry(), PV2026, "rollover.2026", (r) => ({ ...r, status: "UNVERIFIED" }));
+    const shown = BenefitPassport.parse(benefits.passport(unverified, member, POSTVISIT_AS_OF))
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.rule_ids.includes("rollover.2026"))!;
+    expect(shown.rule_status).toBe("UNVERIFIED");
+    expect(shown.source).toBe("NEEDS_CONFIRMATION");
+    expect(shown.value_text).toBe("Needs confirmation with the plan");
   });
 });

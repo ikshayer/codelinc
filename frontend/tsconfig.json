@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@engine/*": ["../backend/src/domain/*"]
     }
   },
   "include": [

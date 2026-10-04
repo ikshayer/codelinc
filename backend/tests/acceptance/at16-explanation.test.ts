@@ -70,7 +70,8 @@ describe("AT-16 explanation grounding", () => {
     ],
     [
       "a plan claim citing an unverified rule",
-      (e) => ({ ...e, claims: [...e.claims, { text: "You may carry over unused maximum.", fact_ids: ["rule:rollover.2026"] }] }),
+      // (1.5) rollover.2026 is now VERIFIED; claim_submission.2027 is UNKNOWN.
+      (e) => ({ ...e, claims: [...e.claims, { text: "You may pay the office directly.", fact_ids: ["rule:claim_submission.2027"] }] }),
       "UNVERIFIED_RULE_CITED",
     ],
     [

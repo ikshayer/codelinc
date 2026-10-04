@@ -2,6 +2,8 @@
 
 All values in `fixtures/golden/expected.json`. They are checked by an independent brute-force enumeration, `npm run golden:check` (`scripts/golden-check.mjs`; it never imports `src/`), which asserts every golden number to the cent. **Re-run it if any fixture, rule or ranking clause changes** (it is part of `npm run verify`).
 
+**1.4.0:** numbers unchanged, re-verified by `npm run golden:check` (every golden office is verified against `nwd-ppo`; the one cash quote is valid through 2027-06-30).
+
 Base case counts: 840 combinations (each procedure may also be left unscheduled) → 547 dependency-feasible with no NEEDS_CONFIRMATION line (81 more use 2027 self-pay, whose claim-submission rule is UNKNOWN) of which **396 are complete schedules**. The 1.1.0 self-pay rule removes 21 partial schedules (self-pay not strictly cheaper than the same schedule with a claim); all 396 complete schedules remain. The 1.0.0 count of "396" was complete schedules only; the unscheduled option was never exercised, which hid the pass-1 bug fixed in 1.1.0 (below).
 
 ## Inputs (synthetic)
@@ -60,3 +62,48 @@ Root canal Oct 20 ($200), filling **Thu Oct 22 paid directly at the verified $15
 | Dentist says the filling must be done in 2026 | The 2027 option disappears. Cheapest is self-pay on Thu Dec 3 ($150 cash, peak monthly cash $150); earliest completion keeps Oct 22. Total $1,426 either way. |
 | Annual maximum rule removed (AT-01) | Every 2026 claim needs confirmation; only the filling could be planned (2027 claim or 2026 self-pay). Because missing data — not the calendar — is what leaves the root canal and crown unscheduled, the result is `NEEDS_CONFIRMATION` with no alternatives (1.1.0 §5.3). |
 | Red-flag symptom (swelling) | `URGENT_CARE_ROUTE`; the soonest appointment (BrightSmile Oct 8) is "best overall". |
+
+## Cash vs claim (contract 1.2.0, CONTRACT §5.9)
+
+Each event with a cash quote (only Rivera's filling, D2392 $150) compares the **whole** schedule, worst case, with that event as an in-network claim vs paid cash, everything else unchanged. Re-derived by `npm run golden:check`.
+
+| Case | Event | Claim total | Cash total | Difference | Winner |
+|---|---|---|---|---|---|
+| Base, earliest completion (chosen: cash) | Filling Thu Oct 22, 2026 | $1,456 | $1,426 | $30 | Cash |
+| Base, lowest cost (chosen: claim) | Filling Tue Jan 5, 2027 | $1,372 | unknown — `RULE_UNKNOWN claim_submission.2027` | — | — |
+| Filling this year, lowest cost (cash) | Filling Thu Dec 3, 2026 | $1,456 | $1,426 | $30 | Cash |
+| Filling this year, earliest (cash) | Filling Thu Oct 22, 2026 | $1,456 | $1,426 | $30 | Cash |
+| Office self-pay unknown, earliest (claim) | Filling Thu Oct 22, 2026 | $1,456 | unknown — `SELF_PAY_NOT_VERIFIED` (`provider.prov-rivera.self_pay`) | — | — |
+
+Oct 22 claim: root canal $200 + filling $156 (the plan pays the last $24 of the maximum) + crown $1,100 (the maximum is gone, plan pays $0) = $1,456. Cash: $200 + $150 + $1,076 (the crown gets the $24) = $1,426. Root canal and crown have no cash quote → no comparison.
+
+## Maximum carryover (contract 1.5.0, CONTRACT §3.9 and §5.10)
+
+Rule (2026 Maximum Carryover Rider, read by hand): a carryover of $250 is earned when 2026 plan payments that count toward the annual maximum total **less than** $500 (exactly $500 does not earn); at least one such paid claim; no in-network bonus; balance capped at $1,000; not qualifying ends the balance; it applies only to `nwd-ppo-standard-2027`. Worst case (the ranking scenario) never adds a carryover. Re-derived by `npm run golden:check` (`scripts/golden-check.mjs` computes the outcome and the shift itself; it never imports `src/`).
+
+**Existing numbers unchanged, re-verified by golden:check.**
+
+### Base scenario — not earned in every alternative
+
+| Alternative | Settled (plan paid YTD) | + simulated 2026 plan pay toward the maximum | + pending | Qualifying | Status | Final bank |
+|---|---|---|---|---|---|---|
+| 1 (lowest cost) | $600 | $800 root canal + $24 crown = $824 | $76 | $1,424 – $1,500 | NOT_EARNED | $0 |
+| 2 (earliest) | $600 | $800 + $24 (the cash filling never counts) = $824 | $76 | $1,424 – $1,500 | NOT_EARNED | $0 |
+
+`lost_to_cap` $0, `forfeited` $0 (balance $0). Every base event has `rollover_shift: null`: the root canal and crown are not `can_plan_later`, the 2027 filling is in a year with no carryover feature, and the Oct 22 cash filling has no plan payment. The root canal alone pays $800, so 2026 can never qualify.
+
+### Variant `rollover_near_threshold`
+
+Inputs: 2026 deductible remaining $0, annual maximum remaining $1,080, plan paid YTD $420, carryover balance $0, no pending claims; procedures = the flexible filling only (D2392 tooth 14, Oct 16, 2026 – Mar 31, 2027, `can_plan_later`).
+
+| Alternative | Event | Plan pays | You pay | Qualifying | Status |
+|---|---|---|---|---|---|
+| 1 [lowest cost, smoothest] | Rivera Tue Oct 20, 2026, in network: ($180 − $0) × 80% | $144 | $36 | $420 + $144 = $564 | NOT_EARNED |
+| 2 [earliest] | BrightSmile Sat Oct 17, 2026, out of network: min($250, $150 allowance) × 60% | $90 | $160 | $420 + $90 = $510 | NOT_EARNED |
+
+Rollover shift (display only), first 2027 candidate at the same office and route:
+
+| Alternative | Moved to | 2027 plan pays | 2027 you pay | Status if moved | Final bank if moved | Cost change |
+|---|---|---|---|---|---|---|
+| 1 | Tue Jan 5, 2027 (`prov-rivera-t-20270105-1000`) | ($180 − $75 deductible) × 80% = $84 | $96 | CONDITIONAL ($420 < $500) | $250 | +$60 |
+| 2 | Sat Jan 9, 2027 (`prov-brightsmile-t-20270109-0900`) | ($150 − $75) × 60% = $45 | $205 | CONDITIONAL | $250 | +$45 |

@@ -4,6 +4,7 @@
     {
       "source_id": "nwd-ppo-2026-summary",
       "title": "Northwind Mutual Dental PPO Standard 2026 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
       "path": "data/sources/northwind-ppo-2026-benefit-summary.md",
       "sha256": "6f3a25e5b191b99546cd5f1109c3ce5ea71293f742e41c37474f87b0d3f77f44",
       "media_type": "text/markdown",
@@ -14,10 +15,22 @@
     {
       "source_id": "nwd-ppo-2027-summary",
       "title": "Northwind Mutual Dental PPO Standard 2027 Summary of Dental Benefits (synthetic)",
+      "document_role": "schedule_of_benefits",
       "path": "data/sources/northwind-ppo-2027-benefit-summary.md",
       "sha256": "68a2d8c2640bae69b6177d824026384d9d74455a291e49e18b3cb8cb66becb6c",
       "media_type": "text/markdown",
       "plan_version_id": "nwd-ppo-standard-2027",
+      "retrieved_at": "2026-10-01T12:00:00Z",
+      "synthetic": true
+    },
+    {
+      "source_id": "nwd-ppo-2026-carryover-rider",
+      "title": "Northwind Mutual Dental PPO Standard 2026 Maximum Carryover Rider (synthetic)",
+      "document_role": "amendment",
+      "path": "data/sources/northwind-ppo-2026-carryover-rider.md",
+      "sha256": "0c947e68da1832d4aa3bd23a80f094e8d47424fc7ab5b5731ae727b156c02ea2",
+      "media_type": "text/markdown",
+      "plan_version_id": "nwd-ppo-standard-2026",
       "retrieved_at": "2026-10-01T12:00:00Z",
       "synthetic": true
     }

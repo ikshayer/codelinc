@@ -147,6 +147,7 @@ function simulate(request: SimulationRequest): SimulationResult {
     },
     applied_rule_ids: [...new Set(lines.flatMap((line) => line.applied_rule_ids))].sort(),
     issues: [],
+    rollover: [],
   };
 }
 
@@ -241,7 +242,9 @@ describe("optimizer MVP with fully fabricated benefit results", () => {
     expect(result.status).toBe("URGENT_CARE_ROUTE");
     expect(result.safety.triggered_by).toEqual(["swelling"]);
     expect(result.options[0]!.provider_id).toBe("prov-brightsmile");
-    expect(result.options[0]!.labels).toEqual(["best_overall", "soonest"]);
+    // (1.3) §4.6: under urgency every option is on the soonest date; no later option to save money.
+    expect(result.options[0]!.labels).toEqual(["best_overall", "lowest_cost", "soonest"]);
+    expect(new Set(result.options.map((o) => o.slot.date)).size).toBe(1);
     expect(result.conditional_scenarios).toEqual([]);
   });
 
@@ -397,5 +400,142 @@ describe("optimizer MVP with fully fabricated benefit results", () => {
     }
     const optimizer = createCarePlanOptimizer(fakeBenefits);
     expect(optimizer.optimize(registry, permuted)).toEqual(optimizer.optimize(registry, original));
+  });
+});
+
+describe("route comparison (contract 1.2, CONTRACT §5.9)", () => {
+  // Rivera only (the office with a cash quote), so both the 2026 and 2027 fillings land there.
+  const riveraRequest = () => {
+    const request = postRequest();
+    request.providers = request.providers.filter((value) => value.provider_id === "prov-rivera");
+    return request;
+  };
+  const fillEvents = (result: CarePlanResult) =>
+    result.alternatives.flatMap((alternative) =>
+      alternative.events.filter((event) => event.procedure_id === "proc-fill-14" && event.provider_id === "prov-rivera").map((event) => ({ alternative, event })),
+    );
+  const withSelfPay = (patch: (line: AdjudicationLine) => void, blocks = false): BenefitEngine => ({
+    ...fakeBenefits,
+    simulate: (_registry, request) => {
+      const result = simulate(request);
+      const selfPay = result.lines.filter((line) => line.claim_route === "SELF_PAY_NO_CLAIM");
+      selfPay.forEach(patch);
+      if (blocks && selfPay.length) {
+        result.status = "NEEDS_CONFIRMATION";
+        result.totals = null;
+      } else if (result.totals) {
+        result.totals.member_responsibility_cents = result.lines.reduce((sum, line) => sum + line.member_responsibility_cents!, 0);
+      }
+      return result;
+    },
+  });
+
+  it("compares the whole schedule both ways: cash wins in 2026, the claim wins in 2027", () => {
+    const result = CarePlanResult.parse(createCarePlanOptimizer(fakeBenefits).optimize(registry, riveraRequest()));
+    const fills = fillEvents(result);
+    expect(fills.some(({ event }) => event.service_date < "2027-01-01")).toBe(true);
+    expect(fills.some(({ event }) => event.service_date >= "2027-01-01")).toBe(true);
+    for (const { alternative, event } of fills) {
+      const comparison = event.route_comparison!;
+      expect(comparison.claim_route).toBe("IN_NETWORK_CLAIM");
+      expect(comparison.missing).toEqual([]);
+      // The chosen route's side equals the alternative's own whole-schedule total.
+      const chosenTotal = event.claim_route === "SELF_PAY_NO_CLAIM" ? comparison.cash_total_cents : comparison.claim_total_cents;
+      expect(chosenTotal).toBe(alternative.totals.member_cost.high_cents);
+      if (event.service_date < "2027-01-01") {
+        // fake: 2026 claim $156 vs cash $150
+        expect(comparison.claim_total_cents! - comparison.cash_total_cents!).toBe(600);
+        expect(comparison.difference_cents).toBe(600);
+        expect(comparison.winner_claim_route).toBe("SELF_PAY_NO_CLAIM");
+      } else {
+        // fake: 2027 claim $96 vs cash $150
+        expect(comparison.cash_total_cents! - comparison.claim_total_cents!).toBe(5400);
+        expect(comparison.difference_cents).toBe(5400);
+        expect(comparison.winner_claim_route).toBe("IN_NETWORK_CLAIM");
+      }
+    }
+    for (const alternative of result.alternatives) {
+      // Only Rivera quotes cash, and only for the filling.
+      for (const event of alternative.events) {
+        if (event.procedure_id !== "proc-fill-14" || event.provider_id !== "prov-rivera") expect(event.route_comparison).toBeNull();
+      }
+    }
+  });
+
+  it("a tie goes to the claim route", () => {
+    const tie = withSelfPay((line) => {
+      line.member_responsibility_cents = line.service_date < "2027-01-01" ? 15600 : 9600;
+    });
+    const result = CarePlanResult.parse(createCarePlanOptimizer(tie).optimize(registry, riveraRequest()));
+    const fills = fillEvents(result);
+    expect(fills.length).toBeGreaterThan(0);
+    for (const { event } of fills) {
+      expect(event.claim_route).toBe("IN_NETWORK_CLAIM"); // self-pay must be strictly cheaper (§5.3)
+      expect(event.route_comparison!.difference_cents).toBe(0);
+      expect(event.route_comparison!.winner_claim_route).toBe("IN_NETWORK_CLAIM");
+    }
+  });
+
+  it("an unevaluable version with only warning-level issues still names what is missing", () => {
+    const warningOnly = withSelfPay((line) => {
+      line.status = "NEEDS_CONFIRMATION";
+      line.plan_pay_cents = null;
+      line.member_responsibility_cents = null;
+      line.issues = [
+        {
+          code: "INPUT_STALE",
+          severity: "warning",
+          message: "The cash quote is stale.",
+          field: null,
+          rule_id: null,
+          input_id: "provider.prov-rivera.price.d2392.cash",
+          procedure_id: line.procedure_id,
+          provider_id: line.provider_id,
+        },
+      ];
+    }, true);
+    const result = CarePlanResult.parse(createCarePlanOptimizer(warningOnly).optimize(registry, riveraRequest()));
+    const fills = fillEvents(result);
+    expect(fills.length).toBeGreaterThan(0);
+    for (const { event } of fills) {
+      expect(event.route_comparison!.cash_total_cents).toBeNull();
+      expect(event.route_comparison!.missing).toEqual([
+        expect.objectContaining({ code: "INPUT_STALE", severity: "warning", input_id: "provider.prov-rivera.price.d2392.cash" }),
+      ]);
+    }
+  });
+
+  it("an unevaluable cash version stays unknown, never 0, and names what is missing", () => {
+    const blocked = withSelfPay((line) => {
+      line.status = "NEEDS_CONFIRMATION";
+      line.plan_pay_cents = null;
+      line.member_responsibility_cents = null;
+      line.issues = [
+        {
+          code: "SELF_PAY_NOT_VERIFIED",
+          severity: "blocking",
+          message: "The office has not confirmed self-pay.",
+          field: null,
+          rule_id: null,
+          input_id: "provider.prov-rivera.self_pay",
+          procedure_id: line.procedure_id,
+          provider_id: line.provider_id,
+        },
+      ];
+    }, true);
+    const result = CarePlanResult.parse(createCarePlanOptimizer(blocked).optimize(registry, riveraRequest()));
+    const fills = fillEvents(result);
+    expect(fills.length).toBeGreaterThan(0);
+    for (const { alternative, event } of fills) {
+      expect(event.claim_route).toBe("IN_NETWORK_CLAIM");
+      expect(event.route_comparison).toEqual({
+        claim_route: "IN_NETWORK_CLAIM",
+        claim_total_cents: alternative.totals.member_cost.high_cents,
+        cash_total_cents: null,
+        difference_cents: null,
+        winner_claim_route: null,
+        missing: [expect.objectContaining({ code: "SELF_PAY_NOT_VERIFIED", severity: "warning", input_id: "provider.prov-rivera.self_pay" })],
+      });
+    }
   });
 });

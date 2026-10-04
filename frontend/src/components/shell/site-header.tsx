@@ -14,6 +14,7 @@ import { Wordmark } from "./wordmark";
 
 const NAV = [
   { href: "/dashboard", label: "Home" },
+  { href: "/care-window", label: "Plan my care" },
   { href: "/history", label: "History" },
   { href: "/profile", label: "Profile" },
 ] as const;
@@ -26,6 +27,7 @@ function isActive(pathname: string, href: string): boolean {
 /** Page title shown beside the wordmark on phones, outside the menu. */
 function mobileTitle(pathname: string): string {
   if (pathname === "/dashboard") return "Home";
+  if (pathname.startsWith("/care-window")) return "Plan my care";
   if (pathname.startsWith("/history")) return "History";
   if (pathname.startsWith("/profile")) return "Profile";
   if (pathname === "/sign-in") return "Sign in";
@@ -91,7 +93,7 @@ export function SiteHeader() {
                 <SheetDescription>{demo ? "Demo mode with synthetic data." : "CareWindow"}</SheetDescription>
               </SheetHeader>
               <nav aria-label="Mobile" className="flex flex-col gap-1 px-4">
-                {[NAV[0], { href: "/analysis/new", label: "New analysis" }, NAV[1], NAV[2]].map((item) => (
+                {[NAV[0], { href: "/analysis/new", label: "New analysis" }, ...NAV.slice(1)].map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}

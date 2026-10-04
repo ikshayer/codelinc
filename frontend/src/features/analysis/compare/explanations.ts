@@ -89,3 +89,11 @@ export function explainComparison(comparison: ScenarioComparison, labels: Record
 
   return explanations;
 }
+
+export type CashVsClaimVerdict = "payCash" | "fileClaim" | "confirmFirst";
+
+/** Chosen by the comparison's winner field only (backend CONTRACT §5.9); no money is compared here. */
+export function cashVsClaimVerdict(winnerClaimRoute: string | null): CashVsClaimVerdict {
+  if (winnerClaimRoute === null) return "confirmFirst";
+  return winnerClaimRoute === "SELF_PAY_NO_CLAIM" ? "payCash" : "fileClaim";
+}

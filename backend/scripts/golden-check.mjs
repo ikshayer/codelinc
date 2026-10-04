@@ -3,7 +3,7 @@
 // hand below) and fixtures — it never imports src/. Enumerates every schedule (incl. "unscheduled"),
 // applies CONTRACT §3 adjudication, §5.4 funding and §5.5 ranking, prints each case and asserts
 // fixtures/golden/expected.json to the cent.
-//   node scripts/golden-check.mjs            # contract 1.1.0 rules (default)
+//   node scripts/golden-check.mjs            # current contract rules (default; 1.2 added route comparisons, §5.9; 1.4 changes no number)
 //   CONTRACT_RULES=1.0.0 node scripts/golden-check.mjs   # shows the 1.0.0 pass-1 bug (assertions fail)
 import fs from "node:fs";
 import path from "node:path";
@@ -12,6 +12,7 @@ const V10 = process.env.CONTRACT_RULES === "1.0.0";
 
 const ROOT = process.argv[2] ?? path.resolve(import.meta.dirname, "..");
 const J = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
+const CURRENT = /CONTRACT_VERSION = "([^"]+)"/.exec(fs.readFileSync(path.join(ROOT, "src/domain/version.ts"), "utf8"))?.[1];
 const clone = (x) => structuredClone(x);
 
 // ---- dates (epoch days, no zone) ----
@@ -34,6 +35,17 @@ const MAX_CLASSES = new Set(["basic", "major"]);
 // Frequency: crowns 1/tooth/60mo (2026); 2027 CONFLICT 60 vs 84 (page 4 table vs Note 4) -> blocks crown lines in 2027.
 // Evaluations D0120/D0140/D0150 2 per benefit period combined. D2392/D3330/D0220: none.
 const yearOf = (d) => +d.slice(0, 4);
+// (1.5) 2026 Maximum Carryover Rider (data/sources/northwind-ppo-2026-carryover-rider.md), read by hand:
+const ROLLOVER_2026 = {
+  threshold: 50000, // p1 "...that count toward the annual maximum total less than $500." + "A total of exactly $500 does not earn a carryover."
+  strict: true, // "less than" (exactly $500 does not earn)
+  award: 25000, // p1 "The carryover earned is $250."
+  bonus: 0, // p1 "There is no additional in-network bonus."
+  cap: 100000, // p2 "The carryover balance may not exceed $1,000; any amount above $1,000 is not carried over."
+  needsClaim: true, // p1 "At least one claim with a plan payment that counts toward the annual maximum must be paid..."
+  // p2 "If no carryover is earned for a benefit period, the carryover balance does not continue..." (forfeit)
+  // p2 "...applies only if the member is enrolled on January 1, 2027 in ... (plan version nwd-ppo-standard-2027)" — the 2027 plan exists.
+};
 const rp = (m) => Math.floor((m.x * m.bps + 5000) / 10000);
 
 // ---- money inputs (scenario resolution) ----
@@ -112,7 +124,31 @@ function adjudicate(events, member, providers, scen, asOfDate) {
     crownHist.push({ cdt_code: e.code, tooth: e.tooth, service_date: e.date, claimed: true });
     lines.push({ ...e, charge, adj, elig, ded, rate, prelim, plan, member: patient - plan, cap, bb, counts, state: { ...st } });
   }
-  return { lines };
+  return { lines, rollover: carryover2026(lines, member, scen, asOfDate) };
+}
+
+// (1.5) 2026 year close (CONTRACT §3.9), from the rider above. Basis: plan payments counting toward the maximum.
+function carryover2026(lines, member, scen, asOfDate) {
+  const R = ROLLOVER_2026;
+  const acc = member.accumulators.find((a) => a.plan_version_id === "nwd-ppo-standard-2026");
+  if (!acc) return null;
+  const settled = val(acc.plan_paid_ytd, "higher_is_worse", scen);
+  const pending = member.pending_claims.filter((c) => c.plan_version_id === "nwd-ppo-standard-2026")
+    .reduce((t, c) => t + (c.estimated_plan_pay.value.kind === "exact" ? c.estimated_plan_pay.value.cents : c.estimated_plan_pay.value.high_cents), 0);
+  const simulated = lines.filter((l) => yearOf(l.date) === 2026 && l.counts).reduce((t, l) => t + l.plan, 0);
+  const prior = acc.carryover_balance ? val(acc.carryover_balance, "higher_is_better", scen) : null;
+  const lo = settled + simulated, hi = lo + pending;
+  const under = (q) => (R.strict ? q < R.threshold : q <= R.threshold);
+  const paidLo = !R.needsClaim || settled > 0 || simulated > 0, paidHi = paidLo || pending > 0;
+  const best = under(lo) && paidHi, worst = under(hi) && paidLo;
+  const bank = Math.min(R.cap, prior + R.award + R.bonus);
+  const final_bank = { low_cents: worst ? bank : 0, high_cents: best ? bank : 0 };
+  const status = final_bank.low_cents !== final_bank.high_cents ? "UNCERTAIN" : !best ? "NOT_EARNED" : asOfDate > "2026-12-31" && pending === 0 ? "EARNED" : "CONDITIONAL";
+  return {
+    closing_plan_version_id: "nwd-ppo-standard-2026", status, threshold_cents: R.threshold, settled_plan_paid_cents: settled, pending_plan_pay_cents: pending,
+    qualifying_plan_paid: { low_cents: lo, high_cents: hi }, final_bank,
+    lost_to_cap_cents: best ? Math.max(0, prior + R.award + R.bonus - R.cap) : 0, forfeited_cents: worst ? 0 : prior,
+  };
 }
 
 function fund(lines, member) {
@@ -222,7 +258,7 @@ function careplan(member, providers, procs, asOf, horizon) {
       completion: ev.length ? ev.map((e) => e.date).sort().at(-1) : "9999-12-31",
       tie: [...order.map((p) => pick[p.procedure_id]?.slot.date ?? "9999-12-31"), ...order.map((p) => pick[p.procedure_id]?.provider_id ?? ""), ...order.map((p) => pick[p.procedure_id]?.route ?? ""), ...order.map((p) => pick[p.procedure_id]?.slot.slot_id ?? "")],
     };
-    schedules.push({ ev: f.lines, obj, monthly: f.monthly, gap: f.gap });
+    schedules.push({ ev: f.lines, obj, monthly: f.monthly, gap: f.gap, rollover: adj.rollover });
   };
   rec(0);
   const cmp = (keys) => (a, b) => {
@@ -259,7 +295,7 @@ function careplan(member, providers, procs, asOf, horizon) {
     const ex = alts.find((a) => a.s === best);
     if (ex) ex.labels.push(label); else alts.push({ s: best, labels: [label] });
   }
-  return { count: schedules.length, selfPayRejected, blockedCount, blockedWhy, fullCount: schedules.filter((s) => s.obj.unsched.every((x) => x === 0)).length, pass, alts, cands };
+  return { count: schedules.length, selfPayRejected, blockedCount, blockedWhy, fullCount: schedules.filter((s) => s.obj.unsched.every((x) => x === 0)).length, pass, alts, cands, order };
 }
 
 function show(r) {
@@ -269,6 +305,7 @@ function show(r) {
     console.log(`  alt-${i + 1} [${a.labels.join(",")}] cost=${o.cost} gap=${o.shortfall} peak=${o.peak} late=${o.late} unsched=${o.unsched} travel=${o.travel} visits=${o.visitDays} wait=${o.wait} unused=${o.unused} completion=${o.completion}`);
     for (const l of a.s.ev) console.log(`     ${l.date} ${l.pid.padEnd(13)} ${l.slot_id.padEnd(30)} ${l.route.padEnd(20)} charge=${l.charge} adj=${l.adj} elig=${l.elig} ded=${l.ded} rate=${l.rate} prelim=${l.prelim} plan=${l.plan} cap=${l.cap} you=${l.member} bb=${l.bb} maxAvail→${l.state.maxAvail} dedRem→${l.state.dedRem} | ${l.funding.map((f) => f.join(":")).join(" ")}${l.shortfall ? " SHORT " + l.shortfall : ""}`);
     console.log(`     monthly ${JSON.stringify(a.s.monthly)}`);
+    if (a.s.rollover) console.log(`     rollover 2026 ${a.s.rollover.status} qualifying=${JSON.stringify(a.s.rollover.qualifying_plan_paid)} final_bank=${JSON.stringify(a.s.rollover.final_bank)}`);
   }
 }
 
@@ -311,6 +348,7 @@ const run = (name, mut = () => {}) => {
   console.log(`\n== CAREPLAN ${name}`);
   const r = careplan(m, pv, pr, sc.postvisit_as_of, sc.planning_horizon_end);
   show(r);
+  r.inputs = { m, pv };
   return r;
 };
 R.base = run("base");
@@ -329,6 +367,16 @@ run("pending_range_6000_7600 (golden-scenario.md only)", (m) => { m.pending_clai
 }
 
 R.missing_max = run("missing annual_maximum.2026 (AT-01)", () => {});
+// (1.5) A member just under the $500 carryover threshold with only the flexible filling left.
+R.rollover_near_threshold = run("rollover_near_threshold", (m, pv, pr) => {
+  const a = m.accumulators.find((x) => x.plan_version_id === "nwd-ppo-standard-2026");
+  a.deductible_remaining.value = { kind: "exact", cents: 0 };
+  a.annual_max_remaining.value = { kind: "exact", cents: 108000 };
+  a.plan_paid_ytd.value = { kind: "exact", cents: 42000 };
+  a.carryover_balance.value = { kind: "exact", cents: 0 };
+  m.pending_claims = [];
+  pr.splice(0, pr.length, ...pr.filter((p) => p.procedure_id === "proc-fill-14"));
+});
 
 // ---- assertions against fixtures/golden/expected.json ----
 const G = J("fixtures/golden/expected.json");
@@ -399,6 +447,97 @@ const V = G.postvisit.variants;
   assert.equal(r.alts[0].s.obj.cost, g.first_alternative.member_cost_cents); assert.equal(r.alts[0].s.obj.peak, g.first_alternative.peak_monthly_cash_cents);
   const e = r.alts.find((a) => a.labels.includes("earliest_safe_completion"));
   assert.deepEqual(dates(e), g.earliest_safe_completion.event_dates); assert.equal(e.s.obj.cost, g.earliest_safe_completion.member_cost_cents); assert.equal(e.s.obj.peak, g.earliest_safe_completion.peak_monthly_cash_cents); }
+// (1.2) CONTRACT §5.9 route comparisons: flip one event's route, re-adjudicate the whole schedule (worst case), compare totals.
+delete process.env.NO_MAX_2026;
+const routeComparison = (r, alt, pid) => {
+  const evs = alt.s.ev.map(({ pid, code, tooth, date, start, slot_id, provider_id, route }) => ({ pid, code, tooth, date, start, slot_id, provider_id, route }));
+  const k = evs.findIndex((e) => e.pid === pid);
+  const prov = r.inputs.pv.find((p) => p.provider_id === evs[k].provider_id);
+  if (!prov.pricing.find((row) => row.cdt_code === evs[k].code)?.cash_quote) return null;
+  const claimRoute = prov.network.tier === "in_network" ? "IN_NETWORK_CLAIM" : "OUT_OF_NETWORK_CLAIM";
+  const flip = (route) => {
+    const a = adjudicate(evs.map((e, j) => (j === k ? { ...e, route } : e)), r.inputs.m, r.inputs.pv, "worst", sc.postvisit_as_of.slice(0, 10));
+    return a.blocked ? { total: null, missing: [a.blocked.split(" ")[0]] } : { total: a.lines.reduce((t, l) => t + l.member, 0), missing: [] };
+  };
+  const claim = flip(claimRoute), cash = flip("SELF_PAY_NO_CLAIM");
+  const known = claim.total !== null && cash.total !== null;
+  return {
+    claim_route: claimRoute, claim_total_cents: claim.total, cash_total_cents: cash.total,
+    difference_cents: known ? Math.abs(claim.total - cash.total) : null,
+    winner_claim_route: known ? (cash.total < claim.total ? "SELF_PAY_NO_CLAIM" : claimRoute) : null,
+    missing_codes: [...new Set([...claim.missing, ...cash.missing])].sort(),
+  };
+};
+{ const RC = G.postvisit.route_comparisons;
+  console.log("\n== ROUTE COMPARISONS (1.2)");
+  for (const c of RC.cases) {
+    const alt = R[c.variant].alts.find((a) => a.labels.includes(c.label));
+    const l = ev(alt, c.procedure_id);
+    const tag = `route_comparison ${c.variant}/${c.label}/${c.procedure_id}`;
+    assert.equal(l.date, c.service_date, `${tag} date`); assert.equal(l.route, c.chosen_route, `${tag} chosen route`);
+    const got = routeComparison(R[c.variant], alt, c.procedure_id);
+    console.log(`  ${tag} ${l.date} ${l.route}: ${JSON.stringify(got)}`);
+    const keys = ["claim_route", "claim_total_cents", "cash_total_cents", "difference_cents", "winner_claim_route", "missing_codes"];
+    assert.deepEqual(got, Object.fromEntries(keys.map((k) => [k, c[k]])), tag);
+  }
+  for (const variant of new Set(RC.cases.map((c) => c.variant)))
+    for (const alt of R[variant].alts) for (const pid of RC.null_for) assert.equal(routeComparison(R[variant], alt, pid), null, `route_comparison ${variant} ${pid} null`);
+}
+// (1.5) CONTRACT §5.10 rollover shift: move a can_plan_later 2026 claim that keeps 2026 from qualifying to the first
+// 2027 candidate at the same provider and route (slot free, dependencies kept), re-adjudicate worst case.
+const rolloverShift = (r, alt, pid) => {
+  const evs = alt.s.ev.map(({ pid, code, tooth, date, start, slot_id, provider_id, route }) => ({ pid, code, tooth, date, start, slot_id, provider_id, route }));
+  const k = evs.findIndex((e) => e.pid === pid);
+  const l = alt.s.ev[k];
+  const proc = r.order.find((p) => p.procedure_id === pid);
+  const before = alt.s.rollover;
+  if (proc.urgency !== "can_plan_later" || yearOf(l.date) !== 2026 || !l.counts || !(l.plan > 0)) return null;
+  if (!before || !["NOT_EARNED", "UNCERTAIN"].includes(before.status)) return null;
+  const used = new Set(evs.filter((_, j) => j !== k).map((e) => e.provider_id + "@" + e.slot_id));
+  const ordered = [...r.cands[pid]].sort((a, b) => a.slot.date.localeCompare(b.slot.date) || a.slot.start_time.localeCompare(b.slot.start_time) ||
+    a.provider_id.localeCompare(b.provider_id) || a.slot.slot_id.localeCompare(b.slot.slot_id) || a.route.localeCompare(b.route));
+  const depsOk = (date) => r.order.every((p) => p.dependencies.every((d) => {
+    const at = (id) => (id === pid ? date : evs.find((e) => e.pid === id)?.date);
+    const me = at(p.procedure_id), pred = at(d.depends_on);
+    if (!me) return true; if (!pred) return false;
+    const g = diff(pred, me); return g >= d.min_gap_days && g <= d.max_gap_days;
+  }));
+  const c = ordered.find((c) => c.provider_id === l.provider_id && c.route === l.route && yearOf(c.slot.date) === 2027 && !used.has(c.provider_id + "@" + c.slot.slot_id) && depsOk(c.slot.date));
+  if (!c) return null;
+  const moved = evs.map((e, j) => (j === k ? { ...e, date: c.slot.date, start: c.slot.start_time, slot_id: c.slot.slot_id } : e))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start) || a.pid.localeCompare(b.pid));
+  const a = adjudicate(moved, r.inputs.m, r.inputs.pv, "worst", sc.postvisit_as_of.slice(0, 10));
+  if (a.blocked || !["CONDITIONAL", "EARNED", "UNCERTAIN"].includes(a.rollover.status) || a.rollover.status === before.status) return null;
+  return {
+    closing_plan_version_id: "nwd-ppo-standard-2026", moved_to_date: c.slot.date, moved_to_slot_id: c.slot.slot_id, plan_pay_in_closing_period_cents: l.plan,
+    status_if_moved: a.rollover.status, final_bank_if_moved: a.rollover.final_bank,
+    member_cost_delta_cents: a.lines.reduce((t, x) => t + x.member, 0) - alt.s.ev.reduce((t, x) => t + x.member, 0),
+  };
+};
+{ console.log("\n== ROLLOVER (1.5)");
+  const keys = ["closing_plan_version_id", "status", "threshold_cents", "settled_plan_paid_cents", "pending_plan_pay_cents", "qualifying_plan_paid", "final_bank", "lost_to_cap_cents", "forfeited_cents"];
+  const pick = (o) => Object.fromEntries(keys.map((k) => [k, o[k]]));
+  B.alternatives.forEach((ga, i) => {
+    const a = R.base.alts[i];
+    console.log(`  base alt-${i + 1} rollover: ${JSON.stringify(a.s.rollover)}`);
+    assert.deepEqual([pick(a.s.rollover)], ga.rollover.map(pick), `base alt-${i + 1} rollover`);
+    for (const pid of G.postvisit.rollover_shift_null_for) assert.equal(rolloverShift(R.base, a, pid), null, `base alt-${i + 1} ${pid} rollover_shift null`);
+  });
+  const g = V.rollover_near_threshold, r = R.rollover_near_threshold;
+  assert.equal(r.alts.length, g.alternatives.length, "near-threshold alternative count");
+  g.alternatives.forEach((ga, i) => {
+    const a = r.alts[i];
+    assert.deepEqual(a.labels, ga.labels, `near-threshold alt-${i + 1} labels`);
+    checkEvents(a, ga.events, `near-threshold alt-${i + 1}`);
+    assert.equal(a.s.obj.cost, ga.member_cost_cents, `near-threshold alt-${i + 1} cost`);
+    assert.deepEqual([pick(a.s.rollover)], ga.rollover.map(pick), `near-threshold alt-${i + 1} rollover`);
+    for (const ge of ga.events) {
+      const got = rolloverShift(r, a, ge.procedure_id);
+      console.log(`  near-threshold alt-${i + 1} ${ge.procedure_id} shift: ${JSON.stringify(got)}`);
+      assert.deepEqual(got, ge.rollover_shift, `near-threshold alt-${i + 1} ${ge.procedure_id} rollover_shift`);
+    }
+  });
+}
 // AT-01: missing annual maximum → NEEDS_CONFIRMATION, no alternatives
 assert.equal(R.missing_max.alts.length, 0, "missing annual_maximum.2026 → alternatives []");
-console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced (contract ${V10 ? "1.0.0" : "1.1.0"} rules)`);
+console.log(`\nGOLDEN OK — every number in fixtures/golden/expected.json reproduced, route comparisons and rollover included (contract ${V10 ? "1.0.0" : CURRENT} rules)`);

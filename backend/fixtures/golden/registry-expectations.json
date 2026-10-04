@@ -6,6 +6,10 @@
       "plan_version_id": "nwd-ppo-standard-2026",
       "plan_type": "DPPO",
       "source_id": "nwd-ppo-2026-summary",
+      "source_precedence": [
+        "nwd-ppo-2026-carryover-rider",
+        "nwd-ppo-2026-summary"
+      ],
       "coverage_period": {
         "start": "2026-01-01",
         "end": "2026-12-31"
@@ -498,19 +502,29 @@
         {
           "rule_id": "rollover.2026",
           "rule_type": "rollover",
-          "status": "UNVERIFIED",
+          "status": "VERIFIED",
           "applies_when": {
             "network": null,
             "service_class": null,
             "cdt_codes": null
           },
           "value": {
-            "threshold_plan_paid_cents": 50000,
-            "rollover_cents": 25000,
-            "in_network_bonus_cents": 0,
-            "max_accumulation_cents": 100000
+            "qualification_basis": "INCURRED_PLAN_PAID_TOWARD_MAXIMUM",
+            "threshold_cents": 50000,
+            "threshold_comparison": "LT",
+            "base_award_cents": 25000,
+            "network_bonus_cents": 0,
+            "network_bonus_condition": "NONE",
+            "bank_cap_cents": 100000,
+            "requires_at_least_one_eligible_claim": true,
+            "existing_bank_treatment": "ADD_AND_CAP",
+            "bank_when_not_qualified": "FORFEIT",
+            "applies_to_next_plan_version_ids": [
+              "nwd-ppo-standard-2027"
+            ]
           },
-          "evidence_page": 5,
+          "evidence_page": 1,
+          "evidence_source_id": "nwd-ppo-2026-carryover-rider",
           "conflicts_with": []
         },
         {
