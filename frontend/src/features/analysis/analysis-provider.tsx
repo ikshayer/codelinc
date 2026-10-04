@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { createSeedSession } from "@/fixtures/seed-session";
 import { sampleTreatmentProposals } from "@/fixtures/sample-treatment";
 import { getAdapters } from "@/lib/adapters";
+import { memberExtraction, memberProfile, type MemberData } from "@/lib/adapters/live/member-data";
 import { newId } from "@/lib/adapters/shared";
 import type { AdapterResult, Adapters, IntakeExtraction } from "@/lib/adapters/types";
 import { evidenceKindsOf } from "@/lib/domain/draft";
@@ -41,6 +42,7 @@ export interface AnalysisController {
   state: StoreState;
   adapters: Adapters;
   createAnalysis(patient: PatientDetails | null, title?: string): string;
+  createFromMember(data: MemberData): string;
   setPatient(analysisId: string, patient: PatientDetails): void;
   setMethod(analysisId: string, method: IntakeMethod): void;
   renameAnalysis(analysisId: string, title: string): void;
@@ -69,6 +71,8 @@ export interface AnalysisController {
   setTimingAffirmed(analysisId: string, value: boolean): void;
   compare(analysisId: string): CompareAttempt;
   saveToHistory(analysisId: string): Promise<AdapterResult<AnalysisSnapshot>>;
+  /** A saved snapshot was deleted: analyses that pointed at it are no longer saved. */
+  clearSavedSnapshot(snapshotId: string): void;
   clearDraft(analysisId: string): void;
   setProfile(profile: PatientProfile | null): void;
   /** Records the auth session after sign-in/out. Account changes should also call resetSession. */
@@ -105,6 +109,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     rawDispatch(action);
   }, []);
 
+
   const controllers = useRef(new Map<string, AbortController>());
   const teardowns = useRef(new Map<string, Set<() => void>>());
   const saveKeys = useRef(new Map<string, string>());
@@ -124,6 +129,10 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       for (const teardown of set) teardown();
       teardowns.current.delete(analysisId);
     }
+  }, []);
+
+  const forgetSaveKeys = useCallback((analysisId: string) => {
+    for (const key of saveKeys.current.keys()) if (key.startsWith(`${analysisId}:`)) saveKeys.current.delete(key);
   }, []);
 
   const startRequest = useCallback(
@@ -181,6 +190,10 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       const scenario = { ...built.scenario, revision: ticket.revision };
       void adapters.calculation
         .compare(scenario, { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal })
+        .catch((error: unknown) => {
+          console.error("Calculation adapter failed", error);
+          return { ok: false as const, error: { code: "UNKNOWN" as const, message: "The calculation failed unexpectedly. Your confirmed details are kept — try again.", retryable: true } };
+        })
         .then((outcome) => {
           releaseController(ticket);
           if (!outcome.ok && outcome.error.code === "CANCELLED") return;
@@ -276,6 +289,17 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       adapters,
       historyVersion,
       bumpHistory: bumpHistoryVersion,
+      createFromMember(data) {
+        const extraction = memberExtraction(data);
+        const id = newId("an");
+        const now = nowIso();
+        const profile = memberProfile(data);
+        dispatch({ type: "setProfile", profile });
+        dispatch({ type: "createAnalysis", id, patient: profile, title: `${profile.displayName}'s treatment plan`, now });
+        dispatch({ type: "setMethod", analysisId: id, method: "manual" });
+        dispatch({ type: "applyDirectProposals", analysisId: id, extraction, now });
+        return id;
+      },
       createAnalysis(patient, title) {
         const id = newId("an");
         dispatch({ type: "createAnalysis", id, patient, title: title ?? (patient ? `${patient.displayName}'s treatment plan` : "Treatment plan"), now: nowIso() });
@@ -285,6 +309,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       setMethod: (analysisId, method) => dispatch({ type: "setMethod", analysisId, method }),
       renameAnalysis: (analysisId, title) => dispatch({ type: "renameAnalysis", analysisId, title, now: nowIso() }),
       deleteAnalysis(analysisId) {
+        forgetSaveKeys(analysisId);
         abortWhere((key) => key.startsWith(`${analysisId}:`));
         runTeardowns((id) => id === analysisId);
         dispatch({ type: "deleteAnalysis", analysisId });
@@ -369,10 +394,13 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       compare,
       saveToHistory,
       clearDraft(analysisId) {
+        // Revisions restart after Clear, so earlier idempotency keys must not be reused.
+        forgetSaveKeys(analysisId);
         abortWhere((key) => key.startsWith(`${analysisId}:`));
         runTeardowns((id) => id === analysisId);
         dispatch({ type: "clearDraft", analysisId, now: nowIso() });
       },
+      clearSavedSnapshot: (snapshotId) => dispatch({ type: "clearSavedSnapshot", snapshotId }),
       setProfile: (profile) => dispatch({ type: "setProfile", profile }),
       setAuth: (auth) => dispatch({ type: "setAuth", auth }),
       resetSession,
@@ -383,7 +411,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
         return () => set.delete(teardown);
       },
     }),
-    [abortWhere, adapters, cancelRequest, compare, dispatch, finishRequest, historyVersion, releaseController, resetSession, runTeardowns, saveToHistory, startRequest, state],
+    [abortWhere, adapters, cancelRequest, compare, dispatch, finishRequest, forgetSaveKeys, historyVersion, releaseController, resetSession, runTeardowns, saveToHistory, startRequest, state],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;

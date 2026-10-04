@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { SectionHeading } from "@/components/shared/page";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
 import type { IntakeDraft } from "@/lib/domain/draft";
@@ -48,16 +49,17 @@ export function VoiceSummary({ analysisId, draft, ended }: { analysisId: string;
       {facts.length === 0 ? (
         <p className="text-muted-foreground">Nothing was gathered. Type your details, or enter them on the Confirm screen.</p>
       ) : (
-        <div className="divide-y border-y">
+        <Stagger gap={0.05} className="divide-y border-y">
           {facts.map((fact) => (
-            <EditableFactRow
-              key={fact.fieldPath}
-              fact={fact}
-              label={labels.get(fact.fieldPath) ?? fact.fieldPath}
-              onEdit={(fieldPath, value) => editFact(analysisId, fieldPath, value)}
-            />
+            <StaggerItem key={fact.fieldPath}>
+              <EditableFactRow
+                fact={fact}
+                label={labels.get(fact.fieldPath) ?? fact.fieldPath}
+                onEdit={(fieldPath, value) => editFact(analysisId, fieldPath, value)}
+              />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Button asChild variant={ended ? "default" : "outline"}>

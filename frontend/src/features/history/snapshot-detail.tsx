@@ -1,18 +1,21 @@
 "use client";
 
 import { ArrowLeftIcon, CopyPlusIcon, ExternalLinkIcon, FileSearchIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { EmptyState, ErrorPanel, Notice } from "@/components/shared/feedback";
+import { Reveal } from "@/components/motion/reveal";
+import { EmptyState, ErrorPanel } from "@/components/shared/feedback";
 import { Page, PageHeader, SectionHeading } from "@/components/shared/page";
 import { SourceBadge } from "@/components/shared/source-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComparisonView } from "@/features/analysis/compare/comparison-view";
+import { Press } from "@/features/analysis/compare/press";
 import { useAnalysisController } from "@/features/analysis/analysis-provider";
-import { formatIsoDate, formatTimestamp } from "@/lib/domain/dates";
+import { formatTimestamp } from "@/lib/domain/dates";
 import type { AnalysisSnapshot, EvidenceKind } from "@/lib/domain/types";
 import { SAMPLE_REPORT_FILE_NAME } from "@/fixtures/sample-report";
 import { DeleteDialog, RenameDialog } from "./history-dialogs";
@@ -90,76 +93,85 @@ function LoadedSnapshot({ snapshot }: { snapshot: AnalysisSnapshot }) {
 
       <PageHeader
         title={title}
-        description={`For ${snapshot.patientDisplayName}`}
-        actions={
-          <>
-            <Button onClick={() => actions.duplicate(snapshot)}>
-              <CopyPlusIcon aria-hidden />
-              Duplicate as new analysis
-            </Button>
-            <Button variant="outline" onClick={() => setDialog("rename")}>
-              <PencilIcon aria-hidden />
-              Rename
-            </Button>
-            <Button variant="outline" onClick={() => setDialog("delete")}>
-              <Trash2Icon aria-hidden />
-              Delete
-            </Button>
-          </>
-        }
+        description={`For ${snapshot.patientDisplayName}. This dated record never changes; duplicate it as a new analysis to review the facts again.`}
       />
 
-      <div className="space-y-12">
-        <Notice title={`Historical estimate — based on facts confirmed on ${formatIsoDate(snapshot.confirmedAt.slice(0, 10))}`}>
-          This is a dated record and never changes. Plan usage and dentist timing here may be out of date. Duplicate it as a new analysis to review the facts again.
-        </Notice>
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="min-w-0 space-y-14 lg:col-span-8">
+          <ComparisonView
+            comparison={snapshot.comparison}
+            scenario={snapshot.scenario}
+            procedureLabels={snapshot.procedureLabels}
+            sourceMode={snapshot.sourceMode}
+            fixtureName={snapshot.fixtureName}
+            confirmedAt={snapshot.confirmedAt}
+            historical
+          />
 
-        <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Detail label="Patient" value={snapshot.patientDisplayName} />
-          <Detail label="Version" value={`Version ${snapshot.version}`} />
-          <Detail label="Saved" value={formatTimestamp(snapshot.savedAt)} />
-          <Detail label="Estimate source" value={sourceModeLabel(snapshot)} />
-        </dl>
+          <section aria-labelledby="sources-heading">
+            <Reveal>
+              <SectionHeading id="sources-heading" description="Where the facts for this estimate came from.">
+                Sources
+              </SectionHeading>
+              {sources.length === 0 && <p className="text-sm text-muted-foreground">No source details were saved with this estimate.</p>}
+              <ul className="divide-y rounded-2xl border bg-card px-5 empty:hidden">
+                {sources.map((source) => (
+                  <li key={source.key} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-base font-medium break-words">{source.label}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <SourceBadge kind={source.kind} />
+                        {source.detail && <span className="text-sm text-muted-foreground">{source.detail}</span>}
+                      </div>
+                    </div>
+                    {source.viewUrl ? (
+                      <Button asChild variant="outline" size="sm">
+                        <a href={source.viewUrl} target="_blank" rel="noopener noreferrer">
+                          View source
+                          <ExternalLinkIcon aria-hidden />
+                        </a>
+                      </Button>
+                    ) : (
+                      source.unavailableNote && <p className="text-sm text-muted-foreground">{adapters.mode === "demo" ? source.unavailableNote : "Source file isn't available for this snapshot"}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </section>
+        </div>
 
-        <ComparisonView
-          comparison={snapshot.comparison}
-          scenario={snapshot.scenario}
-          procedureLabels={snapshot.procedureLabels}
-          sourceMode={snapshot.sourceMode}
-          fixtureName={snapshot.fixtureName}
-          confirmedAt={snapshot.confirmedAt}
-          historical
-        />
-
-        <section aria-labelledby="sources-heading">
-          <SectionHeading id="sources-heading" description="Where the facts for this estimate came from.">
-            Sources
-          </SectionHeading>
-          {sources.length === 0 && <p className="text-sm text-muted-foreground">No source details were saved with this estimate.</p>}
-          <ul className="divide-y border-y empty:hidden">
-            {sources.map((source) => (
-              <li key={source.key} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div className="min-w-0 space-y-1">
-                  <p className="text-base font-medium break-words">{source.label}</p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <SourceBadge kind={source.kind} />
-                    {source.detail && <span className="text-sm text-muted-foreground">{source.detail}</span>}
-                  </div>
-                </div>
-                {source.viewUrl ? (
-                  <Button asChild variant="outline" size="sm">
-                    <a href={source.viewUrl} target="_blank" rel="noopener noreferrer">
-                      View source
-                      <ExternalLinkIcon aria-hidden />
-                    </a>
-                  </Button>
-                ) : (
-                  source.unavailableNote && <p className="text-sm text-muted-foreground">{adapters.mode === "demo" ? source.unavailableNote : "Source file isn't available for this snapshot"}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <aside aria-label="Snapshot facts and actions" className="lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
+          <motion.div
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="space-y-6 rounded-2xl border bg-card p-5 shadow-[0_1px_2px_rgba(35,31,32,0.04),0_8px_24px_-12px_rgba(101,0,48,0.12)] md:p-6"
+          >
+            <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-1">
+              <Detail label="Patient" value={snapshot.patientDisplayName} />
+              <Detail label="Version" value={`Version ${snapshot.version}`} />
+              <Detail label="Saved" value={formatTimestamp(snapshot.savedAt)} />
+              <Detail label="Estimate source" value={sourceModeLabel(snapshot)} />
+            </dl>
+            <div className="flex flex-col gap-2 border-t pt-5">
+              <Press className="flex">
+                <Button className="w-full" onClick={() => actions.duplicate(snapshot)}>
+                  <CopyPlusIcon aria-hidden />
+                  Duplicate as new analysis
+                </Button>
+              </Press>
+              <Button variant="outline" className="w-full justify-start" onClick={() => setDialog("rename")}>
+                <PencilIcon aria-hidden />
+                Rename
+              </Button>
+              <Button variant="outline" className="w-full justify-start" onClick={() => setDialog("delete")}>
+                <Trash2Icon aria-hidden />
+                Delete
+              </Button>
+            </div>
+          </motion.div>
+        </aside>
       </div>
 
       <RenameDialog target={dialog === "rename" ? target : null} onClose={() => setDialog(null)} onRename={rename} />
@@ -172,14 +184,14 @@ function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-base">{value}</dd>
+      <dd className="mt-0.5 text-base font-medium break-words">{value}</dd>
     </div>
   );
 }
 
 function sourceModeLabel(snapshot: AnalysisSnapshot): string {
   if (snapshot.sourceMode === "live") return "Calculation engine";
-  return snapshot.fixtureName ? `Simulated analysis: ${snapshot.fixtureName}` : "Simulated analysis";
+  return snapshot.fixtureName ? `Fixture preview: ${snapshot.fixtureName}` : "Fixture preview";
 }
 
 interface SourceRow {

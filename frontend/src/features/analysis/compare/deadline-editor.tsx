@@ -4,8 +4,9 @@ import { CalendarClockIcon } from "lucide-react";
 import { useId, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ExpandRegion } from "./expand-region";
+import { Press } from "./press";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -21,7 +22,7 @@ interface DeadlineEditorProps {
 
 /** Edit a dentist deadline. Applying removes the current estimate until it is recalculated. */
 export function DeadlineEditor({ scenario, procedureLabels, onApply }: DeadlineEditorProps) {
-  const ids = { procedure: useId(), date: useId(), affirm: useId(), error: useId() };
+  const ids = { procedure: useId(), date: useId(), affirm: useId(), error: useId(), region: useId() };
   const [open, setOpen] = useState(false);
   const [procedureId, setProcedureId] = useState<ProcedureId | null>(null);
   const [typedDate, setTypedDate] = useState<string | null>(null);
@@ -51,21 +52,22 @@ export function DeadlineEditor({ scenario, procedureLabels, onApply }: DeadlineE
   }
 
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) reset();
-      }}
-    >
-      <CollapsibleTrigger asChild>
-        <Button variant="outline">
-          <CalendarClockIcon aria-hidden />
-          Edit dentist deadline
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <form onSubmit={submit} noValidate className="mt-4 max-w-md space-y-5 rounded-lg border p-5">
+    <div>
+      <Button
+        variant="outline"
+        className="w-full justify-start"
+        aria-expanded={open}
+        aria-controls={ids.region}
+        onClick={() => {
+          if (open) reset();
+          setOpen(!open);
+        }}
+      >
+        <CalendarClockIcon aria-hidden />
+        Edit dentist deadline
+      </Button>
+      <ExpandRegion id={ids.region} open={open}>
+        <form onSubmit={submit} noValidate className="mt-4 space-y-5 rounded-xl border bg-muted/40 p-5">
           <p className="text-sm text-muted-foreground">Applying a new deadline removes the current estimate and recalculates it.</p>
           {editable.length > 1 && (
             <div className="space-y-2">
@@ -124,7 +126,9 @@ export function DeadlineEditor({ scenario, procedureLabels, onApply }: DeadlineE
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit">Apply</Button>
+            <Press>
+              <Button type="submit">Apply</Button>
+            </Press>
             <Button
               type="button"
               variant="ghost"
@@ -137,7 +141,7 @@ export function DeadlineEditor({ scenario, procedureLabels, onApply }: DeadlineE
             </Button>
           </div>
         </form>
-      </CollapsibleContent>
-    </Collapsible>
+      </ExpandRegion>
+    </div>
   );
 }

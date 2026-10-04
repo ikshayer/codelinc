@@ -98,8 +98,8 @@ export const liveAuthAdapter: AuthAdapter = {
     if (!token.ok) return token;
     const result = await authFetch<unknown>("/signout", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ csrfToken: token.value, json: "true" }),
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Auth-Return-Redirect": "1" },
+      body: new URLSearchParams({ csrfToken: token.value, callbackUrl: "/" }),
     });
     return result.ok ? ok(undefined) : result;
   },

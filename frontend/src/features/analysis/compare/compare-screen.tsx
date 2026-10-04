@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { Reveal } from "@/components/motion/reveal";
+
 import { EmptyState, ErrorPanel } from "@/components/shared/feedback";
 import { Page, PageHeader } from "@/components/shared/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,6 +23,7 @@ import { ComparisonView } from "./comparison-view";
 import { ConfirmLinkProvider } from "./confirm-links";
 import { DeadlineEditor } from "./deadline-editor";
 import { EQUAL_COST_TEXT, hasDeadlineRejection, NO_CHEAPER_TEXT, TIMING_PRIORITY_TEXT } from "./explanations";
+import { Press } from "./press";
 import { SaveControls } from "./save-controls";
 
 function announce(comparison: ScenarioComparison): string {
@@ -38,18 +41,18 @@ function CompareSkeleton() {
   return (
     <div className="space-y-8" role="status" aria-live="polite">
       <span className="sr-only">Calculating your comparison.</span>
-      <div className="grid gap-px overflow-hidden rounded-lg border md:grid-cols-2" aria-hidden>
-        {[0, 1].map((key) => (
-          <div key={key} className="space-y-5 p-8">
+      <div className="grid items-start gap-5 md:grid-cols-12 md:gap-6" aria-hidden>
+        {[5, 7].map((span) => (
+          <div key={span} className={`space-y-5 rounded-2xl border bg-card p-8 ${span === 5 ? "md:col-span-5" : "md:col-span-7 md:-mt-3 md:pb-12"}`}>
             <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-12 w-44" />
+            <Skeleton className={span === 5 ? "h-10 w-36" : "h-14 w-52"} />
             <Skeleton className="h-7 w-32" />
             <Skeleton className="h-16 w-full" />
           </div>
         ))}
       </div>
-      <Skeleton className="h-8 w-3/4" aria-hidden />
-      <Skeleton className="h-40 w-full" aria-hidden />
+      <Skeleton className="h-16 w-full rounded-2xl" aria-hidden />
+      <Skeleton className="h-40 w-full rounded-2xl" aria-hidden />
     </div>
   );
 }
@@ -138,25 +141,36 @@ export function CompareScreen({ analysisId }: { analysisId: string }) {
         <PageHeader
           title="Compare your options"
           description="Estimated costs for the dates your dentist has already approved. Select a procedure to see how it was calculated."
+          actions={<SaveControls analysisId={analysisId} saved={saved} />}
         />
-        <ConfirmLinkProvider analysisId={analysisId}>
-          <ComparisonView
-            comparison={current.comparison}
-            scenario={scenario}
-            procedureLabels={procedureLabels}
-            sourceMode={current.sourceMode}
-            fixtureName={current.fixtureName}
-            confirmedAt={current.confirmedAt}
-            historical={false}
-          />
-        </ConfirmLinkProvider>
-        <section aria-labelledby="actions-heading" className="mt-12 space-y-6 border-t pt-8">
-          <h2 id="actions-heading" className="text-xl font-semibold tracking-tight md:text-section">
-            Next steps
-          </h2>
-          <DeadlineEditor scenario={scenario} procedureLabels={procedureLabels} onApply={applyDeadline} />
-          <SaveControls analysisId={analysisId} saved={saved} />
-        </section>
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="min-w-0 lg:col-span-8">
+            <ConfirmLinkProvider analysisId={analysisId}>
+              <ComparisonView
+                comparison={current.comparison}
+                scenario={scenario}
+                procedureLabels={procedureLabels}
+                sourceMode={current.sourceMode}
+                fixtureName={current.fixtureName}
+                confirmedAt={current.confirmedAt}
+                historical={false}
+              />
+            </ConfirmLinkProvider>
+          </div>
+          <aside aria-labelledby="actions-heading" className="lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
+            <Reveal delay={0.5} className="space-y-5 rounded-2xl border bg-card p-5 shadow-[0_1px_2px_rgba(35,31,32,0.04),0_8px_24px_-12px_rgba(101,0,48,0.12)] md:p-6">
+              <h2 id="actions-heading" className="font-display text-xl font-semibold tracking-tight">
+                Next steps
+              </h2>
+              <DeadlineEditor scenario={scenario} procedureLabels={procedureLabels} onApply={applyDeadline} />
+              <Press className="flex">
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href={confirmHref}>Review or edit details</Link>
+                </Button>
+              </Press>
+            </Reveal>
+          </aside>
+        </div>
       </>
     );
   } else if (result.status === "calculating") {

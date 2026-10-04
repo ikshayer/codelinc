@@ -1,7 +1,7 @@
 "use client";
 
-import { PlusIcon, Trash2Icon } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
 import { Notice } from "@/components/shared/feedback";
 import {
@@ -25,7 +25,21 @@ import { FactField } from "./fact-field";
 export type FieldErrors = Record<string, string>;
 
 /** Bordered panel for one confirmation group — a meaningful task boundary. */
-export function GroupPanel({ id, title, description, children, footer }: { id: string; title: string; description?: ReactNode; children: ReactNode; footer?: ReactNode }) {
+export function GroupPanel({ id, title, description, children, footer, collapsible = false, initiallyOpen = false }: { id: string; title: string; description?: ReactNode; children: ReactNode; footer?: ReactNode; collapsible?: boolean; initiallyOpen?: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
+  if (collapsible) {
+    return (
+      <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group rounded-xl border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-5 [&::-webkit-details-marker]:hidden md:px-6">
+          <h2 id={`${id}-title`} tabIndex={-1} className="scroll-mt-36 text-xl font-semibold tracking-tight outline-none">{title}</h2>
+          <ChevronDownIcon aria-hidden className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+        {description && <div className="border-t px-5 pt-5 text-sm text-muted-foreground md:px-6">{description}</div>}
+        <div className="px-5 md:px-6">{children}</div>
+        {footer && <div className="border-t px-5 py-4 md:px-6">{footer}</div>}
+      </details>
+    );
+  }
   return (
     <section aria-labelledby={`${id}-title`} className="rounded-lg border">
       <header className="border-b px-5 py-5 md:px-6">
@@ -49,11 +63,13 @@ function Subsection({ title, children }: { title: string; children: ReactNode })
   );
 }
 
-export function PlanGroup({ analysisId, errors }: { analysisId: string; errors: FieldErrors }) {
+export function PlanGroup({ analysisId, errors, collapsible = false }: { analysisId: string; errors: FieldErrors; collapsible?: boolean }) {
   return (
     <GroupPanel
       id="group-plan"
       title="Your plan"
+      collapsible={collapsible}
+      initiallyOpen
       description="The plan's yearly limit and amount already used affect what it may pay. Leave anything you don't know blank — we won't assume zero."
     >
       {(["y1", "y2"] as const).map((year) => (
@@ -84,7 +100,7 @@ function useProcedureLabel(analysisId: string) {
   };
 }
 
-export function CareGroup({ analysisId, errors }: { analysisId: string; errors: FieldErrors }) {
+export function CareGroup({ analysisId, errors, collapsible = false }: { analysisId: string; errors: FieldErrors; collapsible?: boolean }) {
   const analysis = useAnalysis(analysisId);
   const controller = useAnalysisController();
   const labelFor = useProcedureLabel(analysisId);
@@ -96,6 +112,7 @@ export function CareGroup({ analysisId, errors }: { analysisId: string; errors: 
     <GroupPanel
       id="group-care"
       title="Your prescribed care"
+      collapsible={collapsible}
       description="The procedures your dentist prescribed and the fees they quoted for this plan."
       footer={
         <div className="flex flex-wrap items-center gap-3">
@@ -133,7 +150,7 @@ export function CareGroup({ analysisId, errors }: { analysisId: string; errors: 
   );
 }
 
-function RemoveProcedureButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
+export function RemoveProcedureButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -158,7 +175,7 @@ function RemoveProcedureButton({ label, onConfirm }: { label: string; onConfirm:
   );
 }
 
-export function TimingGroup({ analysisId, errors }: { analysisId: string; errors: FieldErrors }) {
+export function TimingGroup({ analysisId, errors, collapsible = false }: { analysisId: string; errors: FieldErrors; collapsible?: boolean }) {
   const analysis = useAnalysis(analysisId);
   const labelFor = useProcedureLabel(analysisId);
   if (!analysis) return null;
@@ -168,6 +185,7 @@ export function TimingGroup({ analysisId, errors }: { analysisId: string; errors
     <GroupPanel
       id="group-timing"
       title="Timing your dentist approved"
+      collapsible={collapsible}
       description="CareWindow only compares dates your dentist has already approved. If you don't know, a procedure stays on its planned date."
     >
       {procedureIds.length === 0 && <p className="py-6 text-muted-foreground">Add prescribed care first.</p>}

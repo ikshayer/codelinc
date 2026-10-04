@@ -1,0 +1,29 @@
+{
+  "error": {
+    "name": "MongoServerSelectionError",
+    "message": "Socket 'secureConnect' timed out after 5049ms (connectTimeoutMS: 5000)"
+  },
+  "servers": [
+    {
+      "type": "Unknown",
+      "error": {
+        "name": "MongoNetworkTimeoutError",
+        "message": "Socket 'secureConnect' timed out after 5049ms (connectTimeoutMS: 5000)"
+      }
+    },
+    {
+      "type": "Unknown",
+      "error": {
+        "name": "MongoNetworkTimeoutError",
+        "message": "Socket 'secureConnect' timed out after 5049ms (connectTimeoutMS: 5000)"
+      }
+    },
+    {
+      "type": "Unknown",
+      "error": {
+        "name": "MongoNetworkTimeoutError",
+        "message": "Socket 'secureConnect' timed out after 5051ms (connectTimeoutMS: 5000)"
+      }
+    }
+  ]
+}

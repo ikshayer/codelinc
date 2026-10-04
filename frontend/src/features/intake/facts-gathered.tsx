@@ -19,7 +19,7 @@ const GROUP_TITLES: Record<FieldGroup, string> = { plan: "Your plan", care: "You
 /** Completeness aid for the shared draft — a count of what's filled in, not an AI confidence score. */
 export function FactsGathered({ analysisId }: { analysisId: string }) {
   const analysis = useAnalysis(analysisId);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   if (!analysis) return null;
 
   const { draft } = analysis;
@@ -48,7 +48,7 @@ export function FactsGathered({ analysisId }: { analysisId: string }) {
         <span>
           <span className="block text-lg font-semibold">Facts gathered</span>
           <span className="block text-sm text-muted-foreground">
-            {gathered} of {total} filled in{conflicts > 0 ? `, ${conflicts} with conflicting sources` : ""}. A completeness count, not a confidence score.
+            {gathered} of {total} details added{conflicts > 0 ? `, ${conflicts} conflicts to review` : ""}.
           </span>
         </span>
         <ChevronDownIcon aria-hidden className={cn("size-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />

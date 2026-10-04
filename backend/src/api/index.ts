@@ -30,6 +30,8 @@ import { buildExplanationInput, createAiAdapters, validateExplanation } from "@/
 import { benefitEngine, loadRegistry } from "@/benefits";
 import { createCarePlanOptimizer, createVisitNavigator } from "@/optimizer";
 
+export { readMongoDemo } from "./mongo-demo";
+
 const REQUEST_ID = /^[A-Za-z0-9-]{1,64}$/;
 
 export function requestIdFrom(headers: Record<string, string>): string {

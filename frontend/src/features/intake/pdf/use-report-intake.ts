@@ -176,7 +176,11 @@ export function useReportIntake(analysisId: string) {
       },
       scope,
     );
-    if (!isCurrent()) return;
+    if (!isCurrent()) {
+      // Cancelled or replaced mid-upload, but the server accepted it: release that job too.
+      if (uploaded.ok) requestJobCancel(uploaded.value.jobId);
+      return;
+    }
     if (!uploaded.ok) return fail(uploaded.error);
 
     run.jobId = uploaded.value.jobId;

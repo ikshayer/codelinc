@@ -11,6 +11,7 @@ const KIND: Record<EvidenceKind, { label: string; Icon: typeof FileTextIcon }> =
 };
 
 export function sourceText(kind: EvidenceKind, evidence?: IntakeEvidence): string {
+  if (kind === "manual" && evidence?.id.startsWith("database:")) return "Database";
   if (kind === "pdf" && evidence?.pageNumber) return `PDF page ${evidence.pageNumber}`;
   if (kind === "voice" && evidence?.turnId) return "Voice turn";
   return KIND[kind].label;

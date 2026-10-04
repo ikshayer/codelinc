@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-04",
+  "databaseWrites": 0,
+  "mapping": {
+    "membersMapped": 200,
+    "withPendingClaims": 30,
+    "withRollover": 153,
+    "withMaximumGap": 78,
+    "withoutTreatmentCard": 79,
+    "withOverflow": 0
+  },
+  "memberSamples": [
+    "SYN-MEMBER-0001",
+    "SYN-MEMBER-0002",
+    "SYN-MEMBER-0003"
+  ],
+  "status": "passed"
+}

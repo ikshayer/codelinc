@@ -1,0 +1,390 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/demo/health",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 1156,
+    "summary": {
+      "ok": true,
+      "datasets": {
+        "golden": "ready",
+        "expanded": "ready"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 134,
+    "summary": {
+      "counts": {
+        "members": 200,
+        "providers": 32,
+        "priceQuotes": 297,
+        "claims": 465,
+        "appointments": 520,
+        "procedureCards": 121
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 147,
+    "summary": {
+      "members": 200
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/SYN-MEMBER-0001",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 606,
+    "summary": {
+      "memberId": "SYN-MEMBER-0001",
+      "planId": "demo-value-dppo-2026-2027-v1",
+      "claims": 2,
+      "procedures": 2
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/DEMO-ALEX-001",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 190,
+    "summary": {
+      "memberId": "DEMO-ALEX-001",
+      "planId": "demo-core-dppo-2026-2027-v1",
+      "claims": 0,
+      "procedures": 3
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/INVALID",
+    "base": "http://127.0.0.1:3001",
+    "status": 404,
+    "elapsedMs": 4,
+    "summary": {
+      "error": "Synthetic demo record not found."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/providers",
+    "base": "http://127.0.0.1:3001",
+    "status": 200,
+    "elapsedMs": 141,
+    "summary": {
+      "providers": 32
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "base": "http://127.0.0.1:3001",
+    "status": 404,
+    "elapsedMs": 3,
+    "summary": {
+      "error": "Synthetic demo record not found."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/analyses",
+    "base": "http://127.0.0.1:3001",
+    "status": 404,
+    "elapsedMs": 4,
+    "summary": {
+      "error": "Synthetic demo record not found."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 9,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": {
+        "code": "UNAVAILABLE",
+        "message": "The benefits calculation engine is not ready to price this scenario yet.",
+        "retryable": true
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "//api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 4,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": {
+        "code": "UNAVAILABLE",
+        "message": "The benefits calculation engine is not ready to price this scenario yet.",
+        "retryable": true
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 422,
+    "elapsedMs": 2,
+    "payload": {},
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Missing field: requestId.",
+        "retryable": false,
+        "fieldPath": "requestId"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 422,
+    "elapsedMs": 3,
+    "payload": "malformed JSON",
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Invalid JSON request.",
+        "retryable": false
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/interpret",
+    "base": "http://127.0.0.1:3001",
+    "status": 404,
+    "elapsedMs": 2,
+    "payload": {
+      "requestId": "audit",
+      "draftRevision": 0,
+      "text": "synthetic audit",
+      "syntheticDataAcknowledged": true
+    },
+    "summary": {
+      "error": "Synthetic demo record not found."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/health",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 920,
+    "summary": {
+      "ok": true,
+      "datasets": {
+        "golden": "ready",
+        "expanded": "ready"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 173,
+    "summary": {
+      "counts": {
+        "members": 200,
+        "providers": 32,
+        "priceQuotes": 297,
+        "claims": 465,
+        "appointments": 520,
+        "procedureCards": 121
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 281,
+    "summary": {
+      "members": 200
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/SYN-MEMBER-0001",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 1980,
+    "summary": {
+      "memberId": "SYN-MEMBER-0001",
+      "planId": "demo-value-dppo-2026-2027-v1",
+      "claims": 2,
+      "procedures": 2
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/DEMO-ALEX-001",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 243,
+    "summary": {
+      "memberId": "DEMO-ALEX-001",
+      "planId": "demo-core-dppo-2026-2027-v1",
+      "claims": 0,
+      "procedures": 3
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/INVALID",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 37,
+    "summary": {
+      "error": "Synthetic demo record not found."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/providers",
+    "base": "http://localhost:3000",
+    "status": 200,
+    "elapsedMs": 320,
+    "summary": {
+      "providers": 32
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 913,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/analyses",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 119,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 92,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": {
+        "code": "UNAVAILABLE",
+        "message": "The benefits calculation engine is not ready to price this scenario yet.",
+        "retryable": true
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "//api/calculate",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 44,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": {
+        "code": "UNAVAILABLE",
+        "message": "The benefits calculation engine is not ready to price this scenario yet.",
+        "retryable": true
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 422,
+    "elapsedMs": 32,
+    "payload": {},
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Missing field: requestId.",
+        "retryable": false,
+        "fieldPath": "requestId"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 422,
+    "elapsedMs": 28,
+    "payload": "malformed JSON",
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Invalid JSON request.",
+        "retryable": false
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/interpret",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 89,
+    "payload": {
+      "requestId": "audit",
+      "draftRevision": 0,
+      "text": "synthetic audit",
+      "syntheticDataAcknowledged": true
+    },
+    "summary": {
+      "nonJson": true
+    }
+  }
+]

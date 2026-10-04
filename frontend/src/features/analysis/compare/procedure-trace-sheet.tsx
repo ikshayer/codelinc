@@ -1,8 +1,10 @@
 "use client";
 
+import { motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useSyncExternalStore, type ReactNode } from "react";
 
+import { EASE_OUT, Stagger } from "@/components/motion/reveal";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatIsoDate } from "@/lib/domain/dates";
 import { getFieldDefinition, isKnownFieldPath, YEAR_LABELS } from "@/lib/domain/fields";
@@ -34,12 +36,17 @@ function useIsPhone(): boolean {
   );
 }
 
+const traceItem: Variants = {
+  hidden: { opacity: 0, x: 14 },
+  shown: { opacity: 1, x: 0, transition: { duration: 0.4, ease: EASE_OUT } },
+};
+
 function TraceRow({ label, value, strong, indent }: { label: string; value: ReactNode; strong?: boolean; indent?: boolean }) {
   return (
-    <div className={cn("flex items-baseline justify-between gap-4 py-2", indent && "pl-4")}>
+    <motion.div variants={traceItem} className={cn("flex items-baseline justify-between gap-4 py-2", indent && "pl-4")}>
       <dt className={cn("text-sm", strong ? "font-semibold" : "text-muted-foreground")}>{label}</dt>
       <dd className={cn("text-right tabular", strong ? "text-base font-semibold" : "text-sm")}>{value}</dd>
-    </div>
+    </motion.div>
   );
 }
 
@@ -86,7 +93,7 @@ export function ProcedureTraceSheet({ selection, procedureLabels, onClose }: Pro
                 {selection.scheduleLabel}: {formatIsoDate(calculation.serviceDate)}, {YEAR_LABELS[calculation.benefitYearId].toLowerCase()}
               </SheetDescription>
             </SheetHeader>
-            <div className="space-y-6 px-4 pb-8">
+            <Stagger gap={0.035} delay={0.12} className="space-y-6 px-4 pb-8">
               <dl className="divide-y">
                 <TraceRow label="Contracted fee" value={formatCents(calculation.feeCents)} />
                 <TraceRow label="Deductible applies to this care" value={yesNo(calculation.deductibleApplies)} />
@@ -106,12 +113,12 @@ export function ProcedureTraceSheet({ selection, procedureLabels, onClose }: Pro
                 <TraceRow label="Deductible you pay" value={formatCents(calculation.deductibleAppliedCents)} indent />
                 <TraceRow label="Above the yearly limit" value={formatCents(calculation.patientDueToMaximumCents)} indent />
               </dl>
-              <p className="text-sm text-muted-foreground">
+              <motion.p variants={traceItem} className="text-sm text-muted-foreground">
                 This is care number {calculation.processingIndex + 1} in the financial processing order, not clinical priority. The yearly limit is
                 used up in that order.
-              </p>
+              </motion.p>
               {calculation.ruleFieldPaths.length > 0 && (
-                <section aria-labelledby="trace-sources">
+                <motion.section variants={traceItem} aria-labelledby="trace-sources">
                   <h3 id="trace-sources" className="text-sm font-semibold">
                     Details this calculation uses
                   </h3>
@@ -120,9 +127,9 @@ export function ProcedureTraceSheet({ selection, procedureLabels, onClose }: Pro
                       <SourceItem key={path} fieldPath={path} />
                     ))}
                   </ul>
-                </section>
+                </motion.section>
               )}
-            </div>
+            </Stagger>
           </>
         )}
       </SheetContent>

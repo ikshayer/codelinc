@@ -48,6 +48,8 @@ Profile → **Demo data** has switches that make the mock services fail on purpo
 | History | Session memory, seeded examples; refreshing resets it | `/api/analyses` (proposed), account-owned |
 | Google sign-in | Unavailable ("Use demo profile" is a separate, labeled action) | Auth.js REST routes (`/api/auth/*`) when configured |
 
+Google login is implemented with Auth.js. Follow [the Google setup guide](docs/google-auth.md) to configure the client and callback URL. Login provides session identity; account history persistence remains unfinished.
+
 Live mode never falls back to fixtures. A missing service shows an honest unavailable state and offers sample or manual input.
 
 ### Real-engine gate: incomplete
@@ -82,3 +84,28 @@ Trust boundaries the code enforces:
 ## shadcn MCP
 
 `.mcp.json` configures `shadcn@latest mcp`. The Claude Code session that built this app was started from the repository root, so the server wasn't auto-loaded. `scripts/shadcn-mcp.mjs` drives the same server over stdio with the MCP SDK (`node scripts/shadcn-mcp.mjs list-tools`, `… call search_items_in_registries '{"query":"…"}'`). It was used to list registries, browse the `@shadcn` UI items, search `@react-bits`, view items and produce the install command for every primitive in `src/components/ui/` plus React Bits **BlurText** (the landing headline reveal). The style is `radix-nova` (Radix primitives, Lucide icons, Geist).
+
+## Known gaps and decisions
+
+- **Not connected:** the real calculation engine, report extraction, voice transport, `/api/interpret`, history persistence and a live `/api/profile`. Each one has a typed live adapter and a documented contract, and each reports itself unavailable until the backend exists. Google sign-in is available after configuring Auth.js credentials.
+- **Late source results after an edit:** report and typed-interpret replies are still accepted after an unrelated manual edit. They're keyed by request ID and session epoch, and `applyProposals` never overwrites an edited value; a clash becomes a visible conflict instead. File replacement, Clear, delete and sign-out reject late replies.
+- **Voice leave guard:** it covers in-app link clicks (including method switching) and tab close. Browser Back isn't intercepted, but unmount always stops the microphone and ends the session.
+- **Session memory:** refreshing the page restores the seeded demo data and drops in-progress drafts, by design: nothing is written to browser storage.
+
+## Visual design
+
+- **Brand:** Lincoln Financial's 2024 palette, taken from lincolnfinancial.com: burgundy `#650030` (primary actions) and horizon orange `#FF4F17` (decorative accents only, because it fails contrast as small text). Headings use Source Serif 4, and the UI and money use Geist.
+- **Logo and mascot:** the official 2024 logo and its Abraham Lincoln mark (`public/brand/`, served from lincolnfinancial.com's own assets). The mark serves as CareWindow's guide in the header on phones, the landing hero, setup, the assistant's transcript avatar and empty states. It is never recolored, and the AI assistant still introduces itself as an AI assistant.
+- **React Bits (via the shadcn MCP):**
+  - **Grainient:** the animated brand backdrop. A vivid hero field on the landing page and setup, a soft wash behind every page header. It pauses offscreen and freezes under reduced motion.
+  - **Orb:** the voice assistant. Scale and jitter follow the real microphone level while listening, it pulses while the assistant speaks, swirls while thinking, and greys out when muted or ended.
+  - **BlurText:** the landing headline.
+- **Motion:** `motion` drives:
+  - route transitions (`src/app/template.tsx`)
+  - staggered entrances (`src/components/motion/reveal.tsx`)
+  - sliding indicators for the nav, intake tabs, stages, filters and wizard
+  - direction-aware wizard and setup steps
+  - Compare result reveals and timeline travel
+
+  `MotionConfig reducedMotion="user"` applies the user's reduced-motion setting app-wide.
+- **Manual entry** is a six-step wizard (`src/features/intake/manual/`). The current step lives in the URL (`?step=`), a completeness rail shows progress, and the last step is a "Check and continue" digest.

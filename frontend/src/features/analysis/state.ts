@@ -146,6 +146,7 @@ export type Action =
       now: string;
     }
   | { type: "markSaved"; analysisId: string; saved: SavedReference; now: string }
+  | { type: "clearSavedSnapshot"; snapshotId: string }
   | { type: "clearDraft"; analysisId: string; now: string }
   | { type: "setProfile"; profile: PatientProfile | null }
   | { type: "setAuth"; auth: AuthUiState }
@@ -201,7 +202,11 @@ function isNameMismatch(patient: PatientDetails | null, identity: IntakeExtracti
 }
 
 function mergeExtraction(record: AnalysisRecord, extraction: IntakeExtraction, now: string): AnalysisRecord {
-  const draft = applyProposals(record.draft, extraction.proposals, extraction.evidence, extraction.overflow);
+  const evidence = extraction.evidence.map((item) => ({
+    ...item,
+    reviewNotes: [...new Set([...(item.reviewNotes ?? []), ...extraction.reviewNotes.filter((note) => note.evidenceId === item.id).map((note) => note.message)])],
+  }));
+  const draft = applyProposals(record.draft, extraction.proposals, evidence, extraction.overflow);
   return withDraftChange(record, draft, now, extraction.proposals.map((p) => p.fieldPath));
 }
 
@@ -366,7 +371,22 @@ export function reducer(state: StoreState, action: Action): StoreState {
       });
 
     case "markSaved":
-      return updateAnalysis(state, action.analysisId, (r) => ({ ...r, saved: action.saved, updatedAt: action.now }));
+      // A save acknowledged after Clear or an edit must not mark the new draft as saved.
+      return updateAnalysis(state, action.analysisId, (r) =>
+        currentResult(r)?.revision === action.saved.revision ? { ...r, saved: action.saved, updatedAt: action.now } : r,
+      );
+
+    case "clearSavedSnapshot": {
+      let changed = false;
+      const analyses = Object.fromEntries(
+        Object.entries(state.analyses).map(([id, r]) => {
+          if (r.saved?.snapshotId !== action.snapshotId) return [id, r];
+          changed = true;
+          return [id, { ...r, saved: null }];
+        }),
+      );
+      return changed ? { ...state, analyses } : state;
+    }
 
     case "clearDraft":
       return updateAnalysis(state, action.analysisId, (r) => ({
