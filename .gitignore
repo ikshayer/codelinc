@@ -1,2 +1,44 @@
-node_modules
-tmp
+# dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+
+# framework/build output
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+dist/
+**/dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# testing
+coverage/
+**/coverage/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+
+# local/runtime files
+tmp/
+**/tmp/
+.env
+.env.*
+!**/.env.example
+*.pem
+*.key
+
+# local agent state
+**/.claude/UNFREEZE
+**/.claude/settings.local.json
+
+# misc
+.DS_Store
+npm-debug.log*
+.vercel/
+**/.vercel/

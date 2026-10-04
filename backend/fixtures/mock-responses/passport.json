@@ -1,0 +1,156 @@
+{
+  "contract_version": "1.1.0",
+  "ok": true,
+  "data": {
+    "contract_version": "1.1.0",
+    "as_of": "2026-10-05T14:00:00Z",
+    "member_id": "member-alex-synthetic",
+    "plan_version_id": "nwd-ppo-standard-2026",
+    "plan_name": "PPO Standard",
+    "carrier_name": "Northwind Mutual Dental (synthetic)",
+    "synthetic": true,
+    "coverage_period_start": "2026-01-01",
+    "coverage_period_end": "2026-12-31",
+    "next_reset_date": "2027-01-01",
+    "current_period": {
+      "plan_version_id": "nwd-ppo-standard-2026",
+      "period_start": "2026-01-01",
+      "period_end": "2026-12-31",
+      "opened_from": "snapshot",
+      "deductible_remaining_cents": 5000,
+      "annual_max_remaining_cents": 90000,
+      "pending_reserved_max_cents": 7600,
+      "pending_reserved_deductible_cents": 5000,
+      "annual_max_available_cents": 82400,
+      "deductible_available_cents": 0,
+      "sublimits": [],
+      "simulated_plan_paid_cents": 0,
+      "source": "CLAIM_EOB"
+    },
+    "sections": [
+      {
+        "section_id": "balances",
+        "title": "What's left this year",
+        "items": [
+          {
+            "item_id": "annual-max-available",
+            "label": "Annual maximum available for new claims",
+            "value_cents": 82400,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "CLAIM_EOB",
+            "rule_status": null,
+            "rule_ids": [
+              "annual_maximum.2026"
+            ],
+            "input_ids": [
+              "member.acc.2026.annual_max_remaining",
+              "member.pending.claim-2026-0928-d2391.plan_pay"
+            ],
+            "observed_at": "2026-10-05T13:00:00Z"
+          }
+        ]
+      },
+      {
+        "section_id": "rules",
+        "title": "Plan rules",
+        "items": [
+          {
+            "item_id": "reset-date",
+            "label": "Deductible and annual maximum reset on",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": "2027-01-01",
+            "value_text": null,
+            "source": "PLAN_VERIFIED",
+            "rule_status": "VERIFIED",
+            "rule_ids": [
+              "benefit_period.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "waiting-periods",
+            "label": "Waiting periods",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": "No waiting periods",
+            "source": "PLAN_VERIFIED",
+            "rule_status": "NOT_APPLICABLE",
+            "rule_ids": [
+              "waiting_period.all.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          },
+          {
+            "item_id": "rollover",
+            "label": "Maximum carryover (needs confirmation)",
+            "value_cents": 25000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "NEEDS_CONFIRMATION",
+            "rule_status": "UNVERIFIED",
+            "rule_ids": [
+              "rollover.2026"
+            ],
+            "input_ids": [],
+            "observed_at": null
+          }
+        ]
+      },
+      {
+        "section_id": "funding",
+        "title": "Funding",
+        "items": [
+          {
+            "item_id": "fsa-balance",
+            "label": "2026 Health FSA balance",
+            "value_cents": 120000,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": null,
+            "value_text": null,
+            "source": "MEMBER_CONFIRMED",
+            "rule_status": null,
+            "rule_ids": [],
+            "input_ids": [
+              "member.fsa-2026.balance"
+            ],
+            "observed_at": "2026-10-05T13:00:00Z"
+          },
+          {
+            "item_id": "fsa-deadline",
+            "label": "FSA pays for services through",
+            "value_cents": null,
+            "value_range": null,
+            "value_bps": null,
+            "value_date": "2026-12-31",
+            "value_text": null,
+            "source": "MEMBER_CONFIRMED",
+            "rule_status": null,
+            "rule_ids": [],
+            "input_ids": [
+              "member.fsa-2026.balance"
+            ],
+            "observed_at": "2026-10-05T13:00:00Z"
+          }
+        ]
+      }
+    ],
+    "issues": []
+  },
+  "meta": {
+    "request_id": "mock-passport",
+    "generated_by": "mock",
+    "synthetic_data": true
+  }
+}

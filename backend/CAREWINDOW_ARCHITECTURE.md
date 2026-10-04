@@ -1,5 +1,9 @@
 # CAREWINDOW_ARCHITECTURE — build contract
 
+> Scope note: this document remains the synthetic v1 hackathon build contract.
+> For verified insurance-ID onboarding, live payer data, production security, and
+> the phased v2 roadmap, see [`docs/production-architecture-plan.md`](docs/production-architecture-plan.md).
+
 **CareWindow — “Optimize the benefits. Never the care.”**
 
 **Status:** revised implementation specification; this repository currently contains the architecture, not a built application. **Team:** four developers. **Scope:** synthetic data, one person, one simple in-network PPO, up to four procedures, two adjacent benefit years. **AI provider:** Amazon Bedrock; manual completion is mandatory.

@@ -1,0 +1,388 @@
+[
+  {
+    "provider_id": "prov-rivera",
+    "location_id": "loc-rivera-fairfax",
+    "name": "Rivera Family Dentistry (synthetic)",
+    "specialty": "general",
+    "network": {
+      "input_id": "provider.prov-rivera.network",
+      "tier": "in_network",
+      "network_id": "nwd-ppo",
+      "source": "PROVIDER",
+      "observed_at": "2026-10-01T15:00:00Z"
+    },
+    "travel": {
+      "input_id": "provider.prov-rivera.travel",
+      "distance_miles": 4.2,
+      "travel_minutes": 14,
+      "source": "ESTIMATE",
+      "observed_at": "2026-10-05T13:00:00Z"
+    },
+    "slots": {
+      "input_id": "provider.prov-rivera.slots",
+      "source": "PROVIDER",
+      "observed_at": "2026-10-15T20:00:00Z",
+      "items": [
+        {
+          "slot_id": "prov-rivera-t-20261019-0900",
+          "date": "2026-10-19",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261020-0800",
+          "date": "2026-10-20",
+          "start_time": "08:00",
+          "end_time": "09:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261020-1830",
+          "date": "2026-10-20",
+          "start_time": "18:30",
+          "end_time": "20:00",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261022-1400",
+          "date": "2026-10-22",
+          "start_time": "14:00",
+          "end_time": "15:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261029-1000",
+          "date": "2026-10-29",
+          "start_time": "10:00",
+          "end_time": "11:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261105-1500",
+          "date": "2026-11-05",
+          "start_time": "15:00",
+          "end_time": "16:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261110-0900",
+          "date": "2026-11-10",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261124-1000",
+          "date": "2026-11-24",
+          "start_time": "10:00",
+          "end_time": "11:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261203-1300",
+          "date": "2026-12-03",
+          "start_time": "13:00",
+          "end_time": "14:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20261217-0830",
+          "date": "2026-12-17",
+          "start_time": "08:30",
+          "end_time": "10:00",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20270105-1000",
+          "date": "2027-01-05",
+          "start_time": "10:00",
+          "end_time": "11:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20270114-1600",
+          "date": "2027-01-14",
+          "start_time": "16:00",
+          "end_time": "17:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-rivera-t-20270209-0830",
+          "date": "2027-02-09",
+          "start_time": "08:30",
+          "end_time": "10:00",
+          "kind": "treatment"
+        }
+      ]
+    },
+    "pricing": [
+      {
+        "cdt_code": "D0140",
+        "provider_charge": {
+          "input_id": "provider.prov-rivera.price.d0140.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 11000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": {
+          "input_id": "provider.prov-rivera.price.d0140.allowed",
+          "value": {
+            "kind": "exact",
+            "cents": 7500
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D0220",
+        "provider_charge": {
+          "input_id": "provider.prov-rivera.price.d0220.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 4000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": {
+          "input_id": "provider.prov-rivera.price.d0220.allowed",
+          "value": {
+            "kind": "exact",
+            "cents": 3000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D3330",
+        "provider_charge": {
+          "input_id": "provider.prov-rivera.price.d3330.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 145000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": {
+          "input_id": "provider.prov-rivera.price.d3330.allowed",
+          "value": {
+            "kind": "exact",
+            "cents": 100000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D2740",
+        "provider_charge": {
+          "input_id": "provider.prov-rivera.price.d2740.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 160000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": {
+          "input_id": "provider.prov-rivera.price.d2740.allowed",
+          "value": {
+            "kind": "exact",
+            "cents": 110000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D2392",
+        "provider_charge": {
+          "input_id": "provider.prov-rivera.price.d2392.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 26000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": {
+          "input_id": "provider.prov-rivera.price.d2392.allowed",
+          "value": {
+            "kind": "exact",
+            "cents": 18000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "cash_quote": {
+          "input_id": "provider.prov-rivera.price.d2392.cash",
+          "value": {
+            "kind": "exact",
+            "cents": 15000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        }
+      }
+    ],
+    "self_pay": {
+      "input_id": "provider.prov-rivera.self_pay",
+      "permitted_by_office": true,
+      "source": "PROVIDER",
+      "observed_at": "2026-10-15T20:00:00Z"
+    },
+    "payment_plans": []
+  },
+  {
+    "provider_id": "prov-brightsmile",
+    "location_id": "loc-brightsmile-vienna",
+    "name": "BrightSmile Dental Studio (synthetic)",
+    "specialty": "general",
+    "network": {
+      "input_id": "provider.prov-brightsmile.network",
+      "tier": "out_of_network",
+      "network_id": null,
+      "source": "PROVIDER",
+      "observed_at": "2026-10-01T15:00:00Z"
+    },
+    "travel": {
+      "input_id": "provider.prov-brightsmile.travel",
+      "distance_miles": 2.1,
+      "travel_minutes": 9,
+      "source": "ESTIMATE",
+      "observed_at": "2026-10-05T13:00:00Z"
+    },
+    "slots": {
+      "input_id": "provider.prov-brightsmile.slots",
+      "source": "PROVIDER",
+      "observed_at": "2026-10-15T20:00:00Z",
+      "items": [
+        {
+          "slot_id": "prov-brightsmile-t-20261017-0900",
+          "date": "2026-10-17",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-brightsmile-t-20261024-1000",
+          "date": "2026-10-24",
+          "start_time": "10:00",
+          "end_time": "11:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-brightsmile-t-20261107-0900",
+          "date": "2026-11-07",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-brightsmile-t-20261212-0900",
+          "date": "2026-12-12",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        },
+        {
+          "slot_id": "prov-brightsmile-t-20270109-0900",
+          "date": "2027-01-09",
+          "start_time": "09:00",
+          "end_time": "10:30",
+          "kind": "treatment"
+        }
+      ]
+    },
+    "pricing": [
+      {
+        "cdt_code": "D0140",
+        "provider_charge": {
+          "input_id": "provider.prov-brightsmile.price.d0140.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 13500
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": null,
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D0220",
+        "provider_charge": {
+          "input_id": "provider.prov-brightsmile.price.d0220.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 4500
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": null,
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D3330",
+        "provider_charge": {
+          "input_id": "provider.prov-brightsmile.price.d3330.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 130000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": null,
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D2740",
+        "provider_charge": {
+          "input_id": "provider.prov-brightsmile.price.d2740.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 150000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": null,
+        "cash_quote": null
+      },
+      {
+        "cdt_code": "D2392",
+        "provider_charge": {
+          "input_id": "provider.prov-brightsmile.price.d2392.charge",
+          "value": {
+            "kind": "exact",
+            "cents": 25000
+          },
+          "source": "PROVIDER",
+          "observed_at": "2026-10-01T15:00:00Z"
+        },
+        "contracted_allowed": null,
+        "cash_quote": null
+      }
+    ],
+    "self_pay": {
+      "input_id": "provider.prov-brightsmile.self_pay",
+      "permitted_by_office": null,
+      "source": "PROVIDER",
+      "observed_at": "2026-10-15T20:00:00Z"
+    },
+    "payment_plans": []
+  }
+]

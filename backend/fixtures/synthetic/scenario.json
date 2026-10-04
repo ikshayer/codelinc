@@ -1,0 +1,36 @@
+{
+  "scenario_id": "demo-alex-2026",
+  "title": "Alex Morgan (synthetic): tooth pain in October 2026",
+  "synthetic": true,
+  "previsit_as_of": "2026-10-05T14:00:00Z",
+  "postvisit_as_of": "2026-10-15T21:00:00Z",
+  "planning_horizon_end": "2027-06-30",
+  "files": {
+    "member": "fixtures/synthetic/member.json",
+    "providers_previsit": "fixtures/synthetic/providers.previsit.json",
+    "providers_postvisit": "fixtures/synthetic/providers.postvisit.json",
+    "procedures_confirmed": "fixtures/synthetic/procedures.confirmed.json"
+  },
+  "documents": [
+    {
+      "document_id": "doc-card-2026-10-15",
+      "kind": "card_photo",
+      "title": "Treatment plan card (OCR text), Oct 15, 2026",
+      "path": "fixtures/synthetic/documents/card-2026-10-15.txt"
+    },
+    {
+      "document_id": "doc-transcript-2026-10-15",
+      "kind": "transcript",
+      "title": "Consented visit transcript, Oct 15, 2026 (contains a prompt-injection attempt)",
+      "path": "fixtures/synthetic/documents/transcript-2026-10-15.txt"
+    }
+  ],
+  "visit_defaults": {
+    "intent": "new_concern",
+    "expected_codes_by_intent": {
+      "routine": ["D0120", "D1110"],
+      "new_concern": ["D0140", "D0220"],
+      "follow_up": ["D0140"]
+    }
+  }
+}

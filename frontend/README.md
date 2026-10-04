@@ -4,7 +4,7 @@ A responsive Next.js webapp for the CareWindow dental-benefits demo. You tell it
 
 > **Synthetic data only.** This build runs in **demo mode** by default. Report analysis, the conversation and calculations are simulated or fixture-based, and every such screen is labeled. Nothing here is medical, dental or insurance advice.
 
-Specs: [`FRONTEND_DESIGN.md`](FRONTEND_DESIGN.md), [`CLAUDE_FRONTEND_GOAL.md`](CLAUDE_FRONTEND_GOAL.md), the domain in [`../CAREWINDOW_ARCHITECTURE.md`](../CAREWINDOW_ARCHITECTURE.md), and service boundaries in [`docs/adapter-contracts.md`](docs/adapter-contracts.md).
+Specs: [`FRONTEND_DESIGN.md`](FRONTEND_DESIGN.md), [`CLAUDE_FRONTEND_GOAL.md`](CLAUDE_FRONTEND_GOAL.md), the domain in [`../backend/CAREWINDOW_ARCHITECTURE.md`](../backend/CAREWINDOW_ARCHITECTURE.md), and service boundaries in [`docs/adapter-contracts.md`](docs/adapter-contracts.md).
 
 ## Run it
 
