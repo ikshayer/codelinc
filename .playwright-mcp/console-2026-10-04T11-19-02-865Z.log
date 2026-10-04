@@ -695,3 +695,315 @@ Fast Refresh requires at least one parent function component in your React tree.
 [ 5728765ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
 [ 5733076ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
 [ 5733110ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5784225ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5784415ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5784580ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5788303ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5797193ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5797292ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5804405ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5805328ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5815739ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5815786ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5816015ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5816029ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5818872ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5823499ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5823728ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5837724ms] [ERROR] ./src/lib/adapters/live/member-data.ts:43:1
+Error: Merge conflict marker encountered.
+  41 | =======
+  42 |   return { id: data.member.member_id, memberId: data.member.member_id, displayName: data.m...
+> 43 | >>>>>>> 2e642c11fba9d70e8ad45aa0931620d49656b795
+     | ^^^^^^^
+  44 | }
+  45 |
+  46 | /** Database facts enter the same review flow as manual intake; no automatic confirmation. */
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/adapters/live/member-data.ts [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Client Component Browser]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/adapters/live/member-data.ts [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Client Component SSR]
+    ./src/features/analysis/analysis-provider.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:1052
+[ 5841036ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5841100ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5841221ms] [LOG] [Fast Refresh] done in 176ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5841881ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5841920ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5842770ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 5842805ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 5919187ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 5919332ms] [LOG] [Fast Refresh] done in 255ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 6009141ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 6009196ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[ 6009629ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009646ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009680ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009705ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009747ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009780ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6009840ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6010017ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6010207ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6010366ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6011306ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011313ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011321ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011328ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011357ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011401ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6011429ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6011442ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6011471ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6013115ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6013143ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6013157ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6013189ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587
+[ 6013198ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/node_modules_ogl_src_1y0mnib._.js:654
+[ 6013237ms] [WARNING] WARNING: Too many active WebGL contexts. Oldest context will be lost. @ http://localhost:3000/_next/static/chunks/_0yvmmrh._.js:587

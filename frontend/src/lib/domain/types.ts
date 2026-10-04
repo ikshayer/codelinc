@@ -312,7 +312,7 @@ export interface IntakeProposal {
 export interface PatientDetails {
   displayName: string;
   fullName?: string;
-  /** ISO date; optional for the benefits demo and never sent to calculation. */
+  /** ISO date; paired with the resolved member ID for authoritative member calculations. */
   dateOfBirth?: string;
   /** Optional synthetic lookup ID; matched with DOB before member facts are imported. */
   memberId?: string;

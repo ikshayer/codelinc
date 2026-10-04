@@ -19,6 +19,7 @@ export function RecordLedger({ title, record, procedureLabels, onSelectProcedure
   return (
     <div>
       <h3 className="mb-2 text-base font-semibold">{title}</h3>
+      {record.ledgers.filter((ledger) => (ledger.maximum.reservedBeforeCents ?? 0) > 0).map((ledger) => <p key={ledger.benefitYearId} className="mb-3 text-sm text-muted-foreground">{YEAR_LABELS[ledger.benefitYearId]} · Settled plan payments before this schedule: {formatCents(ledger.maximum.usedBeforeCents)} · Pending projected reservation: {formatCents(ledger.maximum.reservedBeforeCents!)}. Benefit left below excludes the pending reservation.</p>)}
       <Table aria-label={`${title}: year-by-year amounts`}>
         <TableHeader>
           <TableRow>

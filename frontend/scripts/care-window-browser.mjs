@@ -290,14 +290,14 @@ async function voiceJourney() {
   try {
     await page.goto(baseURL, { waitUntil: "networkidle" });
     await activate(page, page.getByRole("link", { name: "Start an analysis", exact: true }));
-    const name = page.getByLabel("Name", { exact: true });
-    await tabTo(page, name);
+    const memberId = page.getByLabel("Member ID", { exact: true });
+    await tabTo(page, memberId);
     await page.keyboard.press("ControlOrMeta+A");
-    await page.keyboard.type("Parker Patel");
+    await page.keyboard.type("SYN-MEMBER-0021");
     await typeField(page, page.getByLabel("Month", { exact: true }), "08");
     await typeField(page, page.getByLabel("Day", { exact: true }), "19");
     await typeField(page, page.getByLabel("Year", { exact: true }), "1974");
-    await activate(page, page.getByRole("button", { name: "Continue as guest", exact: true }));
+    await activate(page, page.getByRole("button", { name: /^Continue(?: as guest)?$/ }));
     const firstMethod = page.getByRole("radio").first();
     await tabTo(page, firstMethod);
     await page.keyboard.press("ArrowDown");
@@ -442,15 +442,15 @@ async function memberJourney(viewport, identity, expectedBenefits, mismatchFirst
   try {
     await page.goto(baseURL, { waitUntil: "networkidle" });
     await activate(page, page.getByRole("link", { name: "Start an analysis", exact: true }));
-    await typeField(page, page.getByLabel("Name", { exact: true }), identity.name);
-    assert.equal(await page.getByLabel(/^Member ID/).count(), 0, "Identity entry must use only name and DOB");
+    await typeField(page, page.getByLabel("Member ID", { exact: true }), identity.memberId);
+    assert.equal(await page.getByLabel("Name", { exact: true }).count(), 0, "Identity entry must use only member ID and DOB");
     assert.equal(await page.locator("summary").filter({ hasText: "More details" }).count(), 0);
     const [year, month, day] = identity.dateOfBirth.split("-");
     await typeField(page, page.getByLabel("Month", { exact: true }), month);
     await typeField(page, page.getByLabel("Day", { exact: true }), mismatchFirst ? String(Number(day) + 1) : day);
     await typeField(page, page.getByLabel("Year", { exact: true }), year);
     async function lookup() {
-      await tabTo(page, page.getByRole("button", { name: "Continue as guest", exact: true }));
+      await tabTo(page, page.getByRole("button", { name: /^Continue(?: as guest)?$/ }));
       const waiting = page.waitForResponse(response => new URL(response.url()).pathname === "/api/demo/member-lookup" && response.request().method() === "POST");
       await page.keyboard.press("Enter");
       const response = await waiting;
@@ -466,9 +466,9 @@ async function memberJourney(viewport, identity, expectedBenefits, mismatchFirst
       await typeField(page, page.getByLabel("Day", { exact: true }), day);
     }
     const matched = await lookup();
-    assert.equal(matched.request.displayName, identity.name);
+    assert.equal(matched.request.memberId, identity.memberId);
     assert.equal(matched.request.dateOfBirth, identity.dateOfBirth);
-    assert.equal(matched.request.memberId, undefined, "The server resolves member ID from the name/DOB pair");
+    assert.equal(matched.request.displayName, undefined);
     assert.equal(matched.data.member.member_id, identity.memberId);
     assert.equal(matched.data.member.date_of_birth, identity.dateOfBirth);
     assert.notEqual(matched.data.member.member_id, "DEMO-ALEX-001");
@@ -554,7 +554,7 @@ async function memberJourney(viewport, identity, expectedBenefits, mismatchFirst
       assert.equal(unresolvedBody.baseline.ledgers[0].maximum.reservedBeforeCents, 9300);
       assert.equal(unresolvedBody.baseline.ledgers[0].procedures[0].maximumBeforeCents, 162990);
     }
-    const unknownResponse = await context.request.post(`${baseURL}/api/demo/member-lookup`, { data: { ...matched.request, displayName: "Unknown Synthetic Member" } });
+    const unknownResponse = await context.request.post(`${baseURL}/api/demo/member-lookup`, { data: { ...matched.request, memberId: "SYN-MEMBER-9999" } });
     assert.equal(unknownResponse.status(), 200);
     assert.deepEqual(await unknownResponse.json(), { matched: false });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

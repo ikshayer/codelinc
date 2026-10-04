@@ -191,7 +191,8 @@ export function useVoiceSession(analysisId: string, storedTurns: Parameters<type
       const ticket = current.startRequest(analysisId, "voice");
       held.current = { ...held.current, ticket };
       const created = await current.adapters.voice.createSession(
-        { consent: true },
+        { consent: true, memberId: current.state.analyses[analysisId]?.patient?.memberId,
+          facts: Object.fromEntries(Object.entries(current.state.analyses[analysisId]?.draft.facts ?? {}).map(([path, fact]) => [path, { value: fact.value, status: fact.status }])) },
         { analysisId, requestId: ticket.requestId, revision: ticket.revision, signal: ticket.signal },
       );
       if (attempt.current !== mine) {

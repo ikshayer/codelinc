@@ -10,7 +10,7 @@ import { compareIso, isoFromParts, partsFromIso, todayIso } from "@/lib/domain/d
 import type { PatientDetails } from "@/lib/domain/types";
 
 // "Who is this analysis for?" — shared by New analysis and Profile so both
-// use the same required name and birth-date controls. Member lookup is handled
+// use the same required member ID and birth-date controls. Member lookup is handled
 // by the New analysis screen before any member benefits are imported.
 
 interface IdentityFormProps {
@@ -46,7 +46,7 @@ export function validateIdentity(values: Values): { errors: Errors; details: Pat
   const anyDob = values.month || values.day || values.year;
   if (anyDob) {
     const iso = isoFromParts(values.month.trim(), values.day.trim(), values.year.trim());
-    if (!iso) errors.dateOfBirth = "Enter a real date as month, day and four-digit year, ";
+    if (!iso) errors.dateOfBirth = "Enter a real date as month, day and four-digit year.";
     else if (compareIso(iso, todayIso()) > 0) errors.dateOfBirth = "Date of birth can't be in the future.";
     else if (compareIso(iso, "1900-01-01") < 0) errors.dateOfBirth = "Check the year.";
     else dateOfBirth = iso;

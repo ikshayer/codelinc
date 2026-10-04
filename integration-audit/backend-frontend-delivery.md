@@ -1,5 +1,11 @@
 # Backend/frontend delivery verification — 2026-10-04
 
+## Latest identity update
+
+The original identity step now contains only required Member ID and Date of Birth inputs. Name, additional contact fields, and optional labels were removed. The matched database record supplies the display name internally. Exact Member ID/DOB lookup and calculation-time authoritative benefit reload are implemented; 33 focused backend tests, typecheck, lint and frozen contract checks pass. Parker's conservative calculation reserves the $93 pending payment separately from $277.10 settled usage, retains the $25 deductible, and excludes the unresolved $300 rollover bank. Available base benefits are $1,629.90.
+
+During submission, an incoming merge conflict in `member-data.ts` was resolved without dropping lookup or conservative-estimate support. Current runtime limitation: Atlas server selection is timing out again; the restarted data API returns a retryable 503 for member lookup, and the engine cannot finish its Mongo startup. Earlier successful Atlas evidence below predates this timeout. The final identity form has been verified in the development app on port 3000; port 3010 is the earlier production build.
+
 The merged repository preserves the original landing → identity → PDF/voice/manual intake → confirmation → comparison flow. The original confirmed scenario reaches the backend `/api/calculate` through Next's same-origin proxy. Planning controls and disclosures extend the existing comparison page; `/care-window` remains an additional canonical synthetic demo.
 
 ## Verified behavior
