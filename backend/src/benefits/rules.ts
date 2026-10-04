@@ -18,7 +18,7 @@ import {
   type ServiceClass,
 } from "@/domain";
 
-const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+export const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Rules of one plan grouped by type, each group sorted by rule_id (registry order never matters). */
 const indexCache = new WeakMap<PlanDefinition, Map<PlanRuleType, PlanRule[]>>();

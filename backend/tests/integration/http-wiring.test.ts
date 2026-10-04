@@ -1,0 +1,95 @@
+import { once } from "node:events";
+import type { Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createMongoServer } from "../../src/api/mongo-http.js";
+import { proxyBackend } from "../../../frontend/src/lib/server/backend.js";
+
+describe("frontend proxy to backend HTTP boundary", () => {
+  let server: Server;
+  let base: string;
+  const members = { synthetic_demo: true, members: [{ member_id: "SYN-MEMBER-0001", display_name: "Synthetic test member" }] };
+
+  beforeAll(async () => {
+    server = createMongoServer({ readDemo: async (path) => {
+      if (path === "/api/demo/health") throw new Error("Simulated database connection failure");
+      return { status: 200, body: members };
+    } });
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => error ? reject(error) : resolve());
+      server.closeAllConnections();
+    });
+  });
+
+  it("forwards member data through the actual proxy helper with a trailing-slash base", async () => {
+    const response = await proxyBackend("/api/demo/members", {}, `${base}/`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(members);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("also treats repeated leading slashes as a path at the backend", async () => {
+    const response = await fetch(`${base}//api/demo/members`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(members);
+  });
+
+  it("preserves the explicit calculation scaffold response", async () => {
+    const response = await proxyBackend("/api/calculate", { method: "POST", body: JSON.stringify({ requestId: "test", analysisId: "test-analysis", revision: 0, scenario: {} }) }, `${base}/`);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ error: { code: "UNAVAILABLE", retryable: true } });
+  });
+
+  it("preserves a validation error rather than turning it into method-not-allowed", async () => {
+    const response = await proxyBackend("/api/calculate", { method: "POST", body: "{}" }, `${base}/`);
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { code: "INVALID", fieldPath: "requestId" } });
+  });
+
+  it("rejects malformed JSON", async () => {
+    const response = await fetch(`${base}/api/calculate`, { method: "POST", body: "not JSON" });
+    expect(response.status).toBe(422);
+  });
+
+  it.each([null, "invalid", []])("rejects a non-object scenario: %j", async (scenario) => {
+    const response = await fetch(`${base}/api/calculate`, { method: "POST", body: JSON.stringify({ requestId: "test", analysisId: "test-analysis", revision: 0, scenario }) });
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { fieldPath: "scenario" } });
+  });
+
+  it("returns a distinct payload-too-large response", async () => {
+    const response = await fetch(`${base}/api/calculate`, { method: "POST", body: JSON.stringify({ data: "x".repeat(1_000_001) }) });
+    expect(response.status).toBe(413);
+    expect(await response.json()).toMatchObject({ error: { code: "TOO_LARGE" } });
+  });
+
+  it("reports the allowed calculation method", async () => {
+    const response = await fetch(`${base}/api/calculate`);
+    expect(response.status).toBe(405);
+    expect(response.headers.get("allow")).toBe("POST");
+  });
+
+  it("preserves a database-unavailable response", async () => {
+    const response = await proxyBackend("/api/demo/health", {}, base);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Backend data service is unavailable." });
+  });
+
+  it("returns an unknown-route 404 without loading the database", async () => {
+    const noDatabase = createMongoServer({ readDemo: async () => { throw new Error("Should not be called"); } });
+    noDatabase.listen(0, "127.0.0.1");
+    await once(noDatabase, "listening");
+    try {
+      const response = await fetch(`http://127.0.0.1:${(noDatabase.address() as AddressInfo).port}/api/unknown`);
+      expect(response.status).toBe(404);
+    } finally {
+      await new Promise<void>((resolve) => { noDatabase.close(() => resolve()); noDatabase.closeAllConnections(); });
+    }
+  });
+});

@@ -61,6 +61,13 @@ function calculatedState(): StoreState {
 }
 
 describe("extraction request matching", () => {
+  it("keeps source review notes and blockers through the member import reducer", () => {
+    const ex = extraction({ reviewNotes: [{ evidenceId: "e1", message: "Review database benefits" }] });
+    ex.evidence[0].blockingIssues = [{ fieldPath: "plan.y1.alreadyUsed", code: "PENDING_CLAIMS", message: "Pending claims prevent this comparison" }];
+    const state = reducer(initial(), { type: "applyDirectProposals", analysisId: ID, extraction: ex, now: NOW });
+    expect(record(state).draft.evidence.e1.reviewNotes).toEqual(["Review database benefits"]);
+    expect(record(state).draft.evidence.e1.blockingIssues).toEqual(ex.evidence[0].blockingIssues);
+  });
   it("applies an extraction for the active request", () => {
     const state = run(initial(), begin("r1"), apply("r1"));
     expect(record(state).draft.facts[FEE]?.value).toBe("150");

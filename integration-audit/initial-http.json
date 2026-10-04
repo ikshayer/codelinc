@@ -1,0 +1,335 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/demo/health",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 72,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 7,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 5,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/SYN-MEMBER-0001",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 3,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/DEMO-ALEX-001",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 5,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/INVALID",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 3,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/providers",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 5,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 3,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/analyses",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 5,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 503,
+    "elapsedMs": 11,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": {
+        "code": "UNAVAILABLE",
+        "message": "The benefits calculation engine is not ready to price this scenario yet.",
+        "retryable": true
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "//api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 405,
+    "elapsedMs": 4,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 422,
+    "elapsedMs": 3,
+    "payload": {},
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Missing field: requestId.",
+        "retryable": false,
+        "fieldPath": "requestId"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://127.0.0.1:3001",
+    "status": 422,
+    "elapsedMs": 4,
+    "payload": "malformed JSON",
+    "summary": {
+      "error": {
+        "code": "INVALID",
+        "message": "Invalid JSON request.",
+        "retryable": false
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/interpret",
+    "base": "http://127.0.0.1:3001",
+    "status": 405,
+    "elapsedMs": 3,
+    "payload": {
+      "requestId": "audit",
+      "draftRevision": 0,
+      "text": "synthetic audit",
+      "syntheticDataAcknowledged": true
+    },
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/health",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 241,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 680,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 73,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/SYN-MEMBER-0001",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 9696,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/DEMO-ALEX-001",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 75,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/members/INVALID",
+    "base": "http://localhost:3000",
+    "status": 503,
+    "elapsedMs": 53,
+    "summary": {
+      "error": "Backend data service is unavailable."
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/demo/providers",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 131,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 152,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/analyses",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 119,
+    "summary": {
+      "nonJson": true
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 405,
+    "elapsedMs": 356,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "//api/calculate",
+    "base": "http://localhost:3000",
+    "status": 405,
+    "elapsedMs": 50,
+    "payload": {
+      "requestId": "integration-audit",
+      "analysisId": "audit",
+      "revision": 0,
+      "scenario": {}
+    },
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 405,
+    "elapsedMs": 27,
+    "payload": {},
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/calculate",
+    "base": "http://localhost:3000",
+    "status": 405,
+    "elapsedMs": 25,
+    "payload": "malformed JSON",
+    "summary": {
+      "error": "Method not allowed."
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/interpret",
+    "base": "http://localhost:3000",
+    "status": 404,
+    "elapsedMs": 110,
+    "payload": {
+      "requestId": "audit",
+      "draftRevision": 0,
+      "text": "synthetic audit",
+      "syntheticDataAcknowledged": true
+    },
+    "summary": {
+      "nonJson": true
+    }
+  }
+]

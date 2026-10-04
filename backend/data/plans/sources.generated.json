@@ -6,7 +6,9 @@
     "path": "data/sources/northwind-ppo-2026-benefit-summary.md",
     "sha256": "6f3a25e5b191b99546cd5f1109c3ce5ea71293f742e41c37474f87b0d3f77f44",
     "media_type": "text/markdown",
-    "plan_version_id": "nwd-ppo-standard-2026",
+    "plan_version_ids": [
+      "nwd-ppo-standard-2026"
+    ],
     "retrieved_at": "2026-10-01T12:00:00Z",
     "synthetic": true,
     "pages": [
@@ -39,7 +41,9 @@
     "path": "data/sources/northwind-ppo-2027-benefit-summary.md",
     "sha256": "68a2d8c2640bae69b6177d824026384d9d74455a291e49e18b3cb8cb66becb6c",
     "media_type": "text/markdown",
-    "plan_version_id": "nwd-ppo-standard-2027",
+    "plan_version_ids": [
+      "nwd-ppo-standard-2027"
+    ],
     "retrieved_at": "2026-10-01T12:00:00Z",
     "synthetic": true,
     "pages": [
@@ -72,7 +76,9 @@
     "path": "data/sources/northwind-ppo-2026-carryover-rider.md",
     "sha256": "0c947e68da1832d4aa3bd23a80f094e8d47424fc7ab5b5731ae727b156c02ea2",
     "media_type": "text/markdown",
-    "plan_version_id": "nwd-ppo-standard-2026",
+    "plan_version_ids": [
+      "nwd-ppo-standard-2026"
+    ],
     "retrieved_at": "2026-10-01T12:00:00Z",
     "synthetic": true,
     "pages": [
@@ -83,6 +89,97 @@
       {
         "page": 2,
         "text": "## Carryover Balance\n\nThe carryover earned is added to the member's carryover balance. The carryover balance may not exceed $1,000; any amount above $1,000 is not carried over.\n\nIf no carryover is earned for a benefit period, the carryover balance does not continue into the next benefit period.\n\nThe carryover balance is added to the annual maximum of the next benefit period.\n\n## Next Benefit Period\n\nA carryover earned for the 2026 benefit period applies only if the member is enrolled on January 1, 2027 in the Northwind Mutual Dental PPO Standard plan for the 2027 benefit period (plan version nwd-ppo-standard-2027). It is added to the 2027 annual maximum even though no new carryover is earned during the 2027 benefit period."
+      }
+    ]
+  },
+  {
+    "source_id": "nwd-ppo-value-2026-summary",
+    "title": "Northwind Mutual Dental PPO Value 2026 Summary of Dental Benefits (synthetic)",
+    "document_role": "schedule_of_benefits",
+    "path": "data/sources/northwind-ppo-value-2026-benefit-summary.md",
+    "sha256": "d955ae694cdac8f5c3101419c712e73798fa243f931aec4c153b153007d57432",
+    "media_type": "text/markdown",
+    "plan_version_ids": [
+      "nwd-ppo-value-2026"
+    ],
+    "retrieved_at": "2026-10-01T12:00:00Z",
+    "synthetic": true,
+    "pages": [
+      {
+        "page": 1,
+        "text": "# Northwind Mutual Dental — PPO Value — 2026 Summary of Dental Benefits\n\nSYNTHETIC DOCUMENT — FOR DEMONSTRATION ONLY. This is not an actual insurance plan, carrier, or employer. All names, amounts, and rules are invented for the codeLinc 11 hackathon demo.\n\n## Plan Identification\n\n| Item | Value |\n|---|---|\n| Carrier | Northwind Mutual Dental (carrier ID: northwind-mutual) |\n| Employer group | Acme Synthetic Corporation (group ID: acme-synthetic-001) |\n| Plan option | PPO Value (option ID: ppo-value) |\n| State | VA |\n| Network | Northwind Dental PPO Network (network ID: nwd-ppo) |\n| Plan type | Dental PPO (DPPO) |\n\n## Benefit Period\n\nThe benefit period is the calendar year: January 1, 2026 through December 31, 2026.\n\nBenefits are applied based on the date of service. The deductible and the annual maximum reset on January 1, 2027."
+      },
+      {
+        "page": 2,
+        "text": "## Deductible and Maximums\n\nIndividual deductible: $100 per member per benefit period.\n\nThe deductible applies to Basic and Major services. The deductible does not apply to Diagnostic & Preventive services.\n\nThe deductible is combined for in-network and out-of-network services.\n\nAnnual maximum: $1,000 per member per benefit period, combined for in-network and out-of-network services.\n\nPlan payments for Basic and Major services count toward the annual maximum. Payments for Diagnostic & Preventive services do not count toward the annual maximum.\n\nOrthodontic lifetime maximum: Not applicable. Orthodontic services are not covered under this plan.\n\n## Coverage Levels\n\n| Service class | In-network plan pays | Out-of-network plan pays |\n|---|---|---|\n| Diagnostic & Preventive | 100% | 80% |\n| Basic | 70% | 50% |\n| Major | 40% | 30% |\n| Orthodontics | Not covered | Not covered |\n\nIn-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible.\n\nOut-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+      },
+      {
+        "page": 3,
+        "text": "## Service Classifications\n\nThe plan assigns each procedure code to exactly one service class.\n\n| Service class | Procedure codes |\n|---|---|\n| Diagnostic & Preventive | D0120, D0140, D0150, D0210, D0220, D0274, D1110 |\n| Basic | D2140, D2391, D2392, D3330 |\n| Major | D2740, D2750, D2950, D6010 |\n\nEndodontic therapy (D3330) is classified as a Basic service under this plan.\n\n## Waiting Periods\n\nMajor services have a waiting period of 12 months from the member's coverage effective date.\n\nThere are no waiting periods for Diagnostic & Preventive or Basic services."
+      },
+      {
+        "page": 4,
+        "text": "## Limitations\n\nThis section lists every frequency limitation that applies under this plan.\n\n| Procedure codes | Limitation |\n|---|---|\n| D0120, D0140, D0150 (oral evaluations) | 2 per member per benefit period, combined |\n| D1110 (prophylaxis) | 2 per member per benefit period |\n| D0210 (full-mouth radiographs) | 1 per member per 60 months |\n| D2740, D2750 (crowns) | 1 per tooth per 60 months |\n\n## Exclusions\n\nThis section lists every exclusion that applies under this plan.\n\nCosmetic services, including D9972 external bleaching, are not covered.\n\nImplants (D6010) are classified as Major services but are not covered under this plan.\n\n## Alternate Benefits\n\nThis plan does not apply an alternate benefit to posterior composite (tooth-colored) restorations. No other alternate benefit provisions apply.\n\n## Sublimits\n\nNo service-specific sublimits apply under this plan."
+      },
+      {
+        "page": 5,
+        "text": "## Out-of-Network Allowance Schedule\n\n| Procedure code | Out-of-Network Allowance |\n|---|---|\n| D0120 | $40 |\n| D0140 | $65 |\n| D0150 | $75 |\n| D0210 | $90 |\n| D0220 | $25 |\n| D1110 | $70 |\n| D2392 | $150 |\n| D3330 | $900 |\n| D2740 | $950 |\n\nOut-of-network dentists may bill the member for the difference between their charge and the plan's payment (balance billing).\n\n## Claim Submission and Direct Payment\n\nNetwork dentists submit claims on the member's behalf. A member may ask a network dentist not to submit a claim and pay the dentist directly.\n\nServices paid without a claim are not recorded by the plan: they do not reduce the deductible or annual maximum and do not count toward frequency limitations.\n\nThe network fee schedule does not apply to services paid without a claim; the price is set by agreement between the member and the dentist.\n\n## Pre-Treatment Estimates\n\nA pre-treatment estimate is recommended when planned treatment is expected to exceed $300. A pre-treatment estimate is not a guarantee of payment.\n\n## Maximum Carryover\n\nNo maximum carryover feature applies for the 2026 benefit period.\n\n## Coordination of Benefits\n\nWhen a member is covered by more than one dental plan, benefits are coordinated using the standard method."
+      }
+    ]
+  },
+  {
+    "source_id": "nwd-ppo-enhanced-2026-summary",
+    "title": "Northwind Mutual Dental PPO Enhanced 2026 Summary of Dental Benefits (synthetic)",
+    "document_role": "schedule_of_benefits",
+    "path": "data/sources/northwind-ppo-enhanced-2026-benefit-summary.md",
+    "sha256": "b44188cc4aacab540a4389e8139b2f2944c443263da953200599e1d442784a15",
+    "media_type": "text/markdown",
+    "plan_version_ids": [
+      "nwd-ppo-enhanced-2026"
+    ],
+    "retrieved_at": "2026-10-01T12:00:00Z",
+    "synthetic": true,
+    "pages": [
+      {
+        "page": 1,
+        "text": "# Northwind Mutual Dental — PPO Enhanced — 2026 Summary of Dental Benefits\n\nSYNTHETIC DOCUMENT — FOR DEMONSTRATION ONLY. This is not an actual insurance plan, carrier, or employer. All names, amounts, and rules are invented for the codeLinc 11 hackathon demo.\n\n## Plan Identification\n\n| Item | Value |\n|---|---|\n| Carrier | Northwind Mutual Dental (carrier ID: northwind-mutual) |\n| Employer group | Acme Synthetic Corporation (group ID: acme-synthetic-001) |\n| Plan option | PPO Enhanced (option ID: ppo-enhanced) |\n| State | VA |\n| Network | Northwind Dental PPO Network (network ID: nwd-ppo) |\n| Plan type | Dental PPO (DPPO) |\n\n## Benefit Period\n\nThe benefit period is the calendar year: January 1, 2026 through December 31, 2026.\n\nBenefits are applied based on the date of service. The deductible and the annual maximum reset on January 1, 2027."
+      },
+      {
+        "page": 2,
+        "text": "## Deductible and Maximums\n\nIndividual deductible: $50 per member per benefit period.\n\nThe deductible applies to Basic and Major services. The deductible does not apply to Diagnostic & Preventive services.\n\nThe deductible is combined for in-network and out-of-network services.\n\nAnnual maximum: $2,500 per member per benefit period, combined for in-network and out-of-network services.\n\nPlan payments for Basic and Major services count toward the annual maximum. Payments for Diagnostic & Preventive services do not count toward the annual maximum.\n\nOrthodontic lifetime maximum: $1,500 per member. Plan payments for Orthodontic services count only toward the orthodontic lifetime maximum and do not count toward the annual maximum. The deductible does not apply to Orthodontic services.\n\n## Coverage Levels\n\n| Service class | In-network plan pays | Out-of-network plan pays |\n|---|---|---|\n| Diagnostic & Preventive | 100% | 100% |\n| Basic | 90% | 80% |\n| Major | 60% | 50% |\n| Orthodontics | 50% | 50% |\n\nIn-network coinsurance is applied to the network dentist's contracted fee (allowed amount) after any deductible.\n\nOut-of-network coinsurance is applied to the plan's Out-of-Network Allowance after any deductible."
+      },
+      {
+        "page": 3,
+        "text": "## Service Classifications\n\nThe plan assigns each procedure code to exactly one service class.\n\n| Service class | Procedure codes |\n|---|---|\n| Diagnostic & Preventive | D0120, D0140, D0150, D0210, D0220, D0274, D1110 |\n| Basic | D2140, D2391, D2392, D3330 |\n| Major | D2740, D2750, D2950, D6010 |\n| Orthodontic | D8080 |\n\nEndodontic therapy (D3330) is classified as a Basic service under this plan.\n\n## Waiting Periods\n\nThere are no waiting periods for any service class under this plan."
+      },
+      {
+        "page": 4,
+        "text": "## Limitations\n\nThis section lists every frequency limitation that applies under this plan.\n\n| Procedure codes | Limitation |\n|---|---|\n| D0120, D0140, D0150 (oral evaluations) | 2 per member per benefit period, combined |\n| D1110 (prophylaxis) | 2 per member per benefit period |\n| D0210 (full-mouth radiographs) | 1 per member per 60 months |\n| D2740, D2750 (crowns) | 1 per tooth per 60 months |\n\n## Exclusions\n\nThis section lists every exclusion that applies under this plan.\n\nCosmetic services, including D9972 external bleaching, are not covered.\n\n## Alternate Benefits\n\nThis plan does not apply an alternate benefit to posterior composite (tooth-colored) restorations. No other alternate benefit provisions apply.\n\n## Sublimits\n\nNo service-specific sublimits apply under this plan."
+      },
+      {
+        "page": 5,
+        "text": "## Out-of-Network Allowance Schedule\n\n| Procedure code | Out-of-Network Allowance |\n|---|---|\n| D0120 | $40 |\n| D0140 | $65 |\n| D0150 | $75 |\n| D0210 | $90 |\n| D0220 | $25 |\n| D1110 | $70 |\n| D2392 | $150 |\n| D3330 | $900 |\n| D2740 | $950 |\n\nOut-of-network dentists may bill the member for the difference between their charge and the plan's payment (balance billing).\n\n## Claim Submission and Direct Payment\n\nNetwork dentists submit claims on the member's behalf. A member may ask a network dentist not to submit a claim and pay the dentist directly.\n\nServices paid without a claim are not recorded by the plan: they do not reduce the deductible or annual maximum and do not count toward frequency limitations.\n\nThe network fee schedule does not apply to services paid without a claim; the price is set by agreement between the member and the dentist.\n\n## Pre-Treatment Estimates\n\nA pre-treatment estimate is recommended when planned treatment is expected to exceed $300. A pre-treatment estimate is not a guarantee of payment.\n\n## Maximum Carryover\n\nA carryover is earned for the 2026 benefit period when plan payments for services incurred in that benefit period that count toward the annual maximum total $700 or less.\n\nServices are assigned to a benefit period by date of service, including claims processed after the benefit period ends.\n\nAt least one claim with a plan payment that counts toward the annual maximum must be paid for services in the benefit period.\n\nThe carryover earned is $350. An additional in-network bonus of $150 is earned when at least one claim for services in the benefit period is paid to a network dentist.\n\nThe carryover earned is added to the member's carryover balance. The carryover balance may not exceed $1,250; any amount above $1,250 is not carried over.\n\nIf no carryover is earned for a benefit period, the carryover balance does not continue into the next benefit period.\n\nThe carryover balance is added to the annual maximum of the next benefit period.\n\nA carryover earned for the 2026 benefit period applies only if the member is enrolled on January 1, 2027 in the Northwind Mutual Dental PPO Enhanced plan for the 2027 benefit period (plan version nwd-ppo-enhanced-2027).\n\n## Coordination of Benefits\n\nWhen a member is covered by more than one dental plan, benefits are coordinated using the standard method."
+      }
+    ]
+  },
+  {
+    "source_id": "acme-2026-enrollment-guide",
+    "title": "Acme Synthetic Corporation 2026 Dental Benefits Enrollment Guide (synthetic)",
+    "document_role": "employer_summary",
+    "path": "data/sources/acme-2026-dental-enrollment-guide.md",
+    "sha256": "e3036b825d9d1d9526da45c8428188f8de84130e530359a4dc620a1a2a9f8d86",
+    "media_type": "text/markdown",
+    "plan_version_ids": [
+      "nwd-ppo-value-2026",
+      "nwd-ppo-standard-2026",
+      "nwd-ppo-enhanced-2026"
+    ],
+    "retrieved_at": "2026-10-01T12:00:00Z",
+    "synthetic": true,
+    "pages": [
+      {
+        "page": 1,
+        "text": "# Acme Synthetic Corporation — 2026 Dental Benefits Enrollment Guide\n\nSYNTHETIC DOCUMENT — FOR DEMONSTRATION ONLY. This is not an actual insurance plan, carrier, or employer. All names, amounts, and rules are invented for the codeLinc 11 hackathon demo.\n\nThis guide lists the 2026 dental plan options offered to employees of Acme Synthetic Corporation (group ID: acme-synthetic-001) in VA through Northwind Mutual Dental. Coverage terms are described in each option's Summary of Dental Benefits; where this guide and a summary differ on coverage, the summary governs.\n\n## Monthly Premiums\n\nAmounts are the employee's monthly contribution for the 2026 plan year.\n\n| Plan option | Employee only | Employee + spouse | Employee + child(ren) | Family |\n|---|---|---|---|---|\n| PPO Value | $9.80 | $19.60 | $21.10 | $31.40 |\n| PPO Standard | $18.25 | $36.50 | $39.20 | $58.40 |\n| PPO Enhanced | $31.60 | $63.20 | $67.90 | $101.10 |"
       }
     ]
   }

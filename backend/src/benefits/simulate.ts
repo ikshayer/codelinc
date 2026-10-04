@@ -56,6 +56,8 @@ export function money(m: SourcedMoney, scenario: Scenario, dir: MemberCostDirect
 }
 const highest = (m: SourcedMoney): Cents | null =>
   m.source === "NEEDS_CONFIRMATION" || m.value.kind === "unknown" ? null : m.value.kind === "exact" ? m.value.cents : m.value.high_cents;
+const lowest = (m: SourcedMoney): Cents | null =>
+  m.source === "NEEDS_CONFIRMATION" || m.value.kind === "unknown" ? null : m.value.kind === "exact" ? m.value.cents : m.value.low_cents;
 
 // ---------------------------------------------------------------------------
 // Ledger
@@ -217,7 +219,6 @@ export function closeYear(
   closing: Period,
   member: MemberState,
   asOfDate: IsoDate,
-  scenario: Scenario,
   closingLines: AdjudicationLine[],
 ): RolloverOutcome | null {
   const plan = closing.plan;
@@ -247,15 +248,19 @@ export function closeYear(
     issues.push(issue("ROLLOVER_NEXT_PLAN_INELIGIBLE", "warning", "Your plan for next year does not accept this carryover, so none is added.", { rule_id: r.rule_id }));
   }
 
-  // Settled plan payments and prior balance.
+  // Settled plan payments and prior balance. (1.6, R2-M1) Both are resolved the same way in every
+  // scenario: a ranged settled amount widens the qualifying range, and only an exact prior balance
+  // is used (a ranged one needs confirmation when it matters).
   const snapIdx = member.accumulators.findIndex((a) => a.plan_version_id === pvid);
   const snap = member.accumulators[snapIdx];
   const field = `member.accumulators[${snapIdx}]`;
-  let settled: Cents | null;
+  let settled: AmountRange | null;
   let prior: Cents | null;
   let settledOp: CalcOperand;
+  let settledSpreadOps: CalcOperand[] = [];
   let priorOp: CalcOperand;
   const carry = snap?.carryover_balance ?? null;
+  const exactCarry = carry && carry.source !== "NEEDS_CONFIRMATION" && carry.value.kind === "exact" ? carry.value.cents : null;
   if (closing.state === null) {
     settled = null;
     prior = null;
@@ -263,15 +268,21 @@ export function closeYear(
     priorOp = op("prior_bank", ruleFact, { text: "unknown" });
     missing(`The ${y} balances are unknown, so the carryover needs confirmation.`, { field: "member.accumulators" });
   } else if (closing.state.opened_from === "snapshot" && snap) {
-    settled = money(snap.plan_paid_ytd, scenario, "higher_is_worse");
-    inputIds.push(snap.plan_paid_ytd.input_id);
-    settledOp = op("settled_plan_paid", input(snap.plan_paid_ytd.input_id), settled === null ? { text: "unknown" } : { cents: settled });
-    if (settled === null) missing(`The plan paid so far for ${y} is unknown, so the carryover needs confirmation.`, { field: `${field}.plan_paid_ytd`, input_id: snap.plan_paid_ytd.input_id });
-    prior = carry ? money(carry, scenario, "higher_is_better") : null;
+    const low = lowest(snap.plan_paid_ytd);
+    const high = highest(snap.plan_paid_ytd);
+    const paidId = snap.plan_paid_ytd.input_id;
+    settled = low === null || high === null ? null : { low_cents: low, high_cents: high };
+    inputIds.push(paidId);
+    settledOp = op("settled_plan_paid", input(paidId), settled === null ? { text: "unknown" } : { cents: settled.low_cents });
+    if (settled && settled.high_cents > settled.low_cents) {
+      settledSpreadOps = [op("settled_plan_paid_range", input(paidId), { cents: settled.high_cents - settled.low_cents })];
+    }
+    if (settled === null) missing(`The plan paid so far for ${y} is unknown, so the carryover needs confirmation.`, { field: `${field}.plan_paid_ytd`, input_id: paidId });
+    prior = exactCarry;
     if (carry) inputIds.push(carry.input_id);
-    priorOp = carry ? op("prior_bank", input(carry.input_id), prior === null ? { text: "unknown" } : { cents: prior }) : op("prior_bank", ruleFact, { text: "unknown" });
+    priorOp = carry ? op("prior_bank", input(carry.input_id), prior === null ? { text: "not exact" } : { cents: prior }) : op("prior_bank", ruleFact, { text: "unknown" });
   } else {
-    settled = 0;
+    settled = { low_cents: 0, high_cents: 0 };
     prior = closing.carriedIn;
     settledOp = op("settled_plan_paid", ruleFact, { text: "none (period opened from plan rules)" });
     priorOp = op("prior_bank", ruleFact, { cents: prior });
@@ -294,11 +305,11 @@ export function closeYear(
   const countedOps = counted.map((l) => op("plan_pay", `calc:${calcStepId(l.line_id, "plan_pay")}`, { cents: l.plan_pay_cents ?? 0 }));
 
   const known = settled !== null && pending !== null;
-  const qLow = known ? settled! + simulated : null;
-  const qHigh = known ? qLow! + pending! : null;
+  const qLow = known ? settled!.low_cents + simulated : null;
+  const qHigh = known ? settled!.high_cents + simulated + pending! : null;
   const passes = (q: Cents) => (v.threshold_comparison === "LT" ? q < v.threshold_cents : q <= v.threshold_cents);
-  const eligLow = !v.requires_at_least_one_eligible_claim || (settled ?? 0) > 0 || simulated > 0;
-  const eligHigh = eligLow || (pending ?? 0) > 0;
+  const eligLow = !v.requires_at_least_one_eligible_claim || (settled?.low_cents ?? 0) > 0 || simulated > 0;
+  const eligHigh = eligLow || (settled?.high_cents ?? 0) > 0 || (pending ?? 0) > 0;
   const qualifiesBest = known && nextEligible && passes(qLow!) && eligHigh;
   const qualifiesWorst = known && nextEligible && passes(qHigh!) && eligLow;
 
@@ -310,14 +321,15 @@ export function closeYear(
       (l) => l.status === "OK" && l.plan_version_id === pvid && l.network_tier === "in_network" && l.claim_route === "IN_NETWORK_CLAIM" && (l.plan_pay_cents ?? 0) > 0,
     );
     // The network of settled and pending claims is unknown.
-    bonusHigh = bonusLow || (settled ?? 0) + (pending ?? 0) > 0;
+    bonusHigh = bonusLow || (settled?.high_cents ?? 0) + (pending ?? 0) > 0;
   }
   const bonus: AmountRange = { low_cents: bonusLow ? v.network_bonus_cents : 0, high_cents: bonusHigh ? v.network_bonus_cents : 0 };
 
   // Bank (ROLL-005).
   const addsToPrior = v.existing_bank_treatment === "ADD_AND_CAP";
   if (qualifiesBest && addsToPrior && prior === null && !needsConfirmation) {
-    missing(`Your current carryover balance is unknown, so the ${y} carryover needs confirmation.`, { field: `${field}.carryover_balance`, input_id: carry?.input_id ?? null });
+    const why = carry && carry.value.kind === "range" ? "is not exact" : "is unknown";
+    missing(`Your current carryover balance ${why}, so the ${y} carryover needs confirmation.`, { field: `${field}.carryover_balance`, input_id: carry?.input_id ?? null });
   }
   const uncapped = (b: Cents) => (addsToPrior ? prior! : 0) + v.base_award_cents + b;
   const bank = (b: Cents) => Math.min(v.bank_cap_cents, uncapped(b));
@@ -342,7 +354,7 @@ export function closeYear(
         "ROLLOVER_UNCERTAIN",
         "warning",
         qualifiesBest !== qualifiesWorst
-          ? `Your carryover cannot be confirmed yet because a pending claim could put the total ${v.threshold_comparison === "LT" ? "at or above" : "above"} the ${formatUsd(v.threshold_cents)} threshold.`
+          ? `Your carryover cannot be confirmed yet because ${(pending ?? 0) > 0 ? "a pending claim" : "the plan payments reported so far are not exact and"} could put the total ${v.threshold_comparison === "LT" ? "at or above" : "above"} the ${formatUsd(v.threshold_cents)} threshold.`
           : "Your carryover amount cannot be confirmed yet because it depends on claims whose network is not known.",
         { rule_id: r.rule_id },
       ),
@@ -371,8 +383,8 @@ export function closeYear(
   add(
     "qualifying_high",
     "Plan payments toward the maximum (with pending claims)",
-    "qualifying_low + pending_plan_pay",
-    [op("qualifying_low", calc("qualifying_low"), val(qLow)), ...pendingOps],
+    settledSpreadOps.length ? "qualifying_low + settled_plan_paid_range + pending_plan_pay" : "qualifying_low + pending_plan_pay",
+    [op("qualifying_low", calc("qualifying_low"), val(qLow)), ...settledSpreadOps, ...pendingOps],
     val(qHigh),
   );
   add(
@@ -415,7 +427,7 @@ export function closeYear(
     status,
     threshold_cents: v.threshold_cents,
     threshold_comparison: v.threshold_comparison,
-    settled_plan_paid_cents: settled,
+    settled_plan_paid: settled,
     pending_plan_pay_cents: pending,
     qualifying_plan_paid: known ? { low_cents: qLow!, high_cents: qHigh! } : null,
     base_award_cents: v.base_award_cents,
@@ -575,7 +587,7 @@ export function simulate(registry: PlanRegistry, request: SimulationRequest): Si
   const closed = new Map<string, RolloverOutcome | null>();
   const close = (p: Period): RolloverOutcome | null => {
     const id = p.plan.plan_version_id;
-    if (!closed.has(id)) closed.set(id, closeYear(registry, p, member, asOfDate, scenario, lines.filter((l) => l.plan_version_id === id)));
+    if (!closed.has(id)) closed.set(id, closeYear(registry, p, member, asOfDate, lines.filter((l) => l.plan_version_id === id)));
     return closed.get(id)!;
   };
 

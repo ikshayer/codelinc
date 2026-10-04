@@ -56,14 +56,14 @@ export function AccountSection() {
             </div>
           )}
         </dl>
-        <p className="text-sm text-muted-foreground">This is your account, not the patient. Patient details above stay separate, and saved analyses are stored with this account.</p>
+        <p className="text-sm text-muted-foreground">Your Google account is connected. Patient details above stay separate. Saving analyses to your account is not available yet.</p>
         <Button variant="outline" onClick={() => setConfirmOpen(true)}>
           Sign out
         </Button>
         <ConfirmDialog
           open={confirmOpen}
           title="Sign out?"
-          description="You'll return to guest mode and drafts held in this browser are cleared. Analyses saved to your account stay there."
+          description="You'll return to guest mode and drafts held in this browser are cleared."
           confirmLabel="Sign out"
           busyLabel="Signing out"
           failureLead="Couldn't sign out."
@@ -78,10 +78,10 @@ export function AccountSection() {
     <div className="space-y-5">
       {auth.status === "expired" ? (
         <Notice tone="warning" title="Your session ended">
-          Sign in again to keep saving analyses to your account. Your current draft is still here.
+          Sign in again to reconnect your account. Your current draft is still here.
         </Notice>
       ) : (
-        <p className="text-base">Sign in to save analyses across visits.</p>
+        <p className="text-base">Connect your Google account to CareWindow.</p>
       )}
       <GoogleSignInControl google={google} />
       {auth.status === "guest" && <p className="text-sm text-muted-foreground">You can keep using CareWindow as a guest. Guest analyses last only for this session.</p>}

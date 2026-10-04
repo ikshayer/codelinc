@@ -17,6 +17,7 @@ import {
   HTTP_STATUS,
   issue,
   PassportRequest,
+  PlanOptionsRequest,
   VisitNavigatorBody,
   type ApiErrorCode,
   type ErrorEnvelope,
@@ -28,6 +29,8 @@ import type { ApiDeps, ApiHandler, ApiHandlers, ApiModule, ApiRequestLike, ApiRe
 import { buildExplanationInput, createAiAdapters, validateExplanation } from "@/ai";
 import { benefitEngine, loadRegistry } from "@/benefits";
 import { createCarePlanOptimizer, createVisitNavigator } from "@/optimizer";
+
+export { readMongoDemo } from "./mongo-demo";
 
 const REQUEST_ID = /^[A-Za-z0-9-]{1,64}$/;
 
@@ -120,6 +123,7 @@ export function createApiHandlers(deps: Partial<ApiDeps> = {}): ApiHandlers {
         );
       }
     }),
+    plan_options: handler(PlanOptionsRequest, (body) => d().benefits.planOptions(d().registry, body.member, body.as_of)),
     visit_navigator: handler(VisitNavigatorBody, (body) => d().visitNavigator.navigate(d().registry, body)),
     intake_extract: handler(ExtractBody, (body) => d().ai.extractor.extract(body)),
     intake_confirm: handler(ConfirmRequest, (body) => {

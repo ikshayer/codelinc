@@ -68,7 +68,8 @@ describe("AT-20 PLAN-001 exact plan resolution", () => {
   const changes: [keyof PlanKey, string][] = [
     ["carrier_id", "other-carrier"],
     ["group_id", "other-group"],
-    ["plan_option_id", "ppo-enhanced"],
+    // (1.6) ppo-enhanced and ppo-value are now seeded options; use one that is not (AT-22 covers the seeded ones).
+    ["plan_option_id", "ppo-premier"],
     ["jurisdiction", "MD"],
     ["network_id", "other-net"],
   ];
@@ -325,5 +326,7 @@ describe("AT-20 §6.5 / REC-006 explicit, stable order", () => {
     for (let i = 0; i < 2; i += 1) expect(keys(optimize())).toEqual(base);
     expect(keys(optimize((q) => (q.providers = permute(q.providers))))).toEqual(base);
     expect(keys(optimize((q) => (q.procedures = permute(q.procedures))))).toEqual(base);
-  });
+    // (1.6) Five full golden optimizations (~0.7 s each on the Windows baseline host) exceed Vitest's
+    // 5 s default under parallel load; the bound is explicit instead of inherited.
+  }, 30_000);
 });

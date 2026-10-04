@@ -122,7 +122,13 @@ function rolloverClaim(o: RolloverOutcome, events: ScheduledEvent[]): Claim {
   const threshold = formatUsd(o.threshold_cents);
   const below = o.threshold_comparison === "LT" ? "below" : "at or below";
   const over = o.threshold_comparison === "LT" ? "at or above" : "above";
-  const paid = o.settled_plan_paid_cents === null ? null : `Your plan has paid ${formatUsd(o.settled_plan_paid_cents)} toward this year's maximum so far.`;
+  const s = o.settled_plan_paid;
+  const paid =
+    s === null
+      ? null
+      : s.low_cents === s.high_cents
+        ? `Your plan has paid ${formatUsd(s.low_cents)} toward this year's maximum so far.`
+        : `Your plan has paid between ${formatUsd(s.low_cents)} and ${formatUsd(s.high_cents)} toward this year's maximum so far.`;
   switch (o.status) {
     case "CONDITIONAL":
       return {
@@ -132,7 +138,10 @@ function rolloverClaim(o: RolloverOutcome, events: ScheduledEvent[]): Claim {
     case "EARNED":
       return { text: `Under the verified plan rule, ${formatUsd(o.final_bank!.low_cents)} is carried to next year's maximum.`, fact_ids: [rule, step("final_bank")] };
     case "UNCERTAIN":
-      return { text: `Your carryover cannot be confirmed yet because a pending claim could put the total ${over} the ${threshold} threshold.`, fact_ids: [rule, step("qualifying_high"), step("final_bank")] };
+      return {
+        text: `Your carryover cannot be confirmed yet because ${(o.pending_plan_pay_cents ?? 0) > 0 ? "a pending claim" : "the plan payments reported so far are not exact and"} could put the total ${over} the ${threshold} threshold.`,
+        fact_ids: [rule, step("qualifying_high"), step("final_bank")],
+      };
     case "NEEDS_CONFIRMATION":
       return { text: "Your carryover needs confirmation before it can be estimated.", fact_ids: [rule] };
     case "NOT_EARNED": {
@@ -141,8 +150,11 @@ function rolloverClaim(o: RolloverOutcome, events: ScheduledEvent[]): Claim {
         const sh = shifted.rollover_shift!;
         const l = shifted.line_worst;
         const what = `${l.cdt_code}${l.tooth ? `, tooth ${l.tooth},` : ""}`;
+        const d = sh.member_cost_delta_cents;
+        const costChange =
+          d > 0 ? `increases your estimated cost by ${formatUsd(d)}` : d < 0 ? `lowers your estimated cost by ${formatUsd(-d)}` : "does not change your estimated cost";
         return {
-          text: `${paid} Your flexible ${what} visit on ${formatDisplayDate(l.service_date)} is estimated to add ${formatUsd(sh.plan_pay_in_closing_period_cents)} of plan payment, which would put the total ${over} ${threshold}. Moving it to ${formatDisplayDate(sh.moved_to_date)} is optional, stays within your dentist's window, and changes your estimated cost by ${formatUsd(Math.abs(sh.member_cost_delta_cents))}.`,
+          text: `${paid} Your flexible ${what} visit on ${formatDisplayDate(l.service_date)} is estimated to add ${formatUsd(sh.plan_pay_in_closing_period_cents)} of plan payment, which would put the total ${over} ${threshold}. Moving it to ${formatDisplayDate(sh.moved_to_date)} is optional, stays within your dentist's window, and ${costChange}.`,
           fact_ids: [rule, step("qualifying_low"), `calc:${l.line_id}.plan_pay`],
         };
       }
@@ -312,6 +324,8 @@ export const validateExplanation: AiModule["validateExplanation"] = (explanation
   const steps = new Set<string>();
   walk(result, (k, v) => {
     if (k.endsWith("_cents") && typeof v === "number") cents.add(v);
+    // (1.6) A signed difference is stated as a direction plus its size ("lowers … by $9").
+    if (k.endsWith("_delta_cents") && typeof v === "number") cents.add(Math.abs(v));
     if (k === "input_id" && typeof v === "string") inputs.add(v);
     if (k === "input_ids" && Array.isArray(v)) v.forEach((x) => inputs.add(String(x)));
     if (k === "fact_id" && typeof v === "string" && v.startsWith("input:")) inputs.add(v.slice(6));

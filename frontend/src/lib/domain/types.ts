@@ -270,6 +270,9 @@ export interface IntakeEvidence {
   turnId?: string;
   literalQuote?: string;
   receivedAt: string;
+  /** Source information that must survive intake and remain visible in review. */
+  reviewNotes?: string[];
+  blockingIssues?: Pick<ValidationIssue, "fieldPath" | "code" | "message">[];
 }
 
 /** null means unknown. Unknown is never treated as zero. */

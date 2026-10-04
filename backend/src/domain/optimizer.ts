@@ -166,6 +166,18 @@ export type VisitNavigatorResult = z.infer<typeof VisitNavigatorResult>;
 // After the visit: Care Plan Optimizer (spec §6, §7)
 // ---------------------------------------------------------------------------
 
+/**
+ * (1.7) §6.2 member-selectable priority. Every mode keeps the hard constraints (safe windows,
+ * dependencies) and ranks unscheduled confirmed care first; only the order of the remaining
+ * objectives changes (CONTRACT §5.5).
+ */
+export const RecommendationMode = z.enum(["BALANCED", "LOWEST_TOTAL_COST", "EARLIEST_SAFE_COMPLETION", "SMOOTHEST_PAYMENTS"]);
+export type RecommendationMode = z.infer<typeof RecommendationMode>;
+
+/** (1.7) The monthly limits stay in `member.budget` (one source of truth). */
+export const RecommendationPreferences = z.strictObject({ mode: RecommendationMode });
+export type RecommendationPreferences = z.infer<typeof RecommendationPreferences>;
+
 export const CarePlanRequest = z.strictObject({
   as_of: IsoDateTime,
   member: MemberState,
@@ -174,10 +186,17 @@ export const CarePlanRequest = z.strictObject({
   /** Last date considered; must be >= every latest_safe_date. */
   planning_horizon_end: IsoDate,
   max_alternatives: z.number().int().min(1).max(3),
+  /** (1.7) Optional; absent = `{ mode: "BALANCED" }` (old requests still parse). */
+  preferences: RecommendationPreferences.optional(),
 });
 export type CarePlanRequest = z.infer<typeof CarePlanRequest>;
 
-export const AlternativeLabel = z.enum(["lowest_total_cost", "earliest_safe_completion", "smoothest_monthly_payments"]);
+/**
+ * `lowest_total_cost` is the BALANCED winner (dentist target dates first, then cost). (1.7)
+ * `lowest_member_cost` is the LOWEST_TOTAL_COST winner (cost before target-date lateness, still
+ * inside every safe window); it appears only when that mode is selected.
+ */
+export const AlternativeLabel = z.enum(["lowest_total_cost", "earliest_safe_completion", "smoothest_monthly_payments", "lowest_member_cost"]);
 export type AlternativeLabel = z.infer<typeof AlternativeLabel>;
 
 export const ReasonCode = z.enum([
@@ -290,6 +309,44 @@ export const MonthlyRequirement = z.strictObject({
 });
 export type MonthlyRequirement = z.infer<typeof MonthlyRequirement>;
 
+/**
+ * (1.7) §6.3 concrete differences of one alternative from the recommended one (this − recommended),
+ * computed by the optimizer from engine values (worst case). Null on the recommended alternative.
+ */
+export const AlternativeDifference = z.strictObject({
+  member_cost_delta_cents: SignedCents,
+  plan_pay_delta_cents: SignedCents,
+  peak_monthly_cash_delta_cents: SignedCents,
+  /** Every month in either schedule, ascending; missing month = 0. */
+  monthly: z.array(z.strictObject({ month: YearMonth, cash_delta_cents: SignedCents })),
+  /** Days between completion dates (positive = finishes later); null when either is unscheduled. */
+  completion_shift_days: z.number().int().nullable(),
+  /** One entry per procedure whose date differs (procedure_id order); null date = unscheduled. */
+  service_date_changes: z.array(
+    z.strictObject({ procedure_id: Id, recommended_date: IsoDate.nullable(), this_date: IsoDate.nullable(), shift_days: z.number().int().nullable() }),
+  ),
+  /** Σ final_bank over this schedule's rollover outcomes minus the recommended's; null when either has a null final_bank. */
+  rollover_final_bank_delta: z.strictObject({ low_cents: SignedCents, high_cents: SignedCents }).nullable(),
+  /** Annual maximum remaining after the last event in each plan version both schedules touch (others omitted). */
+  annual_max_remaining_delta: z.array(z.strictObject({ plan_version_id: Id, delta_cents: SignedCents })),
+  /** Issue codes on this alternative but not on the recommended, and the reverse (sorted, unique). */
+  warnings_added: z.array(IssueCode),
+  warnings_removed: z.array(IssueCode),
+});
+export type AlternativeDifference = z.infer<typeof AlternativeDifference>;
+
+/** (1.7) §6.4. `elapsed_ms` is always null: engines never read the clock (identical inputs → identical outputs). */
+export const SolverMeta = z.strictObject({
+  status: z.enum(["OPTIMAL", "BOUNDED_BEST_FOUND", "NO_FEASIBLE_SOLUTION"]),
+  candidates_built: z.number().int().min(0),
+  schedules_evaluated: z.number().int().min(0),
+  schedules_rejected: z.number().int().min(0),
+  elapsed_ms: z.null(),
+  deterministic_tie_breaker: z.string(),
+  bounds_applied: z.array(z.string()),
+});
+export type SolverMeta = z.infer<typeof SolverMeta>;
+
 /** Lexicographic objective (spec §7.5), all values worst-case. Lower is better for every field. */
 export const ObjectiveVector = z.strictObject({
   /** [act_now, schedule_soon, can_plan_later] */
@@ -331,6 +388,8 @@ export const Alternative = z.strictObject({
   issues: z.array(Issue),
   /** (1.5) Worst-case year-close carryover outcomes of this schedule (CONTRACT §5.10). Not a ranking input. */
   rollover: z.array(RolloverOutcome),
+  /** (1.7) §6.3; null on the recommended alternative. */
+  difference_from_recommended: AlternativeDifference.nullable(),
 });
 export type Alternative = z.infer<typeof Alternative>;
 
@@ -341,7 +400,12 @@ export const CarePlanResult = z.strictObject({
   as_of: IsoDateTime,
   as_of_date: IsoDate,
   recommended_alternative_id: Id.nullable(),
-  /** At most 3 distinct schedules; order: lowest_total_cost, earliest_safe_completion, smoothest (first label wins). */
+  /** (1.7) The mode used (request preference, default BALANCED). */
+  mode: RecommendationMode,
+  /**
+   * At most 3 distinct schedules. (1.7) The mode's winner first (= recommended), then the other label
+   * winners in order lowest_total_cost, earliest_safe_completion, smoothest (first label wins).
+   */
   alternatives: z.array(Alternative).max(3),
   evidence: z.array(EvidenceIndexEntry),
   /** Missing/unconfirmed/stale facts the member should resolve. */
@@ -353,5 +417,7 @@ export const CarePlanResult = z.strictObject({
     schedules_feasible: z.number().int().min(0),
     pass: z.union([z.literal(1), z.literal(2)]),
   }),
+  /** (1.7) §6.4 solver status and bounds. */
+  solver_meta: SolverMeta,
 });
 export type CarePlanResult = z.infer<typeof CarePlanResult>;

@@ -58,6 +58,8 @@ export const IssueCode = z.enum([
   "ROLLOVER_UNCERTAIN",
   "ROLLOVER_NEXT_PLAN_UNKNOWN",
   "ROLLOVER_NEXT_PLAN_INELIGIBLE",
+  // (1.7) §6.5 same-day order changes member cost
+  "SAME_DAY_ORDER_AFFECTS_COST",
   // Coverage outcomes (informational, not errors)
   "EXCLUDED_SERVICE",
   "WAITING_PERIOD",

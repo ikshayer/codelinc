@@ -232,6 +232,35 @@ describe("AT-21 §14.2 #8 / ROLL-008 pending claims", () => {
     expect(text).toContain("cannot be confirmed yet");
     expect(text).not.toMatch(/\bearned\b|is carried|guarantee/i);
   });
+
+  // (1.6, R2-M1) A ranged settled amount is resolved the same way in every scenario.
+  it("a plan_paid_ytd range straddling the threshold gives the same UNCERTAIN range in both scenarios", () => {
+    const m = member({ ytd: 50000 });
+    m.accumulators[0]!.plan_paid_ytd.value = { kind: "range", low_cents: 45000, high_cents: 55000 };
+    const worst = out(sim([FILL_2027], { m }));
+    const best = out(sim([FILL_2027], { m, scenario: "best_case" }));
+    expect(worst.status).toBe("UNCERTAIN");
+    expect(worst.settled_plan_paid).toEqual(bank(45000, 55000));
+    expect(worst.qualifying_plan_paid).toEqual(bank(45000, 55000));
+    expect(worst.final_bank).toEqual(bank(0, 25000));
+    expect(worst.issues.find((i) => i.code === "ROLLOVER_UNCERTAIN")?.message).toContain("not exact");
+    expect(best).toEqual(worst);
+    const high = worst.steps.find((s) => s.step_id === rolloverStepId(PV2026, "qualifying_high"))!;
+    expect(high.operands.map((o) => o.name)).toContain("settled_plan_paid_range");
+  });
+
+  it("a ranged carryover balance in a qualifying year needs confirmation instead of using one end", () => {
+    const m = member({ ytd: 42000, carry: 0 });
+    m.accumulators[0]!.carryover_balance!.value = { kind: "range", low_cents: 0, high_cents: 50000 };
+    for (const scenario of ["worst_case", "best_case"] as const) {
+      const s = sim([FILL_2027], { m, scenario });
+      const o = out(s);
+      expect(o.status).toBe("NEEDS_CONFIRMATION");
+      expect(o.final_bank).toBeNull();
+      expect(o.issues.find((i) => i.code === "INPUT_MISSING")?.message).toContain("is not exact");
+      expect(max2027(s)).toBe(150000);
+    }
+  });
 });
 
 describe("AT-21 §14.2 #9 / ROLL-006/007 next-year plan", () => {
@@ -381,11 +410,26 @@ describe("AT-21 §5.4 explanation", () => {
     const near = await explain(nearThresholdPlan());
     expect(near.validation).toEqual({ ok: true, violations: [] });
     expect(near.text).toContain("Your plan has paid $420 toward this year's maximum so far.");
-    expect(near.text).toContain("Moving it to Jan 5, 2027 is optional, stays within your dentist's window, and changes your estimated cost by $60.");
+    expect(near.text).toContain("Moving it to Jan 5, 2027 is optional, stays within your dentist's window, and increases your estimated cost by $60.");
     const base = await explain(optimize());
     expect(base.validation.ok).toBe(true);
     expect(base.text).toContain("are not below the $500 carryover threshold, so no carryover is earned.");
     for (const t of [near.text, base.text]) for (const phrase of WORDING.forbidden_phrases) expect(t.toLowerCase()).not.toContain(phrase.toLowerCase());
+  });
+
+  // (1.6, R2-L1) A move that lowers the cost says so, and the template explanation still validates.
+  it("a negative shift delta is stated as a saving and validates", async () => {
+    let reg = mutateRule(registry(), PV2027, "deductible.2027", (r) => ({ ...r, value: { ...(r.value as object), individual_cents: 0 } }) as typeof r);
+    reg = mutateRule(reg, PV2027, "plan_share.in_network.basic.2027", (r) => ({ ...r, value: { ...(r.value as object), rate_bps: 8500 } }) as typeof r);
+    const result = nearThresholdPlan(undefined, reg);
+    const alt = result.alternatives.find((a) => a.events.some((e) => (e.rollover_shift?.member_cost_delta_cents ?? 0) < 0))!;
+    expect(alt.events.find((e) => e.rollover_shift)!.rollover_shift!.member_cost_delta_cents).toBe(-900);
+    const input = ExplanationInput.parse(
+      buildExplanationInput({ registry: reg, benefits, result: { kind: "care_plan", value: result }, procedures: fx.procedures(), focusId: alt.alternative_id }),
+    );
+    const expl = await createAiAdapters({ mode: "synthetic" }).templateExplainer.explain(input);
+    expect(validateExplanation(expl, input)).toEqual({ ok: true, violations: [] });
+    expect([expl.summary, ...expl.claims.map((c) => c.text)].join("\n")).toContain("lowers your estimated cost by $9.");
   });
 });
 

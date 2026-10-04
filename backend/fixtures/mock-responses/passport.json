@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.5.0",
+  "contract_version": "1.7.0",
   "ok": true,
   "data": {
-    "contract_version": "1.5.0",
+    "contract_version": "1.7.0",
     "as_of": "2026-10-05T14:00:00Z",
     "member_id": "member-alex-synthetic",
     "plan_version_id": "nwd-ppo-standard-2026",

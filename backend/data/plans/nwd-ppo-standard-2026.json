@@ -24,11 +24,16 @@
     {
       "source_id": "nwd-ppo-2026-carryover-rider",
       "sha256": "0c947e68da1832d4aa3bd23a80f094e8d47424fc7ab5b5731ae727b156c02ea2"
+    },
+    {
+      "source_id": "acme-2026-enrollment-guide",
+      "sha256": "e3036b825d9d1d9526da45c8428188f8de84130e530359a4dc620a1a2a9f8d86"
     }
   ],
   "source_precedence": [
     "nwd-ppo-2026-carryover-rider",
-    "nwd-ppo-2026-summary"
+    "nwd-ppo-2026-summary",
+    "acme-2026-enrollment-guide"
   ],
   "review": {
     "status": "REVIEWED",
@@ -1121,6 +1126,57 @@
           "section": "Coordination of Benefits",
           "locator": "page 5, Coordination of Benefits",
           "quote": "When a member is covered by more than one dental plan, benefits are coordinated using the standard method."
+        }
+      ],
+      "conflicts_with": [],
+      "note": null
+    },
+    {
+      "rule_id": "premium.2026",
+      "rule_type": "premium",
+      "status": "VERIFIED",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applies_when": {
+        "network": null,
+        "service_class": null,
+        "cdt_codes": null
+      },
+      "value": {
+        "basis": "EMPLOYEE_MONTHLY_CONTRIBUTION",
+        "tiers": [
+          {
+            "coverage_tier": "EMPLOYEE_ONLY",
+            "cents": 1825
+          },
+          {
+            "coverage_tier": "EMPLOYEE_SPOUSE",
+            "cents": 3650
+          },
+          {
+            "coverage_tier": "EMPLOYEE_CHILDREN",
+            "cents": 3920
+          },
+          {
+            "coverage_tier": "FAMILY",
+            "cents": 5840
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "source_id": "acme-2026-enrollment-guide",
+          "page": 1,
+          "section": "Monthly Premiums",
+          "locator": "page 1, Monthly Premiums",
+          "quote": "| PPO Standard | $18.25 | $36.50 | $39.20 | $58.40 |"
+        },
+        {
+          "source_id": "acme-2026-enrollment-guide",
+          "page": 1,
+          "section": "Monthly Premiums",
+          "locator": "page 1, Monthly Premiums",
+          "quote": "Amounts are the employee's monthly contribution for the 2026 plan year."
         }
       ],
       "conflicts_with": [],

@@ -20,13 +20,14 @@ import { formatTimestamp } from "@/lib/domain/dates";
 import { draftItems, itemActivityAt, itemPatientName, itemTitle, latestDraft, resumePath, snapshotItems, sortNewestFirst, type HistoryItem } from "./history-items";
 import { AbeGuide } from "./abe-guide";
 import { patientDetailsOf } from "./patient-details";
+import { LiveDataPanel } from "./live-data-panel";
 import { useSnapshotList } from "./use-snapshots";
 
 const RECENT_LIMIT = 5;
 
 export function Dashboard() {
   const router = useRouter();
-  const { state, createAnalysis, setMethod, startSampleAnalysis } = useAnalysisController();
+  const { state, adapters, createAnalysis, setMethod, startSampleAnalysis } = useAnalysisController();
   const pickerLabelId = useId();
   const [method, setChosenMethod] = useState<IntakeMethod | null>(null);
   const snapshots = useSnapshotList("", RECENT_LIMIT);
@@ -59,6 +60,7 @@ export function Dashboard() {
 
   return (
     <Page>
+      {adapters.mode === "live" && <LiveDataPanel />}
       <Stagger gap={0.08}>
         <StaggerItem>
           <PageHeader
@@ -155,7 +157,7 @@ export function Dashboard() {
             </StaggerItem>
           )}
 
-          <StaggerItem>
+          {adapters.mode === "demo" && <StaggerItem>
             <motion.section
               aria-labelledby="sample-heading"
               whileHover={{ y: -2 }}
@@ -176,7 +178,7 @@ export function Dashboard() {
                 </Button>
               </Press>
             </motion.section>
-          </StaggerItem>
+          </StaggerItem>}
         </Stagger>
       </div>
     </Page>

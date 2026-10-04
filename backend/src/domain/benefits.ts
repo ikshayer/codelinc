@@ -9,7 +9,7 @@
 import { z } from "zod";
 import { Issue, LineStatus, ResultStatus, RuleStatus } from "./issues";
 import { MemberState, ProcedureHistoryEntry } from "./member";
-import { NetworkTier, PlanDefinition, ServiceClass } from "./plan";
+import { NetworkTier, PlanDefinition, PlanType, ServiceClass } from "./plan";
 import { ProviderOption } from "./provider";
 import {
   AmountRange,
@@ -181,11 +181,14 @@ export const RolloverOutcome = z.strictObject({
   status: RolloverStatus,
   threshold_cents: Cents,
   threshold_comparison: z.enum(["LT", "LTE"]),
-  /** Settled plan payments toward the maximum (snapshot plan_paid_ytd; 0 for a fresh period); null = unknown. */
-  settled_plan_paid_cents: Cents.nullable(),
+  /**
+   * (1.6) Settled plan payments toward the maximum: the snapshot plan_paid_ytd as a range
+   * ({0,0} for a fresh period), the same in every scenario; null = unknown.
+   */
+  settled_plan_paid: AmountRange.nullable(),
   /** High estimate of pending claims in the period; null = unknown. */
   pending_plan_pay_cents: Cents.nullable(),
-  /** low = settled + simulated; high = low + pending. */
+  /** low = settled.low + simulated; high = settled.high + simulated + pending. */
   qualifying_plan_paid: AmountRange.nullable(),
   base_award_cents: Cents,
   network_bonus: AmountRange,
@@ -275,3 +278,32 @@ export const BenefitPassport = z.strictObject({
   issues: z.array(Issue),
 });
 export type BenefitPassport = z.infer<typeof BenefitPassport>;
+
+/**
+ * (1.6) One plan option of the member's group (CONTRACT §3.10). Items are engine values with
+ * rule ids and status; no comparison math is done here.
+ */
+export const PlanOptionSummary = z.strictObject({
+  plan_version_id: Id,
+  plan_id: Id,
+  plan_option_id: Id,
+  plan_name: z.string(),
+  plan_type: PlanType,
+  coverage_period_start: IsoDate,
+  coverage_period_end: IsoDate,
+  is_member_plan: z.boolean(),
+  /** false → the engine returns UNSUPPORTED_PLAN_TYPE for this plan. */
+  adjudication_supported: z.boolean(),
+  items: z.array(PassportItem),
+});
+export type PlanOptionSummary = z.infer<typeof PlanOptionSummary>;
+
+export const PlanOptionsResult = z.strictObject({
+  contract_version: z.string(),
+  as_of: IsoDateTime,
+  /** The member's own plan version on the as-of date; null when none resolves. */
+  member_plan_version_id: Id.nullable(),
+  options: z.array(PlanOptionSummary),
+  issues: z.array(Issue),
+});
+export type PlanOptionsResult = z.infer<typeof PlanOptionsResult>;

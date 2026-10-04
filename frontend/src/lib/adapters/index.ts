@@ -15,13 +15,13 @@ import type { Adapters } from "./types";
 
 /**
  * Service mode comes from NEXT_PUBLIC_CAREWINDOW_MODE ("demo" | "live").
- * Demo is the default and is always labeled in the UI. Live mode never falls
+ * Live is the default. Explicit demo mode is labeled in the UI. Live mode never falls
  * back to fixtures: missing services report themselves unavailable.
  */
 export function serviceMode(): ServiceMode {
   const value = process.env.NEXT_PUBLIC_CAREWINDOW_MODE;
-  if (value === undefined || value === "" || value === "demo") return "demo";
-  if (value === "live") return "live";
+  if (value === "demo") return "demo";
+  if (value === undefined || value === "" || value === "live") return "live";
   throw new Error(`NEXT_PUBLIC_CAREWINDOW_MODE must be "demo" or "live", got "${value}"`);
 }
 

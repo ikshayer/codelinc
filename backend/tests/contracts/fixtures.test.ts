@@ -98,8 +98,9 @@ describe("immutable sources", () => {
       const bytes = fs.readFileSync(path.join(ROOT, s.path));
       expect(crypto.createHash("sha256").update(bytes).digest("hex"), s.path).toBe(s.sha256);
       const pages = splitSourcePages(bytes.toString("utf8"));
-      // (1.5) The 2026 carryover rider has two pages; each summary has five.
-      expect(pages.map((p) => p.page)).toEqual(s.source_id === "nwd-ppo-2026-carryover-rider" ? [1, 2] : [1, 2, 3, 4, 5]);
+      // (1.5) The 2026 carryover rider has two pages; (1.6) the enrollment guide has one; each summary has five.
+      const expected = { "nwd-ppo-2026-carryover-rider": [1, 2], "acme-2026-enrollment-guide": [1] }[s.source_id] ?? [1, 2, 3, 4, 5];
+      expect(pages.map((p) => p.page)).toEqual(expected);
     }
   });
 });
@@ -112,6 +113,8 @@ describe("golden expectations", () => {
         expect(PLAN_RULE_TYPES).toContain(r.rule_type);
         expect(r.rule_id.startsWith(`${r.rule_type}`)).toBe(true);
         expect(r.rule_id.endsWith(`.${year}`)).toBe(true);
+        // (1.6) Registry-unique ids: each plan's ids end in its own suffix (".value.2026", ".2026", ...).
+        expect(r.rule_id.endsWith(plan.rule_id_suffix)).toBe(true);
       }
     }
   });

@@ -22,6 +22,7 @@ import type { ApiRouteId, DemoScenario } from "./api";
 import type {
   BenefitLedger,
   BenefitPassport,
+  PlanOptionsResult,
   PlanResolution,
   PlanValidationReport,
   SimulationRequest,
@@ -63,6 +64,8 @@ export interface BenefitEngine {
   simulate(registry: PlanRegistry, request: SimulationRequest): SimulationResult;
   /** Benefit Passport for the member's current period (demo step 1). */
   passport(registry: PlanRegistry, member: MemberState, asOf: IsoDateTime): BenefitPassport;
+  /** (1.6) The member's group's plan options effective on the as-of date (CONTRACT §3.10). Never throws. */
+  planOptions(registry: PlanRegistry, member: MemberState, asOf: IsoDateTime): PlanOptionsResult;
   /** Evidence for already-selected rule ids (never searches across plans). */
   evidenceFor(registry: PlanRegistry, ruleIds: readonly string[]): EvidenceIndexEntry[];
 }

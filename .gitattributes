@@ -1,5 +1,10 @@
 # Frozen/imported sources are checksummed; never convert line endings or
 # whitespace-normalize their original bytes.
+backend/** text eol=lf
 backend/data/sources/** -text
 backend/data/reference/** -text -whitespace
 backend/docs/spec/** -text -whitespace
+
+# Frozen contract files are checksummed as committed (LF); keep text files LF on checkout
+# regardless of core.autocrlf (backend/scripts/frozen-files.mjs also normalizes CRLF).
+* text=auto eol=lf
